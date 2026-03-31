@@ -1,11 +1,22 @@
 // src/Routes.ts
-import { createBrowserRouter, redirect, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import Welcome from "./home/pages/Welcome";
-import { GestionarPersonal, Menu } from "./procesos/pages";
-import { GestionarCamiones, GestionarInventario, InventarioCamiones } from "./Inventario/pages";
+import { NotFoundPage } from "./shared/pages";
+import { lazy, type JSX } from "react";
 
+type JSXComponent = () => JSX.Element;
 
-// import AppLayout from "@src/Layout";
+export interface IRoute {
+    path: string;
+    Component: React.LazyExoticComponent<JSXComponent> | JSXComponent;
+}
+
+export interface IPrivateRoute extends IRoute { roles?: string[]; }
+
+const DirectoryNavigation = lazy(() => import('@/directorio/routes/DirectoryNavigation'));
+const ProcessNavigation = lazy(() => import('@/procesos/routes/ProcessNavigation'));
+const InventoryNavigation = lazy(() => import('@/Inventario/routes/InventoryNavigation'));
+
 const Router = createBrowserRouter([
     {
         children: [
@@ -14,24 +25,20 @@ const Router = createBrowserRouter([
                 Component: Welcome,
             },
             {
-                path: "/administracion",
-                Component: GestionarPersonal,
+                path: "/directorio/*",
+                Component: DirectoryNavigation,
             },
             {
-                path: "/procesos",
-                Component: Menu,
+                path: "/procesos/*",
+                Component: ProcessNavigation,
             },
             {
-                path: "/Inventario",
-                Component: GestionarInventario,
+                path: "/inventario/*",
+                Component: InventoryNavigation,
             },
             {
-                path: "/inventario/camiones",
-                Component: InventarioCamiones,
-            },
-            {
-                path: "/inventario/gestionar-camiones",
-                Component: GestionarCamiones,
+                path: "*",
+                Component: NotFoundPage,
             },
         ],
     },
