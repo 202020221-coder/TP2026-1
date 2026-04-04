@@ -23,9 +23,9 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign In</CardTitle>
+        <CardTitle>Iniciar Sesión</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Ingrese sus credenciales para acceder
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -36,7 +36,7 @@ export function LoginForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Correo Electrónico</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="your@email.com"
@@ -55,7 +55,7 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Contraseña</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="••••••••"
@@ -76,7 +76,7 @@ export function LoginForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
           </form>
         </Form>

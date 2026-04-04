@@ -24,14 +24,14 @@ export function useLoginForm() {
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Here you would normally make an actual API call to authenticate
-      console.log("[v0] Login attempt with:", data);
+      console.log("Login attempt with:", data);
 
       // On successful login, redirect to /directorio/dashboard (or similar)
       navigate("/directorio");
     } catch (error) {
-      console.error("[v0] Login error:", error);
+      console.error("Login error:", error);
       form.setError("root", {
-        message: "An error occurred during login. Please try again.",
+        message: "Ocurrió un error. Inténtelo nuevamente.",
       });
     } finally {
       setIsLoading(false);
