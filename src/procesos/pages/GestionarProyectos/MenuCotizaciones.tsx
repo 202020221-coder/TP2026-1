@@ -87,7 +87,7 @@ export function MenuCotizaciones({
         cliente: formData.cliente || "",
         fechaEmision: formData.fechaEmision || "",
         monto: formData.monto || 0,
-        estado: (formData.estado as any) || "pendiente",
+        estado: "pendiente",
         fechaVencimiento: formData.fechaVencimiento || "",
         descripcion: formData.descripcion || "",
         validez: formData.validez || 30,
