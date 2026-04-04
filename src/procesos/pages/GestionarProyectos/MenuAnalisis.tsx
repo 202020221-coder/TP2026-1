@@ -1,7 +1,3 @@
-import React from 'react'
-
 export const MenuAnalisis = () => {
-  return (
-    <div>MenuAnalisis</div>
-  )
-}
+  return <div>MenuAnalisis</div>;
+};

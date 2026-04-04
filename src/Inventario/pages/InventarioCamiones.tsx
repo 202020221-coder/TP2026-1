@@ -1,29 +1,31 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { Layout } from "@/shared/layout/Layout"
-import { CamionesTable } from "./CamionesTable"
-import { CamionesForm } from "./CamionesForm"
+import { useState } from "react";
+import { Layout } from "@/shared/layout/Layout";
+import { CamionesTable } from "./CamionesTable";
+import { CamionesForm } from "./CamionesForm";
 
 export const InventarioCamiones = () => {
-  const [view, setView] = useState<"table" | "form">("table")
-  const [selectedCamionId, setSelectedCamionId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"available" | "unavailable">("available")
+  const [view, setView] = useState<"table" | "form">("table");
+  const [selectedCamionId, setSelectedCamionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"available" | "unavailable">(
+    "available",
+  );
 
   const handleEdit = (id: string) => {
-    setSelectedCamionId(id)
-    setView("form")
-  }
+    setSelectedCamionId(id);
+    setView("form");
+  };
 
   const handleAdd = () => {
-    setSelectedCamionId(null)
-    setView("form")
-  }
+    setSelectedCamionId(null);
+    setView("form");
+  };
 
   const handleCancel = () => {
-    setSelectedCamionId(null)
-    setView("table")
-  }
+    setSelectedCamionId(null);
+    setView("table");
+  };
 
   return (
     <Layout title="Inventario de Camiones">
@@ -38,5 +40,5 @@ export const InventarioCamiones = () => {
         <CamionesForm camionId={selectedCamionId} onCancel={handleCancel} />
       )}
     </Layout>
-  )
-}
+  );
+};

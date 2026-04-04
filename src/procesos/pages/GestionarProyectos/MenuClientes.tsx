@@ -1,7 +1,3 @@
-import React from 'react'
-
 export const MenuClientes = () => {
-  return (
-    <div>MenuClientes</div>
-  )
-}
+  return <div>MenuClientes</div>;
+};
