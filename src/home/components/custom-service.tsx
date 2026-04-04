@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Lightbulb, CheckCircle } from "lucide-react"
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { Card } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { Lightbulb, CheckCircle } from "lucide-react";
 
-export default function CustomService({  }) {
+export default function CustomService() {
   const [formData, setFormData] = useState({
     serviceName: "",
     companyName: "",
@@ -18,20 +18,22 @@ export default function CustomService({  }) {
     email: "",
     phone: "",
     description: "",
-  })
+  });
 
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
     if (formData.serviceName && formData.description) {
       // Agregar servicio personalizado al carrito
@@ -50,7 +52,7 @@ export default function CustomService({  }) {
       //     phone: formData.phone,
       //   },
       // })
-      setSubmitted(true)
+      setSubmitted(true);
       setFormData({
         serviceName: "",
         companyName: "",
@@ -61,32 +63,36 @@ export default function CustomService({  }) {
         email: "",
         phone: "",
         description: "",
-      })
-      setTimeout(() => setSubmitted(false), 3000)
+      });
+      setTimeout(() => setSubmitted(false), 3000);
     }
-  }
+  };
 
   return (
-    <Card className="p-8 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
+    <Card className="p-8 bg-linear-to-br from-primary/5 to-accent/5 border border-primary/20">
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
           <Lightbulb className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-secondary mb-2">Personaliza tus Servicios</h3>
+          <h3 className="text-2xl font-bold text-secondary mb-2">
+            Personaliza tus Servicios
+          </h3>
           <p className="text-muted-foreground">
-            ¿No encuentras lo que buscas? Solicita un servicio personalizado a tu medida
+            ¿No encuentras lo que buscas? Solicita un servicio personalizado a
+            tu medida
           </p>
         </div>
       </div>
 
       {submitted ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+          <CheckCircle className="w-6 h-6 text-green-600 shrink-0" />
           <div>
             <p className="font-semibold text-green-900">Solicitud enviada</p>
             <p className="text-sm text-green-700">
-              Tu servicio personalizado ha sido agregado. Nos contactaremos pronto.
+              Tu servicio personalizado ha sido agregado. Nos contactaremos
+              pronto.
             </p>
           </div>
         </div>
@@ -94,7 +100,9 @@ export default function CustomService({  }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nombre del Servicio */}
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">Nombre del Servicio</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              Nombre del Servicio
+            </label>
             <Input
               type="text"
               name="serviceName"
@@ -124,7 +132,9 @@ export default function CustomService({  }) {
 
           {/* RUC */}
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">RUC</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              RUC
+            </label>
             <Input
               type="text"
               name="ruc"
@@ -155,7 +165,9 @@ export default function CustomService({  }) {
           {/* Fecha de Inicio y Fecha de Finalización */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Fecha de Inicio</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                Fecha de Inicio
+              </label>
               <Input
                 type="date"
                 name="startDate"
@@ -166,7 +178,9 @@ export default function CustomService({  }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Fecha de Finalización</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                Fecha de Finalización
+              </label>
               <Input
                 type="date"
                 name="endDate"
@@ -180,7 +194,9 @@ export default function CustomService({  }) {
 
           {/* Email de Contacto */}
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">Email de Contacto</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              Email de Contacto
+            </label>
             <Input
               type="email"
               name="email"
@@ -194,7 +210,9 @@ export default function CustomService({  }) {
 
           {/* Número Celular de Contacto */}
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">Número Celular de Contacto</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              Número Celular de Contacto
+            </label>
             <Input
               type="tel"
               name="phone"
@@ -208,7 +226,9 @@ export default function CustomService({  }) {
 
           {/* Descripción del Servicio */}
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">Descripción del Servicio</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              Descripción del Servicio
+            </label>
             <Textarea
               name="description"
               value={formData.description}
@@ -218,11 +238,14 @@ export default function CustomService({  }) {
               required
             />
           </div>
-          <label className="block text-sm font-medium text-secondary mb-2">Agenda tu llamada</label>
-           <div className="grid grid-cols-2 gap-4">
-            
+          <label className="block text-sm font-medium text-secondary mb-2">
+            Agenda tu llamada
+          </label>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Horario tentativo 1</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                Horario tentativo 1
+              </label>
               <Input
                 type="date"
                 name="startDate"
@@ -231,7 +254,7 @@ export default function CustomService({  }) {
                 className="border-gray-300"
                 required
               />
-               <Input
+              <Input
                 type="time"
                 name="startDate"
                 value={formData.startDate}
@@ -241,7 +264,9 @@ export default function CustomService({  }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary mb-2">Horario tentativo 2</label>
+              <label className="block text-sm font-medium text-secondary mb-2">
+                Horario tentativo 2
+              </label>
               <Input
                 type="date"
                 name="endDate"
@@ -261,11 +286,14 @@ export default function CustomService({  }) {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2">
+          <Button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2"
+          >
             Solicitar Servicio Personalizado
           </Button>
         </form>
       )}
     </Card>
-  )
+  );
 }

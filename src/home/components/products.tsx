@@ -3,6 +3,7 @@
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { ShieldAlert, Package } from 'lucide-react'
+import type { CartItem } from '../pages/Welcome'
 
 const products = [
   {
@@ -49,7 +50,10 @@ const products = [
   },
 ]
 
-export default function Products({ onAddToCart }) {
+interface Props {
+  onAddToCart: (item: Omit<CartItem, "id">) => void
+}
+export default function Products({ onAddToCart }:Props) {
   return (
     <section id="productos" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

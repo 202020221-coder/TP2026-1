@@ -12,11 +12,27 @@ import Footer from '@/home/components/footer';
 import Quotes from '../components/quotes';
 
 
+export interface CartItem {
+  id: number,
+  name:string,
+  price:number,
+  type: "product"|"service"
+}
+
+export interface Quote {
+  id:number,
+  name:string,
+  description: string,
+  price:number,
+  date: string,
+  status: "pending"|"accepted"|"rejected"
+}
+
 export default function Home() {
-  const [cartItems, setCartItems] = useState([])
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
   
-  const [quotes, setQuotes] = useState([
+  const [quotes, setQuotes] = useState<Quote[]>([
     {
       id: 1,
       name: 'Cotización #001',
@@ -36,21 +52,21 @@ export default function Home() {
   ])
   const [showQuotes, setShowQuotes] = useState(false)
 
-  const handleAddToCart = (item) => {
+  const handleAddToCart = (item:Omit<CartItem,"id">) => {
     setCartItems([...cartItems, { ...item, id: Math.random() }])
   }
 
-  const handleRemoveFromCart = (itemId) => {
+  const handleRemoveFromCart = (itemId:CartItem["id"]) => {
     setCartItems(cartItems.filter(item => item.id !== itemId))
   }
 
-  const handleAcceptQuote = (quoteId) => {
+  const handleAcceptQuote = (quoteId:Quote["id"]) => {
     setQuotes(quotes.map(quote =>
       quote.id === quoteId ? { ...quote, status: 'accepted' } : quote
     ))
   }
 
-  const handleRejectQuote = (quoteId) => {
+  const handleRejectQuote = (quoteId:Quote["id"]) => {
     setQuotes(quotes.map(quote =>
       quote.id === quoteId ? { ...quote, status: 'rejected' } : quote
     ))

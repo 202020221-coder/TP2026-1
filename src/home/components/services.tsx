@@ -4,6 +4,7 @@ import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Flame, AlertCircle, Users, Zap } from 'lucide-react'
 import CustomService from './custom-service'
+import type { CartItem } from '../pages/Welcome'
 
 const services = [
   {
@@ -35,8 +36,10 @@ const services = [
     icon: Flame,
   },
 ]
-
-export default function Services({ onAddToCart }) {
+interface Props {
+  onAddToCart: (item: Omit<CartItem, "id">) => void
+}
+export default function Services({ onAddToCart }:Props) {
   return (
     <section id="servicios" className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,7 +87,7 @@ export default function Services({ onAddToCart }) {
 
           {/* Servicios Personalizados */}
           <div className="lg:col-span-1">
-            <CustomService onAddToCart={onAddToCart} />
+            <CustomService />
           </div>
         </div>
       </div>

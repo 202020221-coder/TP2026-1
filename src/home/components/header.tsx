@@ -1,36 +1,63 @@
-'use client'
+"use client";
 
-import { ShoppingCart, Menu, X, FileText } from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { ShoppingCart, Menu, X, FileText } from "lucide-react";
+import { useState } from "react";
 
-export default function Header({ cartCount, onCartClick, quotesCount, onQuotesClick }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+interface Props {
+  cartCount: number;
+  quotesCount: number;
+  onCartClick: () => void;
+  onQuotesClick: () => void;
+}
+
+export default function Header({
+  cartCount,
+  onCartClick,
+  quotesCount,
+  onQuotesClick,
+}: Props) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-secondary/95 backdrop-blur supports-[backdrop-filter]:bg-secondary/60">
+    <header className="sticky top-0 z-50 bg-secondary/95 backdrop-blur supports-backdrop-filter:bg-secondary/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">EF</span>
+              <span className="text-primary-foreground font-bold text-lg">
+                EF
+              </span>
             </div>
-            <span className="text-xl font-bold text-primary hidden sm:inline">ENGINEER FIRE</span>
+            <span className="text-xl font-bold text-primary hidden sm:inline">
+              ENGINEER FIRE
+            </span>
           </div>
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#servicios" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#servicios"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Servicios
             </a>
-            <a href="#productos" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#productos"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Productos
             </a>
-            <a href="#caracteristicas" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#caracteristicas"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Características
             </a>
-            <a href="#contacto" className="text-sm font-medium hover:text-primary transition-colors">
+            <a
+              href="#contacto"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Contacto
             </a>
           </nav>
@@ -81,21 +108,33 @@ export default function Header({ cartCount, onCartClick, quotesCount, onQuotesCl
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="md:hidden pb-4 space-y-2">
-            <a href="#servicios" className="block px-2 py-2 text-sm font-medium hover:text-primary">
+            <a
+              href="#servicios"
+              className="block px-2 py-2 text-sm font-medium hover:text-primary"
+            >
               Servicios
             </a>
-            <a href="#productos" className="block px-2 py-2 text-sm font-medium hover:text-primary">
+            <a
+              href="#productos"
+              className="block px-2 py-2 text-sm font-medium hover:text-primary"
+            >
               Productos
             </a>
-            <a href="#caracteristicas" className="block px-2 py-2 text-sm font-medium hover:text-primary">
+            <a
+              href="#caracteristicas"
+              className="block px-2 py-2 text-sm font-medium hover:text-primary"
+            >
               Características
             </a>
-            <a href="#contacto" className="block px-2 py-2 text-sm font-medium hover:text-primary">
+            <a
+              href="#contacto"
+              className="block px-2 py-2 text-sm font-medium hover:text-primary"
+            >
               Contacto
             </a>
           </nav>
         )}
       </div>
     </header>
-  )
+  );
 }
