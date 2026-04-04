@@ -1,5 +1,4 @@
 import type { JSX } from 'react';
-import { Navigate } from 'react-router';
 
 // import { useAuthStore } from '@/shared/store/AuthStore';
 // import { isValidatedJwt } from "@/shared/lib/jwt-decode";
@@ -9,7 +8,7 @@ interface PrivateRouteProps {
   roles?: string[] // opcional, por si quieres proteger por rol
 }
 
-export function PrivateRoute ({ children, roles }: PrivateRouteProps) {
+export function PrivateRoute ({ children }: PrivateRouteProps) {
   // const user = useAuthStore(state => state.user);
   // const access_token = useAuthStore(state => state.access_token);
 
