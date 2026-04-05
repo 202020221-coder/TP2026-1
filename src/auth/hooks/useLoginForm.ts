@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, type LoginFormData } from "../schemas/schema";
+import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 
 export function useLoginForm() {
   const navigate = useNavigate();
