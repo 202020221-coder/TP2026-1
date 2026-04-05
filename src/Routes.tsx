@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Welcome from "./home/pages/Welcome";
 import { NotFoundPage } from "./shared/pages";
 import { lazy, type JSX } from "react";
+import LoginPage from "./auth/pages/page";
 
 type JSXComponent = () => JSX.Element;
 
@@ -40,6 +41,10 @@ const Router = createBrowserRouter([
                 path: "*",
                 Component: NotFoundPage,
             },
+            {
+                path: "/intranet",
+                Component: LoginPage
+            }
         ],
     },
 
