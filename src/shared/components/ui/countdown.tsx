@@ -60,6 +60,7 @@ function Countdown(
     warningThreshold = 5000,
     autoStart = true,
     className,
+    ref: _ref,
     ...props
   }: CountdownProps,
   ref: React.ForwardedRef<CountdownHandle>
