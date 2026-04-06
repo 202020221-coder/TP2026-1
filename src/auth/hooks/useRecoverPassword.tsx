@@ -135,12 +135,14 @@ export function useRecoverPassword(): IRecoverPasswordContext {
     //reset forms
     emailForm.reset();
     codeForm.reset();
+    passwordForm.reset();
   }, [
     setCurrentRecoverPhase,
     setIsLoading,
     setIsDialogOpen,
     emailForm,
     codeForm,
+    passwordForm
   ]);
 
   const closeDialog = useCallback(() => {
