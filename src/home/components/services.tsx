@@ -4,7 +4,7 @@ import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Flame, AlertCircle, Users, Zap } from 'lucide-react'
 import CustomService from './custom-service'
-import type { CartItem } from '../pages/Welcome'
+import type { CartItem } from '../pages/HomePage'
 
 const services = [
   {

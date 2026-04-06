@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
+import { createSession } from "@/profile/hooks/stores/useSession.store";
 
 export function useLoginForm() {
   const navigate = useNavigate();
@@ -26,8 +27,9 @@ export function useLoginForm() {
       // Here you would normally make an actual API call to authenticate
       console.log("Login attempt with:", data);
 
-      // On successful login, redirect to /directorio/dashboard (or similar)
-      navigate("/directorio");
+      // On successful login, redirect to /intranet/inventario (or similar)
+      createSession()
+      navigate("/intranet/inventario");
     } catch (error) {
       console.error("Login error:", error);
       form.setError("root", {

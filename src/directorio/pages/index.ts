@@ -1,1 +1,1 @@
-export { GestionarPersonal } from "./GestionarPersonal/GestionarPersonal";
+// export { GestionarPersonal } from "./GestionarPersonal/GestionarPersonal";

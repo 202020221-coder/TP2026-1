@@ -28,7 +28,7 @@ export interface Quote {
   status: "pending"|"accepted"|"rejected"
 }
 
-export default function Home() {
+export function HomePage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
   

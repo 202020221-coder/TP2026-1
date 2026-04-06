@@ -9,7 +9,7 @@ import { LoginForm } from "../components/login-form";
 import ForgotPasswordButton from "../components/forgot-password-button";
 import { RecoverPasswordProvider } from "../context/recover-password-context";
 
-export default function LoginPage() {
+export function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">

@@ -4,7 +4,7 @@ import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { X, CheckCircle, XCircle, FileText } from "lucide-react";
 import { useState } from "react";
-import type { Quote } from "../pages/Welcome";
+import type { Quote } from "../pages/HomePage";
 
 interface Props {
   quotes: Quote[];

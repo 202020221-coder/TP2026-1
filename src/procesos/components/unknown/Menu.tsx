@@ -54,7 +54,7 @@ export function Menu() {
               <Card className="h-full cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div
-                    className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center mb-2`}
+                    className={`w-12 h-12 bg-linear-to-br ${item.color} rounded-lg flex items-center justify-center mb-2`}
                   >
                     <Icon className="w-6 h-6 text-white" />
                   </div>

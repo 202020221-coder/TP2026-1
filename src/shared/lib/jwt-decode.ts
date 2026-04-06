@@ -5,11 +5,13 @@
 //   [key: string]: any;
 // }
 
-// export function isValidatedJwt(token: string | null): boolean {
-//   if(!token) return false;
+export function isValidatedJwt(token: string | null): boolean {
+  if (!token) return false;
 
-//   const decoded: JwtPayload = jwtDecode(token);
-//   const currentTime = Math.floor(Date.now() / 1000); // en segundos
-  
-//   return currentTime > decoded.exp;
-// }
+  alert("TOKEN VALIDO")
+  //   const decoded: JwtPayload = jwtDecode(token);
+  //   const currentTime = Math.floor(Date.now() / 1000); // en segundos
+
+  //   return currentTime > decoded.exp;
+  return true;
+}

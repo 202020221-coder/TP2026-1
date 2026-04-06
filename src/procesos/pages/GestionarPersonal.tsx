@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { Layout } from '@/shared/layout/Layout';
-import { PersonalTable } from './ProyectosTable';
-import { PersonalForm } from './ProyectosForm';
+import { PersonalTable } from '../components/PersonalTable';
+import { PersonalForm } from '../components/PersonalForm';
 
 export const GestionarPersonal = () => {
   const [view, setView] = React.useState<"table" | "form">("table")
@@ -25,7 +25,7 @@ export const GestionarPersonal = () => {
   }
 
   return (
-    <Layout title="Gestionar Proyectos">
+    <Layout title="Gestionar Personal">
       {view === "table" ? (
         <PersonalTable onEdit={handleEdit} onAdd={handleAdd} activeTab={activeTab} setActiveTab={setActiveTab} />
       ) : (

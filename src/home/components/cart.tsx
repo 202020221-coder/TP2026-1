@@ -3,7 +3,7 @@
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { X } from "lucide-react";
-import type { CartItem } from "../pages/Welcome";
+import type { CartItem } from "../pages/HomePage";
 
 interface Props {
   items: CartItem[];

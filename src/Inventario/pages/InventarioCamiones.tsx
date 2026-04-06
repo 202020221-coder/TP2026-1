@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Layout } from "@/shared/layout/Layout";
-import { CamionesTable } from "./CamionesTable";
-import { CamionesForm } from "./CamionesForm";
+import { CamionesForm, CamionesTable } from "../components";
 
 export const InventarioCamiones = () => {
   const [view, setView] = useState<"table" | "form">("table");
