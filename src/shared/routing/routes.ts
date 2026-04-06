@@ -11,7 +11,7 @@ const InventoryNavigation = lazy(
   () => import("@/Inventario/routing/InventoryNavigation"),
 );
 
-const AuthNavigation = lazy(()=>import("@/auth/routing/navigation"))
+const AuthNavigation = lazy(()=>import("@/auth/routing/AuthNavigation"))
 export const routes: IRoute[] = [
   {
     path: "*",
