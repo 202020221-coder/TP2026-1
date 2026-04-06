@@ -22,9 +22,9 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <LoginForm />
-            {/* <RecoverPasswordProvider>
+            <RecoverPasswordProvider>
               <ForgotPasswordButton />
-            </RecoverPasswordProvider> */}
+            </RecoverPasswordProvider>
           </CardContent>
         </Card>
       </div>
