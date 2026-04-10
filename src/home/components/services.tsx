@@ -38,14 +38,17 @@ const services = [
 
 export default function Services({ onAddToCart }) {
   return (
-    <section id="servicios" className="py-20 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-secondary mb-4">
-            Nuestros Servicios
+    <section id="servicios" className="py-24 bg-background relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/3" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <span className="text-primary font-semibold tracking-wider uppercase text-sm mb-2 block">Nuestra Especialidad</span>
+          <h2 className="text-4xl sm:text-5xl font-black text-secondary mb-6 tracking-tight">
+            Nuestros <span className="text-gradient">Servicios</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Servicios profesionales diseñados para proteger tu inversión y garantizar la seguridad
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-light">
+            Servicios altamente profesionales diseñados para proteger tu inversión y garantizar la seguridad absoluta.
           </p>
         </div>
 
@@ -53,20 +56,25 @@ export default function Services({ onAddToCart }) {
           {/* Servicios del catálogo */}
           <div className="lg:col-span-2">
             <div className="grid md:grid-cols-2 gap-6">
-              {services.map((service) => {
+              {services.map((service, index) => {
                 const IconComponent = service.icon
                 return (
-                  <Card key={service.id} className="p-6 hover:shadow-lg transition-shadow border-gray-200">
-                    <div className="w-12 h-12 bg-primary/15 rounded-lg flex items-center justify-center mb-4">
-                      <IconComponent className="w-6 h-6 text-primary" />
+                  <Card 
+                    key={service.id} 
+                    className="group p-8 rounded-2xl bg-card border-border hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                      <IconComponent className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="font-bold text-lg text-secondary mb-2">{service.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{service.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-primary">${service.price}</span>
+                    <h3 className="font-bold text-xl text-secondary mb-3">{service.name}</h3>
+                    <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed">{service.description}</p>
+                    
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
+                      <span className="text-3xl font-black text-secondary">${service.price}</span>
                       <Button
-                        size="sm"
-                        className="bg-primary hover:bg-primary/90 text-white"
+                        className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
                         onClick={() => onAddToCart({
                           name: service.name,
                           price: service.price,
