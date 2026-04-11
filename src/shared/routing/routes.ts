@@ -31,6 +31,10 @@ export const routes: IRoute[] = [
     path: "/intranet/ordenes/*",
     Component: OrdersNavigation,
   },
+  // {
+  //   path: "/intranet/solicitud/*",
+  //   Component: RequestNavigation,
+  // },
   {
     path: "/auth/*",
     Component: AuthNavigation,
