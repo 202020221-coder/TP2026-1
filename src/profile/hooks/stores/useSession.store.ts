@@ -31,7 +31,7 @@ export const createSession = () => {
   useSession.setState({
     loggedUser: {
       email: "usuario@example.com",
-      role: "ADMIN",
+      role: "CLIENT",
       username: "administrador",
     },
     accessToken: "token-de-acceso",

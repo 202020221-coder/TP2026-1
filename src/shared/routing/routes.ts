@@ -11,7 +11,9 @@ const InventoryNavigation = lazy(
   () => import("@/Inventario/routing/InventoryNavigation"),
 );
 
-const AuthNavigation = lazy(()=>import("@/auth/routing/AuthNavigation"))
+const OrdersNavigation = lazy(() => import("@/solicitudes/routing/Navigation"));
+
+const AuthNavigation = lazy(() => import("@/auth/routing/AuthNavigation"));
 export const routes: IRoute[] = [
   {
     path: "*",
@@ -26,7 +28,11 @@ export const routes: IRoute[] = [
     Component: InventoryNavigation,
   },
   {
+    path: "/intranet/ordenes/*",
+    Component: OrdersNavigation,
+  },
+  {
     path: "/auth/*",
-    Component: AuthNavigation
-  }
+    Component: AuthNavigation,
+  },
 ];
