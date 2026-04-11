@@ -28,8 +28,8 @@ export const routes: IRoute[] = [
     Component: InventoryNavigation,
   },
   {
-    path: "/intranet/ordenes/*",
-    Component: OrdersNavigation,
+    path: "/intranet/solicitudes/*",
+    Component: OrdersNavigation,//navegacion de solicitudes
   },
   {
     path: "/auth/*",
