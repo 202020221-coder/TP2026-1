@@ -16,7 +16,7 @@ export function NavMain({ userRole }: { userRole: string; }) {
       <SidebarGroupLabel>Menú</SidebarGroupLabel>
       <SidebarMenu>
         {
-          menu.map(({ title, url, items, roles }) => {
+          menu.map(({ title, url, items }) => {
             
             // const isAuthorizated = roles.some(rol => userRole == rol);
             const isAuthorizated = true;
@@ -46,7 +46,7 @@ export function NavMain({ userRole }: { userRole: string; }) {
   )
 }
 
-const SubMenu = ({ items, userRole }: { items:ISubMenu[]; userRole: string; }) => {
+const SubMenu = ({ items }: { items:ISubMenu[]; userRole: string; }) => {
   return (
     <>
       <CollapsibleTrigger asChild>
@@ -58,7 +58,7 @@ const SubMenu = ({ items, userRole }: { items:ISubMenu[]; userRole: string; }) =
       <CollapsibleContent>
         <SidebarMenuSub>
           {
-            items?.map(({ title, url, roles }) => {
+            items?.map(({ title, url }) => {
               const className: string = url === location.pathname ? 'text-primary font-semibold' : '';
               // const isAuthorizated = roles.some(rol => userRole == rol);   
               const isAuthorizated = true;   

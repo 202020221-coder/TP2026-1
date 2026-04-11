@@ -1,5 +1,6 @@
 import { Button } from '@/shared/components/ui/button'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router'
 
 export default function Hero() {
   return (
@@ -18,13 +19,13 @@ export default function Hero() {
             <ShieldCheck className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-white/90 tracking-wide">Protección Profesional Contra Incendios</span>
           </div>
-          
+
           {/* Main Headline */}
           <h1 className="text-5xl sm:text-7xl font-black text-white mb-8 leading-[1.1] tracking-tight drop-shadow-2xl">
-            Seguridad Integral <br className="hidden sm:block"/>
+            Seguridad Integral <br className="hidden sm:block" />
             <span className="text-gradient">Para Tu Negocio</span>
           </h1>
-          
+
           {/* Subtitle */}
           <p className="text-xl sm:text-2xl text-slate-300 mb-10 font-light leading-relaxed max-w-3xl mx-auto">
             Soluciones avanzadas de prevención y respuesta ante incendios. Con más de <strong className="text-white font-semibold">20 años de experiencia</strong>, protegemos lo que es verdaderamente importante para ti.
@@ -32,15 +33,18 @@ export default function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-primary hover:opacity-90 text-white font-bold rounded-xl shadow-[0_0_40px_rgba(200,50,0,0.4)] hover:shadow-[0_0_60px_rgba(200,50,0,0.6)] hover:-translate-y-1 transition-all duration-300">
-              Solicitar Consulta <ArrowRight className="ml-2 w-5 h-5" />
+            <Button asChild size="lg" className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-primary hover:opacity-90 text-white font-bold rounded-xl shadow-[0_0_40px_rgba(200,50,0,0.4)] hover:shadow-[0_0_60px_rgba(200,50,0,0.6)] hover:-translate-y-1 transition-all duration-300">
+              <Link to="/auth/login">
+                Crear Solicitud <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
             </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
-              className="w-full sm:w-auto h-14 px-8 text-base border-white/20 text-white bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-xl transition-all duration-300 hover:-translate-y-1"
+              asChild
+              className="w-full sm:w-auto h-14 px-8 text-base border-white/20 text-white bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
             >
-              Explorar Servicios
+              <a href="#servicios">Explorar Servicios</a>
             </Button>
           </div>
         </div>

@@ -73,19 +73,19 @@ export default function Footer() {
                   +34 900 112 112
                 </div>
               </li>
-              <li className="flex items-start space-x-3 group cursor-pointer hover:text-white transition-colors">
-                <div className="mt-1 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors"><Mail className="w-4 h-4" /></div>
-                <div>
-                  <span className="block font-medium text-white mb-0.5">Correo Corporativo</span>
-                  contacto@engineerfire.com
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
+  <li className="flex items-start space-x-3 group cursor-pointer hover:text-white transition-colors">
+    <div className="mt-1 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors"><Mail className="w-4 h-4" /></div>
+    <div>
+      <span className="block font-medium text-white mb-0.5">Correo Corporativo</span>
+      contacto@engineerfire.com
+    </div>
+    </li>
+  </ul>
+          </div >
+        </div >
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+    {/* Bottom Bar */ }
+    < div className = "border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4" >
           <p className="text-sm font-light text-secondary-foreground/50">
             © {new Date().getFullYear()} ENGINEER FIRE S.A. Todos los derechos reservados.
           </p>
@@ -93,8 +93,8 @@ export default function Footer() {
             <a href="#" className="hover:text-white transition-colors">Políticas de Privacidad</a>
             <a href="#" className="hover:text-white transition-colors">Términos del Servicio</a>
           </div>
-        </div>
-      </div>
-    </footer>
+        </div >
+      </div >
+    </footer >
   )
 }

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link, Navigate } from "react-router";
+import { Link } from "react-router";
 
 // import { useAuthStore } from "@/shared/store/AuthStore";
 

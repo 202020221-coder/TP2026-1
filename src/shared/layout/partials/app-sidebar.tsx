@@ -7,7 +7,7 @@ import {Sidebar,SidebarContent,SidebarFooter,SidebarHeader,SidebarMenuButton,Sid
 
 // import { useAuthStore } from "@/shared/store/AuthStore";
 
-import { Flame, GraduationCap, } from "lucide-react";
+import { Flame } from "lucide-react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // const { user } = useAuthStore.getState();
@@ -25,9 +25,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+        <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
           <a href="#">
-            <Flame className="!size-6 text-red-500"/>
+            <Flame className="size-6! text-red-500"/>
             <span className="text-base font-semibold">ENGINEER FIRE </span>
           </a>
         </SidebarMenuButton>

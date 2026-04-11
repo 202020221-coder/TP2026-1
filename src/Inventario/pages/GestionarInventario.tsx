@@ -1,8 +1,7 @@
 import React from 'react'
 
 import { Layout } from '@/shared/layout/Layout';
-import { InventarioTable } from './InventarioTable';
-import { InventarioForm } from './InventarioForm';
+import { InventarioTable, InventarioForm } from '../components';
 
 export const GestionarInventario = () => {
   const [view, setView] = React.useState<"table" | "form">("table")

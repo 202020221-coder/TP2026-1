@@ -1,9 +1,14 @@
-'use client'
+"use client";
 
-import { ShoppingCart, Menu, X, FileText } from 'lucide-react'
+import { Menu, X, User, Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-export default function Header({ cartCount, onCartClick, quotesCount, onQuotesClick }) {
+interface Props {
+  onClientLoginClick?: () => void;
+  onAdminLoginClick?: () => void;
+}
+
+export default function Header({ onClientLoginClick, onAdminLoginClick }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -53,36 +58,32 @@ export default function Header({ cartCount, onCartClick, quotesCount, onQuotesCl
             </nav>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Quotes Button */}
+              {/* Client Login Button */}
               <button
-                onClick={onQuotesClick}
-                className={`relative p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  scrolled ? 'text-foreground hover:bg-black/5 dark:hover:bg-white/10' : 'text-white hover:bg-white/20'
+                onClick={onClientLoginClick}
+                className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
+                  scrolled 
+                    ? 'text-primary bg-primary/10 hover:bg-primary hover:text-white' 
+                    : 'text-white bg-white/10 hover:bg-white hover:text-primary'
                 }`}
-                title="Cotizaciones"
+                title="Login Cliente"
               >
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                {quotesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-bold shadow-lg shadow-amber-500/40 animate-in zoom-in">
-                    {quotesCount}
-                  </span>
-                )}
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Cliente</span>
               </button>
 
-              {/* Cart Button */}
+              {/* Admin Login Button */}
               <button
-                onClick={onCartClick}
-                className={`relative p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  scrolled ? 'text-foreground hover:bg-black/5 dark:hover:bg-white/10' : 'text-white hover:bg-white/20'
+                onClick={onAdminLoginClick}
+                className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
+                  scrolled 
+                    ? 'text-white bg-secondary hover:bg-secondary/90' 
+                    : 'text-secondary bg-white hover:bg-white/90'
                 }`}
-                title="Carrito"
+                title="Login Administrativo"
               >
-                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-primary text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-bold shadow-lg shadow-primary/40 animate-in zoom-in">
-                    {cartCount}
-                  </span>
-                )}
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin</span>
               </button>
 
               {/* Mobile Menu Button */}

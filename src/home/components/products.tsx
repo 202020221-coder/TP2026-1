@@ -3,6 +3,7 @@
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { ShieldAlert, Package, Flame, Siren, Lightbulb, Box } from 'lucide-react'
+import type { CartItem } from '../pages/HomePage'
 
 const products = [
   {
@@ -49,11 +50,14 @@ const products = [
   },
 ]
 
-export default function Products({ onAddToCart }) {
+interface Props {
+  onAddToCart: (item: Omit<CartItem, "id">) => void
+}
+export default function Products({ onAddToCart }: Props) {
   return (
     <section id="productos" className="py-24 bg-muted/30 relative">
       <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/2" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
           <span className="text-accent font-semibold tracking-wider uppercase text-sm mb-2 block">Catálogo Premium</span>
@@ -69,18 +73,18 @@ export default function Products({ onAddToCart }) {
           {products.map((product) => {
             const IconComponent = product.icon
             return (
-              <Card 
-                key={product.id} 
+              <Card
+                key={product.id}
                 className="group p-8 rounded-2xl bg-card border-border hover:shadow-2xl hover:shadow-accent/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-[40px] group-hover:bg-accent/10 transition-colors duration-300" />
-                
+
                 <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-accent/20 transition-all duration-300">
                   <IconComponent className="w-7 h-7 text-accent" />
                 </div>
                 <h3 className="font-bold text-xl text-secondary mb-3">{product.name}</h3>
                 <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed">{product.description}</p>
-                
+
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
                   <span className="text-3xl font-black text-secondary">${product.price}</span>
                   <Button
