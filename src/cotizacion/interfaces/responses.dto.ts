@@ -1,3 +1,3 @@
-import type { Client } from "./client";
-
-export interface GetClientResponse extends Client {}
+import type { Quotation } from "./quotation";
+export type GetQuotationsResponse =Quotation[];
+export type GetQuotationResponse = Quotation;
