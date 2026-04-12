@@ -14,30 +14,39 @@ const InventoryNavigation = lazy(
 const OrdersNavigation = lazy(() => import("@/solicitudes/routing/Navigation"));
 
 const AuthNavigation = lazy(() => import("@/auth/routing/AuthNavigation"));
+
+const QuotationNavigation = lazy(
+  () => import("@/cotizacion/routing/Navigation"),
+);
 export const routes: IRoute[] = [
   {
     path: "*",
     Component: HomeNavigation,
-    isPrivate:false,
+    isPrivate: false,
   },
   {
     path: "/intranet/procesos/*",
     Component: ProcessNavigation,
-    isPrivate:true
+    isPrivate: true,
   },
   {
     path: "/intranet/inventario/*",
     Component: InventoryNavigation,
-    isPrivate:true,
+    isPrivate: true,
+  },
+  {
+    path: "/intranet/cotizaciones/*",
+    Component: QuotationNavigation,
+    isPrivate: true,
   },
   {
     path: "/intranet/solicitudes/*",
-    Component: OrdersNavigation,//navegacion de solicitudes
-    isPrivate:true,
+    Component: OrdersNavigation, //navegacion de solicitudes
+    isPrivate: true,
   },
   {
     path: "/auth/*",
     Component: AuthNavigation,
-    isPrivate:false
+    isPrivate: false,
   },
 ];
