@@ -1,0 +1,40 @@
+import type { FC } from "react";
+import {
+  Table,
+  TableCell,
+  TableRow,
+  TableBody,
+} from "@/shared/components/ui/table";
+import { OrdersTablePlaceholder } from "./OrdersTablePlaceholder";
+import { OrdersTableControls } from "./OrdersTableControls";
+import { useOrders } from "../hooks/useOrders";
+import { OrdersTableHeader } from "./OrdersTableHeader";
+import { OrderTableRow } from "./OrdersTableRow";
+export const OrdersTable: FC = () => {
+  const { result, queryParams } = useOrders();
+  const { isPending, isFetching, isError, error, data } = result;
+  return (
+    <OrdersTableControls>
+      <Table>
+        <OrdersTableHeader/>
+        <TableBody>
+          {isPending || isFetching ? (
+            <OrdersTablePlaceholder
+              rows={queryParams.per_page ?? 5}
+            />
+          ) : isError ? (
+            <TableRow>
+              <TableCell colSpan={6}>{error.message}</TableCell>
+            </TableRow>
+          ) : (
+            <>
+              {data.map((o) => (
+                <OrderTableRow order={o} key={o.ID} />
+              ))}
+            </>
+          )}
+        </TableBody>
+      </Table>
+    </OrdersTableControls>
+  );
+};

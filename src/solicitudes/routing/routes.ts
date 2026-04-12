@@ -1,10 +1,11 @@
 import type { IRoute } from "@/shared/interfaces/route";
-import { LoginPage } from "../pages";
+import ListOrdersPage from "../pages/ListOrdersPage";
+
 // 🔹 Se definen todas las rutas publicas del modulo de autenticacion
 export const routes: IRoute[] = [
   {
-    path: "/login",
-    Component: LoginPage,
-    isPrivate: false,
+    path: "/",
+    Component: ListOrdersPage,
+    isPrivate: true,
   },
 ];

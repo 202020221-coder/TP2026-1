@@ -8,11 +8,15 @@ export interface ILink {
   name: string;
 }
 
-export interface IRoute {
+export type IRoute = {
   path: string;
-  Component: React.LazyExoticComponent<JSXComponent> | JSXComponent;
-}
-
-export interface IPrivateRoute extends IRoute {
-  roles?: UserRole[];
-}
+  Component:  React.LazyExoticComponent<JSXComponent> | JSXComponent;
+} & (
+  | {
+      isPrivate: true;
+      roles?: UserRole[];
+    }
+  | {
+      isPrivate: false;
+    }
+);

@@ -1,10 +1,14 @@
 import type { IRoute } from "@/shared/interfaces/route";
-import { LoginPage } from "../pages";
+import ViewQuotationPage from "../pages/ViewQuotationPage";
+
+
 // 🔹 Se definen todas las rutas publicas del modulo de autenticacion
 export const routes: IRoute[] = [
   {
-    path: "/login",
-    Component: LoginPage,
-    isPrivate: false,
+    path: "/create",
+    Component: ViewQuotationPage,
+    isPrivate: true,
+    roles: ["ADMIN"]
   },
 ];
+

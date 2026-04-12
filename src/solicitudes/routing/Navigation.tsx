@@ -1,9 +1,9 @@
 import { Route, Routes } from "react-router";
-import { PrivateRoute } from "@/shared/routing/PrivateRoute";
-import { NotFoundPage } from "@/shared/pages";
 import { routes } from "./routes";
+import { NotFoundPage } from "@/shared/pages";
+import { PrivateRoute } from "@/shared/routing";
 
-export const InventoryNavigation = () => {
+export const OrdersNavigation = () => {
   return (
     <Routes>
       {routes.map(({ path, Component, ...rest }) => (
@@ -21,11 +21,9 @@ export const InventoryNavigation = () => {
           }
         />
       ))}
-
-      {/* Ruta de error 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
 
-export default InventoryNavigation;
+export default OrdersNavigation;
