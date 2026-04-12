@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 
-export function InsertRequestPage() {
+
+export function CreateRequestPage() {
+    const navigate = useNavigate();
     const [clientType, setClientType] = useState<'jurídica' | 'física' | null>(null);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
     const [formData, setFormData] = useState({
@@ -501,8 +504,7 @@ export function InsertRequestPage() {
                             }
 
                             if (currentStep === 6) {
-                                // Placeholder until API integration is added.
-                                console.log('Solicitud lista para enviar');
+                                navigate('/intranet/solicitudes/', { replace: true });
                             }
                         }}
                         className={`px-8 py-2 rounded-lg font-semibold transition-all ${(currentStep === 1 && !clientType)

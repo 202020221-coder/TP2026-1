@@ -1,18 +1,22 @@
 import { ListOrdersProvider } from "../context/ListOrdersProvider";
 import { OrdersTable } from "../components/OrdersTable";
+import { Layout } from "@/shared/layout/Layout";
 
-export function ListOrdersPage () {
+export function ListOrdersPage() {
   return (
-    <div className="p-8 space-y-6">
+    <Layout title="Gestionar Solicitudes">
       <h1 className="text-2xl font-semibold text-gray-800">
-        Listado de Cotizaciones
+        Solicitudes
       </h1>
+      <h3>
+        Aquí puedes gestionar las solicitudes de los clientes
+      </h3>
       <ListOrdersProvider>
         <div className="bg-white p-6 rounded-xl shadow-none border">
           <OrdersTable />
         </div>
       </ListOrdersProvider>
-    </div>
+    </Layout>
   );
 };
 

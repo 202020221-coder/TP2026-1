@@ -58,7 +58,7 @@ function Sidebar({ className, collapsible = 'offcanvas', ...props }: React.Compo
             data-state={open ? 'expanded' : 'collapsed'}
             data-collapsible={collapsed ? 'icon' : ''}
             className={cn(
-                'border-r bg-muted/30 transition-all duration-200 ease-linear',
+                'flex h-screen flex-col border-r bg-muted/30 transition-all duration-200 ease-linear',
                 collapsed ? 'w-16' : 'w-64',
                 className
             )}

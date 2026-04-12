@@ -28,8 +28,9 @@ export function useLoginForm() {
       console.log("Login attempt with:", data);
 
       // On successful login, redirect to /intranet/inventario (or similar)
-      createSession(data.email)
-      navigate("/intranet/solicitudes");
+      createSession(data.email);
+      // Primer ingreso de cliente crea solicitud navigate("/intranet/solicitudes"); 
+      navigate("/intranet/solicitudes/create-request");
     } catch (error) {
       console.error("Login error:", error);
       form.setError("root", {

@@ -5,6 +5,7 @@ export interface IMenu {
   url?: string;
   roles: string[];
   items?: ISubMenu[];
+  icon?: React.ReactNode;
 }
 
 export interface ISubMenu {
@@ -15,46 +16,23 @@ export interface ISubMenu {
 
 export const sidebarLinks: IMenu[] = [
   {
-    title: "Gestion de Personal",
-    roles: [],
-    items: [
-      {
-        title: "Directorio",
-        roles: [],
-        url: "/directorio",
-      },
-    ],
+    title: "Dashboard",
+    roles: ["cliente"],
+    url: "/dashboard",
   },
   {
-    title: "Procesos",
-    roles: [],
-    items: [
-      {
-        title: "Gestion de Proyectos",
-        roles: [],
-        url: "/procesos",
-      },
-    ],
+    title: "Mis Solicitudes",
+    roles: ["cliente"],
+    url: "/solicitudes",
   },
   {
-    title: "Inventario",
-    roles: [],
-    items: [
-      {
-        title: "Gestion de Inventario",
-        roles: [],
-        url: "/Inventario",
-      },
-      {
-        title: "Inventario de Camiones",
-        roles: [],
-        url: "/inventario/camiones",
-      },
-      {
-        title: "Gestion de Camiones",
-        roles: [],
-        url: "/inventario/gestionar-camiones",
-      },
-    ],
+    title: "Mis Cotizaciones",
+    roles: ["cliente"],
+    url: "/cotizaciones",
+  },
+  {
+    title: "Mis Servicios",
+    roles: ["cliente"],
+    url: "/servicios",
   },
 ];
