@@ -1,11 +1,19 @@
 import { NavLink, useLocation } from "react-router";
+import type { LucideIcon } from "lucide-react";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/shared/components/ui/collapsible"
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, } from "@/shared/components/ui/sidebar"
 
 import { sidebarLinks, type IMenu, type ISubMenu } from "../sidebar-links";
 
-import { ChevronRight, FileText } from "lucide-react";
+import { BriefcaseBusiness, ChevronRight, ClipboardList, FileText, LayoutDashboard, Receipt } from "lucide-react";
+
+const lucideIconMap: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  ClipboardList,
+  Receipt,
+  BriefcaseBusiness,
+};
 
 export function NavMain({ userRole }: { userRole: string; }) {
   const location = useLocation();
@@ -16,7 +24,7 @@ export function NavMain({ userRole }: { userRole: string; }) {
       <SidebarGroupLabel>Menú</SidebarGroupLabel>
       <SidebarMenu>
         {
-          menu.map(({ title, url, items }) => {
+          menu.map(({ title, url, items, icon }) => {
 
             // const isAuthorizated = roles.some(rol => userRole == rol);
             const isAuthorizated = true;
@@ -25,18 +33,19 @@ export function NavMain({ userRole }: { userRole: string; }) {
 
             const isParentActive: boolean = url === location.pathname || items?.some(sub => sub.url === location.pathname) || false;
             const className: string = isParentActive ? "text-primary font-semibold" : "";
+            const Icon = icon ? lucideIconMap[icon] ?? FileText : FileText;
 
             return (
               <Collapsible key={title} asChild>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip={title}>
-                    <NavLink to={url ?? '#'} className={`flex items-center gap-2 text-right ${className}`}>`
-                      <FileText className="size-5" /> 
+                    <NavLink to={url ?? '#'} className={`flex items-center gap-2 text-right ${className}`}>
+                      <Icon className="size-5" />
                       <span className="text-right"> {title}</span>
                     </NavLink>
                   </SidebarMenuButton>
 
-                  {items?.length ? <SubMenu items={items} userRole={userRole} /> : null}
+                  {items?.length ? <SubMenu items={items} userRole={userRole} currentPath={location.pathname} /> : null}
                 </SidebarMenuItem>
               </Collapsible>
             )
@@ -47,7 +56,7 @@ export function NavMain({ userRole }: { userRole: string; }) {
   )
 }
 
-const SubMenu = ({ items }: { items: ISubMenu[]; userRole: string; }) => {
+const SubMenu = ({ items, currentPath }: { items: ISubMenu[]; userRole: string; currentPath: string; }) => {
   return (
     <>
       <CollapsibleTrigger asChild>
@@ -60,7 +69,7 @@ const SubMenu = ({ items }: { items: ISubMenu[]; userRole: string; }) => {
         <SidebarMenuSub>
           {
             items?.map(({ title, url }) => {
-              const className: string = url === location.pathname ? 'text-primary font-semibold' : '';
+              const className: string = url === currentPath ? 'text-primary font-semibold' : '';
               // const isAuthorizated = roles.some(rol => userRole == rol);   
               const isAuthorizated = true;
               if (!isAuthorizated) return;

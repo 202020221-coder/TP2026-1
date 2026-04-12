@@ -4,7 +4,7 @@ import { Layout } from "@/shared/layout/Layout";
 
 export function ListOrdersPage() {
   return (
-    <Layout title="Gestionar Solicitudes">
+    <Layout title="Mis Solicitudes">
       <h1 className="text-2xl font-semibold text-gray-800">
         Solicitudes
       </h1>

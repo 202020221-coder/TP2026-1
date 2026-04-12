@@ -15,4 +15,9 @@ export const routes: IRoute[] = [
     Component: CreateRequestPage,
     isPrivate: true,
   },
+  {
+    path: "/mis-solicitudes",
+    Component: ListOrdersPage,
+    isPrivate: true,
+  },
 ];

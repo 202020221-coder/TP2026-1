@@ -5,7 +5,7 @@ export interface IMenu {
   url?: string;
   roles: string[];
   items?: ISubMenu[];
-  icon?: React.ReactNode;
+  icon?: string;
 }
 
 export interface ISubMenu {
@@ -18,21 +18,25 @@ export const sidebarLinks: IMenu[] = [
   {
     title: "Dashboard",
     roles: ["cliente"],
-    url: "/dashboard",
+    url: "/intranet/dashboard",
+    icon: "LayoutDashboard",
   },
   {
     title: "Mis Solicitudes",
     roles: ["cliente"],
-    url: "/solicitudes",
+    url: "/intranet/solicitudes/mis-solicitudes",
+    icon: "ClipboardList",
   },
   {
     title: "Mis Cotizaciones",
     roles: ["cliente"],
-    url: "/cotizaciones",
+    url: "/intranet/cotizaciones/mis-cotizaciones",
+    icon: "Receipt",
   },
   {
     title: "Mis Servicios",
     roles: ["cliente"],
-    url: "/servicios",
+    url: "/intranet/servicios/mis-servicios",
+    icon: "BriefcaseBusiness",
   },
 ];
