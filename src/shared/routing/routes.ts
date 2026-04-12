@@ -18,21 +18,26 @@ export const routes: IRoute[] = [
   {
     path: "*",
     Component: HomeNavigation,
+    isPrivate:false,
   },
   {
     path: "/intranet/procesos/*",
     Component: ProcessNavigation,
+    isPrivate:true
   },
   {
     path: "/intranet/inventario/*",
     Component: InventoryNavigation,
+    isPrivate:true,
   },
   {
     path: "/intranet/solicitudes/*",
     Component: OrdersNavigation,//navegacion de solicitudes
+    isPrivate:true,
   },
   {
     path: "/auth/*",
     Component: AuthNavigation,
+    isPrivate:false
   },
 ];
