@@ -17,17 +17,13 @@ import {
 import type { Order } from "../interfaces/order";
 import { useSession } from "@/profile/hooks/stores/useSession.store";
 import OrderRejectionMessageDialog from "./OrderRejectionMessageDialog";
-// import { useMutation, useQueryClient } from "@tanstack/react-query";
-// import {
-//   createOrderVersion,
-//   sendOrderToClient,
-// } from "@src/Cotizaciones/api/Order.service";
-// import { useNavigate } from "react-router";
-// import { OrderSentDialog } from "../OrderSentDialog";
+import { toSearchParams } from "@/shared/lib/to-search-params";
+import { useNavigate } from "react-router";
 export const OrderTableRow: FC<{
   order: Order;
 }> = ({ order }) => {
   const user = useSession((state) => state.loggedUser);
+  const Navigate=  useNavigate()
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
   //   const [clientLink, setClientLink] = useState("");
   //   const queryClient = useQueryClient();
@@ -136,7 +132,11 @@ export const OrderTableRow: FC<{
                   variant="ghost"
                   size="icon"
                   className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                  // onClick={() => sendToClient.mutate(Order.id)}
+                  onClick={() =>
+                    Navigate(
+                      `/intranet/cotizaciones/crear?${toSearchParams({ orderId: order.ID })}`,
+                    )
+                  }
                   // disabled={sendToClient.isPending}
                 >
                   <FileArchive className="w-4 h-4" />

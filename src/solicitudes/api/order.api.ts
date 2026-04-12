@@ -1,5 +1,10 @@
 import sleep from "@/shared/lib/sleep";
-import type { GetOrdersResponse } from "../interfaces/responses.dto";
+import type {
+  GetOrderResponse,
+  GetOrdersResponse,
+} from "../interfaces/responses.dto";
+import type { Order } from "../interfaces/order";
+import axiosInstance from "@/shared/api/axios.config";
 
 // import { safeRequest } from "@/shared/api/safe-request";
 // import { url } from "zod";
@@ -69,3 +74,10 @@ export const getAllOrders = async (): Promise<GetOrdersResponse> => {
 //   safeRequest<Order[]>({
 //     url: `/solicitudes/client?${toSearchParams(params)}`,
 //   });
+
+export const getOrder = async (id: Order["ID"]): Promise<GetOrderResponse> => {
+  const response = await axiosInstance.get<GetOrderResponse>(
+    `/solicitudes/${id}`,
+  );
+  return response.data;
+};

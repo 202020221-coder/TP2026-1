@@ -6,14 +6,18 @@ import { PrivateRoute } from "@/shared/routing";
 export const OrdersNavigation = () => {
   return (
     <Routes>
-      {routes.map(({ path, Component, roles }) => (
+      {routes.map(({ path, Component, ...rest }) => (
         <Route
           key={path}
           path={path}
           element={
-            <PrivateRoute roles={roles}>
+            rest.isPrivate ? (
+              <PrivateRoute roles={rest.roles}>
+                <Component />
+              </PrivateRoute>
+            ) : (
               <Component />
-            </PrivateRoute>
+            )
           }
         />
       ))}

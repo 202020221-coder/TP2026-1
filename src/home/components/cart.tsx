@@ -14,15 +14,11 @@ export default function Cart({ items, onRemove }: Props) {
   const total = items.reduce((sum, item) => sum + item.price, 0);
 
   return (
-    <div className="fixed top-16 right-4 z-40 w-96 max-w-[calc(100vw-2rem)]">
-      <Card className="p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-foreground">
-            Carrito de Serivicios/Productos
-          </h3>
-          <span className="text-sm text-muted-foreground">
-            ({items.length})
-          </span>
+    <div className="fixed top-24 right-4 sm:right-6 z-50 w-96 max-w-[calc(100vw-2rem)] animate-in slide-in-from-top-4 fade-in duration-300">
+      <Card className="p-6 shadow-2xl rounded-3xl border border-border/50 backdrop-blur-xl bg-background/95">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-foreground">Carrito de Serivicios/Productos</h3>
+          <span className="text-sm text-muted-foreground">({items.length})</span>
         </div>
 
         <div className="max-h-96 overflow-y-auto mb-4 space-y-2">

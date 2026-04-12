@@ -26,13 +26,14 @@ export const clearSession = () => {
   useSession.setState({ loggedUser: null, accessToken: null });
 };
 
-export const createSession = () => {
+export const createSession = (email:string) => {
   alert("CREANDO SESION");
+  const isClient = email==="cliente@gmail.com"
   useSession.setState({
     loggedUser: {
       email: "usuario@example.com",
-      role: "CLIENT",
-      username: "administrador",
+      role: isClient?"CLIENT":"ADMIN",
+      username: isClient?"cliente":"administrador",
     },
     accessToken: "token-de-acceso",
   });

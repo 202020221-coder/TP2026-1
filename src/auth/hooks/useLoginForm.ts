@@ -28,8 +28,8 @@ export function useLoginForm() {
       console.log("Login attempt with:", data);
 
       // On successful login, redirect to /intranet/inventario (or similar)
-      createSession()
-      navigate("/intranet/inventario");
+      createSession(data.email)
+      navigate("/intranet/solicitudes");
     } catch (error) {
       console.error("Login error:", error);
       form.setError("root", {
