@@ -5,7 +5,7 @@ export const InventoryTableHeader = () => {
       <TableRow>
         <TableHead className="w-[280px]">Producto</TableHead>
 
-        <TableHead className="w-[90px] text-center">ID</TableHead>
+        <TableHead className="w-[90px]">ID</TableHead>
 
         <TableHead className="w-[180px]">Fabricante</TableHead>
 
@@ -17,7 +17,7 @@ export const InventoryTableHeader = () => {
 
         <TableHead className="w-[130px] text-center">P.Unit</TableHead>
 
-        <TableHead className="w-[140px] text-right">Subtotal</TableHead>
+        <TableHead className="w-[140px] text-right">Subtotal {"($)"}</TableHead>
 
         <TableHead className="w-[80px] text-center">Acción</TableHead>
       </TableRow>
