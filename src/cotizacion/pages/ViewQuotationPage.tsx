@@ -9,14 +9,10 @@ import {
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
 
-import {
-  FileText,
-  DollarSign,
-  ClipboardList,
-  Eye,
-} from "lucide-react";
+import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
 
 import { useSearchParams } from "react-router";
+import { InventoryTable } from "../components/precios/productos/InventoryTable";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -36,7 +32,6 @@ export function ViewQuotationPage() {
       </h1>
 
       <Tabs defaultValue="reference" className="w-full">
-
         <TabsList
           className="
             grid w-full grid-cols-4
@@ -49,7 +44,6 @@ export function ViewQuotationPage() {
             gap-x-2
           "
         >
-
           {/* Reference — BLUE */}
           <TabsTrigger
             value="reference"
@@ -101,28 +95,22 @@ export function ViewQuotationPage() {
             <Eye className="w-4 h-4" />
             Visualización
           </TabsTrigger>
-
         </TabsList>
 
         <ScrollArea className="h-[calc(100vh-180px)] mt-2">
-
           <TabsContent value="reference">
             <ReferenceSection orderId={Number(orderId)} />
           </TabsContent>
 
           <TabsContent value="prices">
+            <InventoryTable orderId={Number(orderId)} />
           </TabsContent>
 
-          <TabsContent value="conditions">
-          </TabsContent>
+          <TabsContent value="conditions"></TabsContent>
 
-          <TabsContent value="visualize">
-          </TabsContent>
-
+          <TabsContent value="visualize"></TabsContent>
         </ScrollArea>
-
       </Tabs>
-
     </div>
   );
 }
