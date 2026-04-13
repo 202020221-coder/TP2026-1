@@ -66,6 +66,11 @@ export const QuotationTableRow: FC<{
                 variant="ghost"
                 size="icon"
                 className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
+                onClick={() =>
+                  Navigate(
+                    `/intranet/cotizaciones/detalle?${toSearchParams({ quotationId: quotation.ID })}`,
+                  )
+                }
               >
                 <Eye className="w-4 h-4" />
               </Button>

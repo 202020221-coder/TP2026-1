@@ -15,7 +15,7 @@ export const ListQuotationsProvider: FC<{ children: ReactNode }> = ({
     page: 1,
   });
   const result = useQuery({
-    queryKey: ["orders", queryParams],
+    queryKey: ["quotations", queryParams],
     queryFn: () => getAllQuontation(),
   });
   const query = (queryParams: GetQuotationQP) => {

@@ -1,5 +1,6 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import { ListQuotationPage } from "../pages/ViewQuotationClienPage";
+import QuotationDetailPage from "../pages/QuotationDetailPage";
 
 
 
@@ -10,6 +11,11 @@ export const routes: IRoute[] = [
     Component: ListQuotationPage,
     isPrivate: true,
     // roles: ["CLIENT"]
+  },
+  {
+    path: "/detalle",
+    Component: QuotationDetailPage,
+    isPrivate: true,
   },
 ];
 
