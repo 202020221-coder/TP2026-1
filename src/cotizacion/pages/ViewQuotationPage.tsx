@@ -31,7 +31,7 @@ export function ViewQuotationPage() {
   return (
     <div className="flex flex-col h-full px-6 py-4 bg-slate-50">
       <h1 className="mb-4 text-2xl font-semibold text-slate-800">
-        Cotización #{orderId}
+        Elaborar Cotización - Solicitud #{orderId}
       </h1>
 
       <Tabs defaultValue="reference" className="w-full">
@@ -104,17 +104,14 @@ export function ViewQuotationPage() {
           <TabsContent value="reference">
             <ReferenceSection orderId={Number(orderId)} />
           </TabsContent>
-
           <TabsContent value="prices">
             <InventoryTable orderId={Number(orderId)} />
             <TruckSelector/>
             <TruckDriverSelector/>
           </TabsContent>
-
           <TabsContent value="conditions">
             <ConditionSection/>
           </TabsContent>
-
           <TabsContent value="visualize"></TabsContent>
         </ScrollArea>
       </Tabs>
