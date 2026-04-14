@@ -17,7 +17,7 @@ import {
   SelectInventoryFormSchema,
   type SelectInventoryFormType,
 } from "@/cotizacion/schemas/addInventoryItem";
-import { Loader2 } from "lucide-react";
+import { Loader2, PackageSearch, ListChecks } from "lucide-react";
 import { getInventoryItems } from "@/cotizacion/api/inventory.api";
 import type {
   InventoryItem,
@@ -164,20 +164,28 @@ export function InventorySelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col min-w-11/12">
-        <DialogHeader>
-          <DialogTitle>Agregar inventario</DialogTitle>
+      <DialogContent className="flex max-h-[90vh] min-w-11/12 max-w-5xl flex-col gap-5 p-0">
+        <DialogHeader className="border-b border-border px-6 pt-6 pb-4">
+          <DialogTitle className="text-xl">Agregar inventario</DialogTitle>
           <DialogDescription>
             Navegue y seleccione items del catálogo, luego personalice
             cantidades y detalles
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto px-6">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 pb-1">
           {/* Inventory Catalog */}
-          <div className="space-y-4">
+          <section className="space-y-4 rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <PackageSearch className="h-4 w-4 text-primary" />
+                Catálogo
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                {isLoadingInventory ? "Cargando..." : `${items.length} resultados`}
+              </span>
+            </div>
             <div>
-              <h3 className="mb-3 font-semibold text-foreground">Catálogo</h3>
               <CatalogGrid
                 items={items}
                 selectedIds={selectedIds}
@@ -188,7 +196,7 @@ export function InventorySelectionDialog({
 
             {/* Pagination */}
             {!isLoadingInventory && totalPages > 1 && (
-              <div className="border-t border-border pt-4">
+              <div className="border-t border-border/80 pt-4">
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -197,16 +205,20 @@ export function InventorySelectionDialog({
                 />
               </div>
             )}
-          </div>
+          </section>
 
           {/* Selected Items */}
-          <div className="border-t border-border pt-6">
+          <section className="space-y-4 rounded-lg border border-border bg-card p-4">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Selección actual
+            </h3>
             <SelectedItemsList
               control={SelectInventoryFormControl}
               selectedItems={fields}
               onRemoveItem={handleRemoveItem}
             />
-          </div>
+          </section>
         </div>
 
         {/* Footer */}
@@ -217,17 +229,17 @@ export function InventorySelectionDialog({
             onClick={handleClose}
             disabled={isConfirming}
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             type="button"
             onClick={handleConfirm}
             disabled={selectedIds.size === 0 || isConfirming}
-            className="relative"
+            className="relative min-w-44"
           >
-            {isConfirming && <Loader2 className="animate-spin" />}
+            {isConfirming && <Loader2 className="h-4 w-4 animate-spin" />}
             <span className={isConfirming ? "ml-2" : ""}>
-              Confirmar seleccion
+              Confirmar selección
             </span>
           </Button>
         </div>

@@ -7,7 +7,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-import { X } from "lucide-react";
+import { PackageSearch, X } from "lucide-react";
 import type { SelectInventoryFormType } from "@/cotizacion/schemas/addInventoryItem";
 import {
   Select,
@@ -31,10 +31,11 @@ export function SelectedItemsList({
 }: SelectedItemsListProps) {
   if (selectedItems.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-8">
-        <p className="text-sm text-muted-foreground">
-          No items selected. Select items from the catalog above.
-        </p>
+      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
+        <div className="rounded-full bg-muted p-2">
+          <PackageSearch className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-muted-foreground">Aun no hay items seleccionados.</p>
       </div>
     );
   }
@@ -42,14 +43,14 @@ export function SelectedItemsList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-foreground">
-          Selected Items ({selectedItems.length})
+          Items seleccionados ({selectedItems.length})
         </h3>
       </div>
 
       <ScrollArea className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card">
         <div className="space-y-2 p-4">
           {selectedItems.map((field, index) => (
-            <Card key={field.id} className="overflow-hidden bg-muted/30 p-4">
+            <Card key={field.id} className="overflow-hidden border-border bg-muted/50 p-4 shadow-none">
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
@@ -88,7 +89,7 @@ export function SelectedItemsList({
                           max="1000"
                           placeholder="Qty"
                           {...field}
-                          className="h-8 text-xs"
+                          className="h-8 border-border bg-background text-xs"
                         />
                       )}
                     />
@@ -108,7 +109,7 @@ export function SelectedItemsList({
                           min="0.01"
                           placeholder="Price"
                           {...field}
-                          className="h-8 text-xs"
+                          className="h-8 border-border bg-background text-xs"
                         />
                       )}
                     />
@@ -126,7 +127,7 @@ export function SelectedItemsList({
                       <Select name={field.name} value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger
                           aria-invalid={fieldState.invalid}
-                          className="h-8 text-xs"
+                          className="h-8 border-border bg-background text-xs"
                         >
                           <SelectValue placeholder="Seleccione la intención" />
                         </SelectTrigger>
