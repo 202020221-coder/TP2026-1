@@ -30,6 +30,7 @@ export const InventoryTableRow: FC<{
           type="number"
           min={0}
           value={inventoryElement.cantidad}
+          className="h-9 border-border bg-background text-sm"
           onChange={(e) =>
             updateItem(inventoryElement.id, "cantidad", Number(e.target.value))
           }
@@ -39,6 +40,7 @@ export const InventoryTableRow: FC<{
         <Input
           type="number"
           value={inventoryElement.precio_unitario}
+          className="h-9 border-border bg-background text-sm"
           onChange={(e) =>
             updateItem(
               inventoryElement.id,
@@ -52,8 +54,13 @@ export const InventoryTableRow: FC<{
         {inventoryElement.precio_unitario * inventoryElement.cantidad}
       </TableCell>
       <TableCell className="text-center">
-        <Button size={"icon"} onClick={() => deleteItem(inventoryElement.id)}>
-          <Eraser />
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => deleteItem(inventoryElement.id)}
+        >
+          <Eraser className="h-4 w-4" />
         </Button>
       </TableCell>
     </TableRow>
