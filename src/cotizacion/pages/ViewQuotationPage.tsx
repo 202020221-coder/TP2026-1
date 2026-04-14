@@ -17,6 +17,7 @@ import { ConditionSection } from "../components/condiciones/ConditionSection";
 import { TruckSelector } from "../components/precios/camiones/TruckSelector";
 import { TruckDriverSelector } from "../components/precios/camiones/TruckDriverSelector";
 import { PickupSection } from "../components/precios/entrega/PickupSection";
+import { SummaryCard } from "../components/precios/resumen/SummarySection";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -107,12 +108,13 @@ export function ViewQuotationPage() {
           </TabsContent>
           <TabsContent value="prices">
             <InventoryTable orderId={Number(orderId)} />
-            <TruckSelector/>
-            <TruckDriverSelector/>
-            <PickupSection orderId={Number(orderId)}/>
+            <TruckSelector />
+            <TruckDriverSelector />
+            <PickupSection orderId={Number(orderId)} />
+            <SummaryCard />
           </TabsContent>
           <TabsContent value="conditions">
-            <ConditionSection/>
+            <ConditionSection />
           </TabsContent>
           <TabsContent value="visualize"></TabsContent>
         </ScrollArea>
