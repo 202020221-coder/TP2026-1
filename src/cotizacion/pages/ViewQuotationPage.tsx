@@ -28,11 +28,11 @@ export function ViewQuotationPage() {
   }
 
   const baseTriggerClass =
-    "flex items-center justify-center gap-2 rounded-md h-10 px-3 font-medium transition-colors";
+    "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
 
   return (
-    <div className="flex flex-col h-full px-6 py-4 bg-slate-50">
-      <h1 className="mb-4 text-2xl font-semibold text-slate-800">
+    <div className="flex h-full flex-col bg-background px-6 py-4">
+      <h1 className="mb-4 text-2xl font-semibold text-foreground">
         Elaborar Cotización - Solicitud #{orderId}
       </h1>
 
@@ -40,8 +40,8 @@ export function ViewQuotationPage() {
         <TabsList
           className="
             grid w-full grid-cols-4
-            bg-white
             border
+            bg-muted/40
             rounded-lg
             shadow-sm
             overflow-hidden
@@ -49,54 +49,22 @@ export function ViewQuotationPage() {
             gap-x-2
           "
         >
-          {/* Reference — BLUE */}
-          <TabsTrigger
-            value="reference"
-            className={`${baseTriggerClass}
-              data-[state=active]:bg-blue-600
-              data-[state=active]:text-white
-              hover:bg-slate-100
-            `}
-          >
+          <TabsTrigger value="reference" className={baseTriggerClass}>
             <FileText className="w-4 h-4" />
             Datos de Referencia
           </TabsTrigger>
 
-          {/* Prices — GREEN */}
-          <TabsTrigger
-            value="prices"
-            className={`${baseTriggerClass}
-              data-[state=active]:bg-emerald-600
-              data-[state=active]:text-white
-              hover:bg-slate-100
-            `}
-          >
+          <TabsTrigger value="prices" className={baseTriggerClass}>
             <DollarSign className="w-4 h-4" />
             Precios
           </TabsTrigger>
 
-          {/* Conditions — ORANGE */}
-          <TabsTrigger
-            value="conditions"
-            className={`${baseTriggerClass}
-              data-[state=active]:bg-amber-500
-              data-[state=active]:text-white
-              hover:bg-slate-100
-            `}
-          >
+          <TabsTrigger value="conditions" className={baseTriggerClass}>
             <ClipboardList className="w-4 h-4" />
             Condiciones
           </TabsTrigger>
 
-          {/* Visualize — PURPLE */}
-          <TabsTrigger
-            value="visualize"
-            className={`${baseTriggerClass}
-              data-[state=active]:bg-violet-600
-              data-[state=active]:text-white
-              hover:bg-slate-100
-            `}
-          >
+          <TabsTrigger value="visualize" className={baseTriggerClass}>
             <Eye className="w-4 h-4" />
             Visualización
           </TabsTrigger>

@@ -5,9 +5,9 @@ export function TruckDriverSelectorSkeleton() {
   return (
     <Field className="space-y-2">
 
-      <Skeleton className="h-4 w-40 bg-gray-300" />
+      <Skeleton className="h-4 w-40 bg-muted" />
 
-      <Skeleton className="h-11 w-full bg-gray-300 rounded-md" />
+      <Skeleton className="h-11 w-full rounded-md bg-muted" />
 
     </Field>
   )

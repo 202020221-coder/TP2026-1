@@ -31,8 +31,8 @@ export function SelectedItemsList({
 }: SelectedItemsListProps) {
   if (selectedItems.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-dashed border-gray-300 py-8">
-        <p className="text-sm text-gray-500">
+      <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-8">
+        <p className="text-sm text-muted-foreground">
           No items selected. Select items from the catalog above.
         </p>
       </div>
@@ -41,24 +41,24 @@ export function SelectedItemsList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">
+        <h3 className="font-semibold text-foreground">
           Selected Items ({selectedItems.length})
         </h3>
       </div>
 
-      <ScrollArea className="max-h-80 rounded-lg border border-gray-200 bg-white overflow-y-auto">
+      <ScrollArea className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card">
         <div className="space-y-2 p-4">
           {selectedItems.map((field, index) => (
-            <Card key={field.id} className="overflow-hidden bg-gray-50 p-4">
+            <Card key={field.id} className="overflow-hidden bg-muted/30 p-4">
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-gray-900">
+                      <h4 className="font-medium text-foreground">
                         {field.nombre}
                       </h4>
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Precio Comercial: ${field.precio_comercial.toFixed(2)}
                     </p>
                   </div>
@@ -67,7 +67,7 @@ export function SelectedItemsList({
                     variant="ghost"
                     size="sm"
                     onClick={() => onRemoveItem(field.idInventario, index)}
-                    className="h-6 w-6 p-0 text-gray-500 hover:bg-red-100 hover:text-red-600"
+                    className="h-6 w-6 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -75,7 +75,7 @@ export function SelectedItemsList({
 
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       Cantidad
                     </label>
                     <Controller
@@ -95,7 +95,7 @@ export function SelectedItemsList({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       Precio Unit.
                     </label>
                     <Controller
@@ -116,7 +116,7 @@ export function SelectedItemsList({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Intención
                   </label>
                   <Controller

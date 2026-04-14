@@ -9,10 +9,12 @@ import { getFullOrderInventory } from "@/cotizacion/api/order.api";
 import { Button } from "@/shared/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { InventorySelectionDialog } from "./add/InventorySelectionDialog";
+import { InventoryTableSkeleton } from "./InventoryTableSkeleton";
+import { InventoryTableError } from "./InventoryTableError";
 
 export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
-  const [isDialogOpen,setIsDialogOpen] = useState(false)
-  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const { data, isPending, error } = useQuery({
     queryKey: ["order", "inventory", orderId],
     queryFn: () => getFullOrderInventory(orderId),
@@ -21,26 +23,25 @@ export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
   const initializeItems = useOrderInventoryStore((s) => s.initializeItems);
   useEffect(() => {
     if (data) {
-      console.log(data);
-
       initializeItems(data);
     }
-  }, [data]);
-  if (isPending) return <p>cargandoo....</p>;
-  if (error) return <p>Error</p>;
+  }, [data, initializeItems]);
 
   return (
     <>
-      <Button className="ml-auto flex mb-2" onClick={()=>setIsDialogOpen(true)}>
+      <Button className="mb-2 ml-auto flex" onClick={() => setIsDialogOpen(true)}>
         <PlusIcon /> Agregar producto
       </Button>
-      <InventoryTableContent />
-      <InventorySelectionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}/>
+      <InventoryTableContent isPending={isPending} hasError={Boolean(error)} />
+      <InventorySelectionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </>
   );
 };
 
-const InventoryTableContent = () => {
+const InventoryTableContent: FC<{ isPending: boolean; hasError: boolean }> = ({
+  isPending,
+  hasError,
+}) => {
   const itemsObj = useOrderInventoryStore((s) => s.items);
 
   const items = Object.values(itemsObj);
@@ -48,9 +49,13 @@ const InventoryTableContent = () => {
     <Table>
       <InventoryTableHeader />
       <TableBody>
-        {items.map((item) => (
-          <InventoryTableRow key={item.id} inventoryElement={item} />
-        ))}
+        {isPending ? (
+          <InventoryTableSkeleton />
+        ) : hasError ? (
+          <InventoryTableError />
+        ) : (
+          items.map((item) => <InventoryTableRow key={item.id} inventoryElement={item} />)
+        )}
       </TableBody>
     </Table>
   );

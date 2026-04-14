@@ -7,8 +7,8 @@ export const InventoryTableError: FC<{ message?: string }> = ({
   <TableRow>
     <TableCell colSpan={9} className="text-center py-8">
       <div className="flex flex-col items-center gap-2">
-        <AlertCircle className="w-8 h-8 text-red-500" />
-        <p className="text-red-600 font-medium">{message}</p>
+        <AlertCircle className="h-8 w-8 text-destructive" />
+        <p className="font-medium text-destructive">{message}</p>
       </div>
     </TableCell>
   </TableRow>

@@ -173,11 +173,11 @@ export function InventorySelectionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-6 px-6">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6">
           {/* Inventory Catalog */}
           <div className="space-y-4">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Catálogo</h3>
+              <h3 className="mb-3 font-semibold text-foreground">Catálogo</h3>
               <CatalogGrid
                 items={items}
                 selectedIds={selectedIds}
@@ -188,7 +188,7 @@ export function InventorySelectionDialog({
 
             {/* Pagination */}
             {!isLoadingInventory && totalPages > 1 && (
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-border pt-4">
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -200,7 +200,7 @@ export function InventorySelectionDialog({
           </div>
 
           {/* Selected Items */}
-          <div className="border-t border-gray-200 pt-6">
+          <div className="border-t border-border pt-6">
             <SelectedItemsList
               control={SelectInventoryFormControl}
               selectedItems={fields}
@@ -210,7 +210,7 @@ export function InventorySelectionDialog({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 flex items-center justify-end gap-3 px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
           <Button
             type="button"
             variant="outline"

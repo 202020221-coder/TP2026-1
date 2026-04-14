@@ -36,11 +36,11 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
   const isCompany = !isPending && data?.DNI_O_RUC.length > 8;
 
   return (
-    <Card className="shadow-none border bg-white">
+    <Card className="border shadow-none">
       {/* Header */}
       <CardHeader className="space-y-2">
         <CardTitle className="flex items-center gap-2">
-          <div className="p-2 rounded-md bg-blue-50 text-blue-600">
+          <div className="rounded-md bg-primary/10 p-2 text-primary">
             <Building className="w-5 h-5" />
           </div>
 
@@ -51,14 +51,14 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
           <span>Información del cliente</span>
 
           {isPending ? (
-            <Skeleton className="h-6 w-28 rounded-full bg-slate-200!" />
+            <Skeleton className="h-6 w-28 rounded-full bg-muted" />
           ) : (
             <Badge
               variant="outline"
               className={
                 isCompany
-                  ? "bg-blue-100 text-blue-700 border-blue-200"
-                  : "bg-emerald-100 text-emerald-700 border-emerald-200"
+                  ? "border-primary/20 bg-primary/10 text-primary"
+                  : "border-border bg-secondary text-secondary-foreground"
               }
             >
               {isCompany ? "Empresa" : "Persona Natural"}
@@ -73,7 +73,7 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
           {/* DNI / RUC */}
           <div className="space-y-1.5">
             {isPending ? (
-              <Skeleton className="h-5 w-16 bg-slate-200!" />
+              <Skeleton className="h-5 w-16 bg-muted" />
             ) : (
               <p className="text-sm font-medium text-muted-foreground">
                 {isCompany ? "RUC" : "DNI"}
@@ -81,15 +81,15 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
             )}
 
             {isPending ? (
-              <Skeleton className="h-10 w-full rounded-md bg-slate-200!" />
+              <Skeleton className="h-10 w-full rounded-md bg-muted" />
             ) : (
               <Input
                 value={data.DNI_O_RUC}
                 disabled
                 className="
                   h-10
-                  disabled:bg-slate-100
-                  disabled:text-slate-900
+                  disabled:bg-muted
+                  disabled:text-foreground
                 "
               />
             )}
@@ -102,15 +102,15 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
             </p>
 
             {isPending ? (
-              <Skeleton className="h-10 w-full rounded-md bg-slate-200!" />
+              <Skeleton className="h-10 w-full rounded-md bg-muted" />
             ) : (
               <Input
                 value={data.nombre_comercial}
                 disabled
                 className="
                   h-10
-                  disabled:bg-slate-100
-                  disabled:text-slate-900
+                  disabled:bg-muted
+                  disabled:text-foreground
                 "
               />
             )}
@@ -123,15 +123,15 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
             </p>
 
             {isPending ? (
-              <Skeleton className="h-10 w-full rounded-md bg-slate-200!" />
+              <Skeleton className="h-10 w-full rounded-md bg-muted" />
             ) : (
               <Input
                 value={data.razon_social}
                 disabled
                 className="
                   h-10
-                  disabled:bg-slate-100
-                  disabled:text-slate-900
+                  disabled:bg-muted
+                  disabled:text-foreground
                 "
               />
             )}

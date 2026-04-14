@@ -56,7 +56,7 @@ export function PaginationControls({
         <ChevronRight className="h-4 w-4" />
       </Button>
 
-      <span className="text-xs text-gray-600">
+      <span className="text-xs text-muted-foreground">
         Página {currentPage} de {totalPages}
       </span>
     </div>

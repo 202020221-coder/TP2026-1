@@ -22,10 +22,10 @@ export const PickupSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
     queryFn: () => getOrder(orderId),
   });
   return (
-    <Card className="shadow-none border-orange-400 bg-orange-100 sm:col-span-2 flex flex-col">
+    <Card className="sm:col-span-2 flex flex-col border shadow-none">
       <CardHeader>
         <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-          <Package className="text-orange-400" />
+          <Package className="text-primary" />
           <span className="pb-0.5 font-[375] text-[18px]">
             Servicio de Recojo
           </span>
@@ -34,7 +34,7 @@ export const PickupSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
           Establece el costo y fecha de recojo
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col md:flex-row gap-4 flex-1 overflow-y-auto">
+      <CardContent className="flex flex-1 flex-col gap-4 overflow-y-auto md:flex-row">
         <div className="sm:flex-3">
           <p className="font-medium text-[14px] mb-0.5">
             {"Costo de Recojo ($)"}
@@ -43,7 +43,7 @@ export const PickupSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
             min={0}
             type="number"
             step={0.01}
-            className="h-14 md:h-9 border-orange-400 bg-orange-200"
+            className="h-10"
             value={pickupCost}
             onChange={(e) => update("pickupCost", Number(e.target.value))}
           />
@@ -53,7 +53,7 @@ export const PickupSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
           <p className="font-medium text-[14px] mb-0.5">Fecha de Recojo</p>
           <Input
             type="date"
-            className="h-14 md:h-9 border-orange-400 bg-orange-200"
+            className="h-10"
             value={pickupDate}
             min={format(new Date(), "yyyy-MM-dd")}
             onChange={(e) => update("pickupDate", e.target.value)}
@@ -64,17 +64,17 @@ export const PickupSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
           <p className="font-medium text-[14px] mb-0.5">
             Dirección de Entrega:
           </p>
-          <p className="flex-1 flex items-center text-gray-500">
+          <p className="flex flex-1 items-center text-muted-foreground">
             {isPending ? (
-              <span className="text-gray-400 italic">
+              <span className="italic text-muted-foreground">
                 Cargando dirección...
               </span>
             ) : error ? (
-              <span className="text-red-600 font-medium">
+              <span className="font-medium text-destructive">
                 Error al cargar dirección
               </span>
             ) : (
-              <span className="text-gray-700">{data.ubicacion}</span>
+              <span className="text-foreground">{data.ubicacion}</span>
             )}
           </p>
         </div>

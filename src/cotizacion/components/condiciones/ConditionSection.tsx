@@ -44,7 +44,7 @@ export const ConditionSection = () => {
   return (
     <>
       <section className="h-full flex flex-col justify-between">
-        <Card className={`shadow-none h-full flex`}>
+        <Card className="flex h-full shadow-none">
           <CardHeader>
             <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
               <Clock4 />
@@ -54,10 +54,10 @@ export const ConditionSection = () => {
               Configure los términos y condiciones para la cotizaición
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-5 flex-1 overflow-y-auto">
+          <CardContent className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto py-5 sm:grid-cols-2">
             {/*SELECT FECHA EMISION*/}
             <div className="row-span-1">
-              <p className="font-medium text-[14px] mb-0.5">
+              <p className="mb-1 text-sm font-medium">
                 Fecha de Emisión de la cotización
               </p>
               <Input
@@ -71,7 +71,7 @@ export const ConditionSection = () => {
             </div>
             {/*SELECT VIGENCIA*/}
             <div className="row-span-1">
-              <p className="font-medium text-[14px] mb-0.5">
+              <p className="mb-1 text-sm font-medium">
                 Vigencia de la Cotización
               </p>
               <Input
@@ -86,7 +86,7 @@ export const ConditionSection = () => {
 
             {/*SELECT TEXTAREA*/}
             <div className="row-span-2 sm:col-span-2 h-[20vh] flex flex-col">
-              <p className="font-medium text-[14px] mb-0.5">
+              <p className="mb-1 text-sm font-medium">
                 {"Observaciones y condiciones"}
               </p>
               <Textarea
@@ -99,9 +99,10 @@ export const ConditionSection = () => {
               />
             </div>
             {/*BOTONES */}
-            <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 h-[40vh] sm:h-auto sm:flex-wrap">
+            <div className="sm:col-span-2 flex h-[40vh] flex-col gap-2 sm:h-auto sm:flex-row sm:flex-wrap">
               <Button
-                className="flex-1 text-xl sm:text-[16px] rounded-2xl sm:rounded-sm bg-white text-gray-600 font-[450] border border-gray-200 hover:bg-black hover:text-white active:scale-95 active:bg-gray-200 transition-all duration-100"
+                variant="outline"
+                className="flex-1 rounded-md text-base font-medium transition-colors sm:text-sm"
                 onClick={() =>
                   handleAppend("Forma de pago: 100% contra entrega.")
                 }
@@ -109,7 +110,8 @@ export const ConditionSection = () => {
                 + Forma de Pago
               </Button>
               <Button
-                className="flex-1 text-xl sm:text-[16px] rounded-2xl sm:rounded-sm bg-white text-gray-600 font-[450] border border-gray-200 hover:bg-black hover:text-white active:scale-95 active:bg-gray-200 transition-all duration-100"
+                variant="outline"
+                className="flex-1 rounded-md text-base font-medium transition-colors sm:text-sm"
                 onClick={() =>
                   handleAppend("Lugar de entrega: Instalaciones del cliente.")
                 }
@@ -117,7 +119,8 @@ export const ConditionSection = () => {
                 + Lugar Entrega
               </Button>
               <Button
-                className="flex-1 text-xl sm:text-[16px] rounded-2xl sm:rounded-sm bg-white text-gray-600 font-[450] border border-gray-200 hover:bg-black hover:text-white active:scale-95 active:bg-gray-200 transition-all duration-100"
+                variant="outline"
+                className="flex-1 rounded-md text-base font-medium transition-colors sm:text-sm"
                 onClick={() =>
                   handleAppend("Garantía: Respaldamos nuestros resultados.")
                 }
