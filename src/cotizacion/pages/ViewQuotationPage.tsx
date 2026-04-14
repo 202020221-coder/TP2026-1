@@ -14,6 +14,8 @@ import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
 import { useSearchParams } from "react-router";
 import { InventoryTable } from "../components/precios/productos/InventoryTable";
 import { ConditionSection } from "../components/condiciones/ConditionSection";
+import { TruckSelector } from "../components/precios/camiones/TruckSelector";
+import { TruckDriverSelector } from "../components/precios/camiones/TruckDriverSelector";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -98,13 +100,15 @@ export function ViewQuotationPage() {
           </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="h-[calc(100vh-180px)] mt-2">
+        <ScrollArea className="h-[calc(100vh-180px)] mt-2 p-4 rounded-sm border shadow">
           <TabsContent value="reference">
             <ReferenceSection orderId={Number(orderId)} />
           </TabsContent>
 
           <TabsContent value="prices">
             <InventoryTable orderId={Number(orderId)} />
+            <TruckSelector onTruckSelect={() => {}} />
+            <TruckDriverSelector onChange={() => {}} />
           </TabsContent>
 
           <TabsContent value="conditions">

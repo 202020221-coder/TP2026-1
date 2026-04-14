@@ -7,14 +7,18 @@ import type {
   OrderInventoryTableElement,
   Pagination,
 } from "./create/order-inventory";
-export interface GetClientResponse extends Client {}
-
-export type GetFullOrderInventoryResponse = OrderInventoryTableElement[];
-export type GetOrderInventoryResponse = OrderInventoryElementItem[];
-export type GetDetailedOrderInventoryItemResponse =
-  OrderInventoryElementItemDetail;
-export type GetInventoryItemManufacturerResponse = InventoryItemManufacturer;
-
+import type { Profile, Truck } from "./create/order-trucks";
 
 /**==========================ADD INVENTORY ITEM TO ORDER+==================== */
 export type GetInventoryItemsResponse = Pagination<InventoryItem[]>
+export interface GetClientResponse extends Client {}
+
+/**=================================PRODUCTOS==================================== */
+export type GetOrderInventoryResponse = OrderInventoryElementItem[];
+export type GetDetailedOrderInventoryItemResponse = OrderInventoryElementItemDetail;
+export type GetInventoryItemManufacturerResponse = InventoryItemManufacturer;
+export type GetFullOrderInventoryResponse = OrderInventoryTableElement[];
+
+/**=================================CAMIONES==================================== */
+export type GetAvailableTrucksResponse = Truck[];
+export type GetAvailableDriversResponse = Profile[];
