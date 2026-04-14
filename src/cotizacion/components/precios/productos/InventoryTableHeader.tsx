@@ -1,9 +1,9 @@
 import { TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
 export const InventoryTableHeader = () => {
   return (
-    <TableHeader className="bg-muted/50 sticky top-0 z-10">
+    <TableHeader className="sticky top-0 z-10 bg-muted/70 backdrop-blur supports-[backdrop-filter]:bg-muted/60 overflow-hidden">
       <TableRow>
-        <TableHead className="w-[280px]">Producto</TableHead>
+        <TableHead className="w-[280px] overflow-hidden">Producto</TableHead>
 
         <TableHead className="w-[90px]">ID</TableHead>
 

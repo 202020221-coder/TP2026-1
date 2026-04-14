@@ -8,6 +8,7 @@ export function TruckCardSkeleton() {
         block
         rounded-lg
         border
+        bg-card
         p-4
         h-full
         cursor-default

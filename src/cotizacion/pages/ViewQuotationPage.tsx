@@ -41,9 +41,8 @@ export function ViewQuotationPage() {
           className="
             grid w-full grid-cols-4
             border
-            bg-muted/40
+            bg-background
             rounded-lg
-            shadow-sm
             overflow-hidden
             min-h-12
             gap-x-2
@@ -70,11 +69,11 @@ export function ViewQuotationPage() {
           </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="h-[calc(100vh-180px)] mt-2 p-4 rounded-sm border shadow">
+        <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
           <TabsContent value="reference">
             <ReferenceSection orderId={Number(orderId)} />
           </TabsContent>
-          <TabsContent value="prices">
+          <TabsContent value="prices" className="space-y-6 pt-1">
             <InventoryTable orderId={Number(orderId)} />
             <TruckSelector />
             <TruckDriverSelector />

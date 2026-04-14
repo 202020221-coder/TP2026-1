@@ -7,7 +7,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/shared/components/ui/select";
-import { Field, FieldLabel, FieldContent } from "@/shared/components/ui/field";
 import {
   Avatar,
   AvatarImage,
@@ -15,6 +14,8 @@ import {
 } from "@/shared/components/ui/avatar";
 import { TruckDriverSelectorSkeleton } from "./TruckDriverSelectorSkeleton";
 import { useTruck } from "@/cotizacion/hooks/stores/orderTruckStore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { AlertCircle, UserRound } from "lucide-react";
 
 export const TruckDriverSelector = () => {
   const selectedTruckDriverID = useTruck((s) => s.selectedTruckDriverID);
@@ -23,6 +24,15 @@ export const TruckDriverSelector = () => {
     queryKey: ["available", "drivers"],
     queryFn: () => getAvailableDrivers({}),
   });
+
+  const Header = () => (
+    <CardHeader className="pb-0">
+      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+        <UserRound className="h-4 w-4 text-primary" />
+        Conductor asignado
+      </CardTitle>
+    </CardHeader>
+  );
 
   // LOADING STATE
   if (status === "pending") {
@@ -33,49 +43,48 @@ export const TruckDriverSelector = () => {
   if (status === "error") {
     console.log(error);
     return (
-      <Field>
-        <FieldLabel>Conductor asignado</FieldLabel>
-
-        <FieldContent>
-          <div className="text-sm text-destructive">
+      <Card className="gap-4 border bg-card shadow-none">
+        <Header />
+        <CardContent>
+          <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
             Error al cargar conductores
           </div>
-        </FieldContent>
-      </Field>
+        </CardContent>
+      </Card>
     );
   }
 
   // EMPTY STATE
   if (!data || data.length === 0) {
     return (
-      <Field>
-        <FieldLabel>Conductor asignado</FieldLabel>
-        <FieldContent>
+      <Card className="gap-4 border bg-card shadow-none">
+        <Header />
+        <CardContent>
           <Select disabled>
-            <SelectTrigger>
+            <SelectTrigger className="h-14 border-primary/30 bg-primary/10 px-4 text-foreground">
               <SelectValue placeholder="Sin conductores disponibles" />
             </SelectTrigger>
           </Select>
-        </FieldContent>
-      </Field>
+        </CardContent>
+      </Card>
     );
   }
 
   // SUCCESS STATE
   return (
-    <Field className="space-y-2">
-      <FieldLabel>Conductor asignado</FieldLabel>
-
-      <FieldContent>
+    <Card className="gap-4 border bg-card shadow-none">
+      <Header />
+      <CardContent>
         <Select
           value={selectedTruckDriverID}
           onValueChange={(DNI) => update("selectedTruckDriverID", DNI)}
         >
-          <SelectTrigger className="h-11">
+          <SelectTrigger className="h-14 w-full border-primary/30 bg-primary/10 px-4 text-foreground">
             <SelectValue placeholder="Seleccionar conductor" />
           </SelectTrigger>
 
-          <SelectContent>
+          <SelectContent align="center" position="item-aligned">
             {data.map((driver) => {
               const initials = `${driver.Nombre[0]}${driver.Apellido[0]}`;
 
@@ -110,7 +119,7 @@ export const TruckDriverSelector = () => {
             })}
           </SelectContent>
         </Select>
-      </FieldContent>
-    </Field>
+      </CardContent>
+    </Card>
   );
 };

@@ -6,45 +6,83 @@ import { TruckCardSkeleton } from "./TruckCardSkeleton";
 import { useState } from "react";
 import { PaginationControls } from "./PaginationControls";
 import { useTruck } from "@/cotizacion/hooks/stores/orderTruckStore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { AlertCircle, Truck } from "lucide-react";
 
 export function TruckSelector() {
   const [page, setPage] = useState(1);
   const selectedTruckPlate = useTruck((s) => s.selectedTruckPlate);
-  const update = useTruck(s=>s.update)
+  const update = useTruck((s) => s.update);
   const { status, data, isLoading } = useQuery({
     queryKey: ["trucks", page],
     queryFn: () => getAvailableTrucks({ page, limit: 3 }),
   });
 
+  const CardHeaderContent = () => (
+    <CardHeader className="pb-0">
+      <CardTitle className="flex items-center gap-2 text-base font-semibold">
+        <Truck className="h-4 w-4 text-primary" />
+        Selección de camión
+      </CardTitle>
+    </CardHeader>
+  );
+
   if (status === "pending") {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <TruckCardSkeleton />
-        <TruckCardSkeleton />
-        <TruckCardSkeleton />
-      </div>
+      <Card className="gap-4 border bg-card shadow-none">
+        <CardHeaderContent />
+        <CardContent>
+          <div className="rounded-lg border border-border bg-background p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <TruckCardSkeleton />
+              <TruckCardSkeleton />
+              <TruckCardSkeleton />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (status === "error") {
-    return <p className="text-destructive">error al cargar camiones</p>;
+    return (
+      <Card className="gap-4 border bg-card shadow-none">
+        <CardHeaderContent />
+        <CardContent>
+          <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            Error al cargar camiones
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <>
-      <RadioGroup value={selectedTruckPlate} onValueChange={(plate) => update("selectedTruckPlate", plate)}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.data.map((truck) => (
-            <TruckCard key={truck.Placa} truck={truck} />
-          ))}
+    <Card className="gap-4 border bg-card shadow-none">
+      <CardHeaderContent />
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border border-border bg-background p-4">
+          <RadioGroup
+            value={selectedTruckPlate}
+            onValueChange={(plate) => update("selectedTruckPlate", plate)}
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {data.data.map((truck) => (
+                <TruckCard key={truck.Placa} truck={truck} />
+              ))}
+            </div>
+          </RadioGroup>
         </div>
-      </RadioGroup>
-      <PaginationControls
-        currentPage={data.pagination.page}
-        onPageChange={setPage}
-        isLoading={isLoading}
-        totalPages={data.pagination.totalPages}
-      />
-    </>
+        <div className="rounded-lg border border-border bg-muted/20 p-3">
+          <PaginationControls
+            currentPage={data.pagination.page}
+            onPageChange={setPage}
+            isLoading={isLoading}
+            totalPages={data.pagination.totalPages}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -11,6 +11,7 @@ import { PlusIcon } from "lucide-react";
 import { InventorySelectionDialog } from "./add/InventorySelectionDialog";
 import { InventoryTableSkeleton } from "./InventoryTableSkeleton";
 import { InventoryTableError } from "./InventoryTableError";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
 export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -32,7 +33,14 @@ export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
       <Button className="mb-2 ml-auto flex" onClick={() => setIsDialogOpen(true)}>
         <PlusIcon /> Agregar producto
       </Button>
-      <InventoryTableContent isPending={isPending} hasError={Boolean(error)} />
+      <Card className="gap-4 border bg-card shadow-none">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-base font-semibold">Productos cotizados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InventoryTableContent isPending={isPending} hasError={Boolean(error)} />
+        </CardContent>
+      </Card>
       <InventorySelectionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
     </>
   );
@@ -46,17 +54,19 @@ const InventoryTableContent: FC<{ isPending: boolean; hasError: boolean }> = ({
 
   const items = Object.values(itemsObj);
   return (
-    <Table>
-      <InventoryTableHeader />
-      <TableBody>
-        {isPending ? (
-          <InventoryTableSkeleton />
-        ) : hasError ? (
-          <InventoryTableError />
-        ) : (
-          items.map((item) => <InventoryTableRow key={item.id} inventoryElement={item} />)
-        )}
-      </TableBody>
-    </Table>
+    <div className="overflow-hidden rounded-lg border border-border bg-background">
+      <Table>
+        <InventoryTableHeader />
+        <TableBody>
+          {isPending ? (
+            <InventoryTableSkeleton />
+          ) : hasError ? (
+            <InventoryTableError />
+          ) : (
+            items.map((item) => <InventoryTableRow key={item.id} inventoryElement={item} />)
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

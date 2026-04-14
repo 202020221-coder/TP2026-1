@@ -33,6 +33,7 @@ export function TruckCard({
         block
         rounded-lg
         border
+        bg-card
         p-4
         transition-all
         h-full
@@ -43,7 +44,7 @@ export function TruckCard({
         data-[state=checked]:border-primary
         data-[state=checked]:ring-2
         data-[state=checked]:ring-primary/30
-        data-[state=checked]:bg-muted/30
+        data-[state=checked]:bg-primary/5
       `}
     >
       <RadioGroupItem
