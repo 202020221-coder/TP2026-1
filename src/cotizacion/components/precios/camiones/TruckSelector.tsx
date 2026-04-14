@@ -6,7 +6,13 @@ import { TruckCardSkeleton } from "./TruckCardSkeleton";
 import { useState } from "react";
 import { PaginationControls } from "./PaginationControls";
 import { useTruck } from "@/cotizacion/hooks/stores/orderTruckStore";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { AlertCircle, Truck } from "lucide-react";
 
 export function TruckSelector() {
@@ -20,10 +26,16 @@ export function TruckSelector() {
 
   const CardHeaderContent = () => (
     <CardHeader className="pb-0">
-      <CardTitle className="flex items-center gap-2 text-base font-semibold">
-        <Truck className="h-4 w-4 text-primary" />
-        Selección de camión
+      <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+        <Truck className="text-primary" />
+        <span className="pb-0.5 font-[375] text-[18px]">
+          {" "}
+          Selección de camión
+        </span>
       </CardTitle>
+      <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+        Selecciona el camión que va estar vinculado a la cotización.
+      </CardDescription>
     </CardHeader>
   );
 

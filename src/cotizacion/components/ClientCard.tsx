@@ -39,16 +39,17 @@ export const ClientCard: FC<{ clientId: string }> = ({ clientId }) => {
     <Card className="border shadow-none">
       {/* Header */}
       <CardHeader className="space-y-2">
-        <CardTitle className="flex items-center gap-2">
-          <div className="rounded-md bg-primary/10 p-2 text-primary">
-            <Building className="w-5 h-5" />
-          </div>
-
-          <span className="font-semibold text-base">Datos del Cliente</span>
+        <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+          <Building className="text-primary" />
+          <span className="pb-0.5 font-[375] text-[18px]">
+            Datos del Cliente
+          </span>
         </CardTitle>
-
         <CardDescription className="flex justify-between items-center">
-          <span>Información del cliente</span>
+          <span>
+            Visualiza la información del cliente obtenida durante la elaboración
+            de su solicitud.
+          </span>
 
           {isPending ? (
             <Skeleton className="h-6 w-28 rounded-full bg-muted" />

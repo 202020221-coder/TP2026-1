@@ -7,11 +7,17 @@ import { InventoryTableRow } from "./InventoryTableRow";
 import { useOrderInventoryStore } from "@/cotizacion/hooks/stores/orderInventoryStore";
 import { getFullOrderInventory } from "@/cotizacion/api/order.api";
 import { Button } from "@/shared/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SquareChartGantt } from "lucide-react";
 import { InventorySelectionDialog } from "./add/InventorySelectionDialog";
 import { InventoryTableSkeleton } from "./InventoryTableSkeleton";
 import { InventoryTableError } from "./InventoryTableError";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 
 export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,18 +36,37 @@ export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
 
   return (
     <>
-      <Button className="mb-2 ml-auto flex" onClick={() => setIsDialogOpen(true)}>
+      <Button
+        className="mb-2 ml-auto flex"
+        onClick={() => setIsDialogOpen(true)}
+      >
         <PlusIcon /> Agregar producto
       </Button>
       <Card className="gap-4 border bg-card shadow-none">
         <CardHeader className="pb-0">
-          <CardTitle className="text-base font-semibold">Productos cotizados</CardTitle>
+          <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+            <SquareChartGantt className="text-primary" />
+            <span className="pb-0.5 font-[375] text-[18px]">
+              {" "}
+              Productos Cotizados
+            </span>
+          </CardTitle>
+          <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+            Interactúa con los productos seleccionados por el cliente, cambia
+            precios y cantidades, y elimina o agrega nuevos items.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <InventoryTableContent isPending={isPending} hasError={Boolean(error)} />
+          <InventoryTableContent
+            isPending={isPending}
+            hasError={Boolean(error)}
+          />
         </CardContent>
       </Card>
-      <InventorySelectionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <InventorySelectionDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </>
   );
 };
@@ -63,7 +88,9 @@ const InventoryTableContent: FC<{ isPending: boolean; hasError: boolean }> = ({
           ) : hasError ? (
             <InventoryTableError />
           ) : (
-            items.map((item) => <InventoryTableRow key={item.id} inventoryElement={item} />)
+            items.map((item) => (
+              <InventoryTableRow key={item.id} inventoryElement={item} />
+            ))
           )}
         </TableBody>
       </Table>

@@ -14,7 +14,13 @@ import {
 } from "@/shared/components/ui/avatar";
 import { TruckDriverSelectorSkeleton } from "./TruckDriverSelectorSkeleton";
 import { useTruck } from "@/cotizacion/hooks/stores/orderTruckStore";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { AlertCircle, UserRound } from "lucide-react";
 
 export const TruckDriverSelector = () => {
@@ -27,10 +33,16 @@ export const TruckDriverSelector = () => {
 
   const Header = () => (
     <CardHeader className="pb-0">
-      <CardTitle className="flex items-center gap-2 text-base font-semibold">
-        <UserRound className="h-4 w-4 text-primary" />
-        Conductor asignado
+      <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+        <UserRound className="text-primary" />
+        <span className="pb-0.5 font-[375] text-[18px]">
+          {" "}
+          Conductor Asignado
+        </span>
       </CardTitle>
+      <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+        Selecciona el conductor para el camión.
+      </CardDescription>
     </CardHeader>
   );
 
