@@ -17,7 +17,7 @@ import { AlertCircle, Truck } from "lucide-react";
 
 export function TruckSelector() {
   const [page, setPage] = useState(1);
-  const selectedTruckPlate = useTruck((s) => s.selectedTruckPlate);
+  const selectedTruck = useTruck((s) => s.selectedTruck);
   const update = useTruck((s) => s.update);
   const { status, data, isLoading } = useQuery({
     queryKey: ["trucks", page],
@@ -76,8 +76,8 @@ export function TruckSelector() {
       <CardContent className="space-y-4">
         <div className="rounded-lg border border-border bg-background p-4">
           <RadioGroup
-            value={selectedTruckPlate}
-            onValueChange={(plate) => update("selectedTruckPlate", plate)}
+            value={JSON.stringify(selectedTruck)}
+            onValueChange={(jsonTruck) => update("selectedTruck", JSON.parse(jsonTruck))}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {data.data.map((truck) => (

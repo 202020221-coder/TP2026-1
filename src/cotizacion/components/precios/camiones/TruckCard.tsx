@@ -48,7 +48,7 @@ export function TruckCard({
       `}
     >
       <RadioGroupItem
-        value={truck.Placa}
+        value={JSON.stringify(truck)}
         id={`truck-${truck.Placa}`}
         className="sr-only"
       />

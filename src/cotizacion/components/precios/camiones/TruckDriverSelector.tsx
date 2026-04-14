@@ -24,7 +24,7 @@ import {
 import { AlertCircle, UserRound } from "lucide-react";
 
 export const TruckDriverSelector = () => {
-  const selectedTruckDriverID = useTruck((s) => s.selectedTruckDriverID);
+  const selectedTruckDriver = useTruck((s) => s.selectedTruckDriver);
   const update = useTruck((s) => s.update);
   const { status, data, error } = useQuery({
     queryKey: ["available", "drivers"],
@@ -89,8 +89,8 @@ export const TruckDriverSelector = () => {
       <Header />
       <CardContent>
         <Select
-          value={selectedTruckDriverID}
-          onValueChange={(DNI) => update("selectedTruckDriverID", DNI)}
+          value={JSON.stringify(selectedTruckDriver)}
+          onValueChange={(JSONDriver) => update("selectedTruckDriver", JSON.parse(JSONDriver))}
         >
           <SelectTrigger className="h-14 w-full border-primary/30 bg-primary/10 px-4 text-foreground">
             <SelectValue placeholder="Seleccionar conductor" />
