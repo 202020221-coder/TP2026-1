@@ -13,6 +13,7 @@ import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
 
 import { useSearchParams } from "react-router";
 import { InventoryTable } from "../components/precios/productos/InventoryTable";
+import { ConditionSection } from "../components/condiciones/ConditionSection";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();

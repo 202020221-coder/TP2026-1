@@ -1,44 +1,57 @@
-import { Button } from "@/shared/components/ui/button";
 import { Table, TableBody } from "@/shared/components/ui/table";
-import type { FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Order } from "@/solicitudes/interfaces/order";
-import { getOrderInventory } from "@/cotizacion/api/order.api";
 import { InventoryTableHeader } from "./InventoryTableHeader";
 import { InventoryTableRow } from "./InventoryTableRow";
-import { InventoryTableSkeleton } from "./InventoryTableSkeleton";
-import { InventoryTableError } from "./InventoryTableError";
+import { useOrderInventoryStore } from "@/cotizacion/hooks/stores/orderInventoryStore";
+import { getFullOrderInventory } from "@/cotizacion/api/order.api";
+import { Button } from "@/shared/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import { InventorySelectionDialog } from "./add/InventorySelectionDialog";
 
 export const InventoryTable: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
-  // const client = useQueryClient();
-  const { error, isPending, data } = useQuery({
+  const [isDialogOpen,setIsDialogOpen] = useState(false)
+  
+  const { data, isPending, error } = useQuery({
     queryKey: ["order", "inventory", orderId],
-    queryFn: () => getOrderInventory(orderId),
+    queryFn: () => getFullOrderInventory(orderId),
+    staleTime: Infinity,
   });
+  const initializeItems = useOrderInventoryStore((s) => s.initializeItems);
+  useEffect(() => {
+    if (data) {
+      console.log(data);
 
-  if (error) {
-    return <InventoryTableError />;
-  }
+      initializeItems(data);
+    }
+  }, [data]);
+  if (isPending) return <p>cargandoo....</p>;
+  if (error) return <p>Error</p>;
+
   return (
     <>
-      <Button className="ml-auto block mb-2" disabled={isPending}>
-        Agregar producto
+      <Button className="ml-auto flex mb-2" onClick={()=>setIsDialogOpen(true)}>
+        <PlusIcon /> Agregar producto
       </Button>
-      <Table>
-        <InventoryTableHeader />
-        <TableBody>
-          {isPending ? (
-            <InventoryTableSkeleton />
-          ) : (
-            data.map((item) => (
-              <InventoryTableRow
-                key={`${item.id}-${item.ID_Inventario}-${item.ID_Solicitud}`}
-                inventoryItem={item}
-              />
-            ))
-          )}
-        </TableBody>
-      </Table>
+      <InventoryTableContent />
+      <InventorySelectionDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}/>
     </>
+  );
+};
+
+const InventoryTableContent = () => {
+  const itemsObj = useOrderInventoryStore((s) => s.items);
+
+  const items = Object.values(itemsObj);
+  return (
+    <Table>
+      <InventoryTableHeader />
+      <TableBody>
+        {items.map((item) => (
+          <InventoryTableRow key={item.id} inventoryElement={item} />
+        ))}
+      </TableBody>
+    </Table>
   );
 };

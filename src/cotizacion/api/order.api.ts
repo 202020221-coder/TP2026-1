@@ -1,6 +1,7 @@
 import type { Order } from "@/solicitudes/interfaces/order";
 import type {
   GetDetailedOrderInventoryItemResponse,
+  GetFullOrderInventoryResponse,
   GetInventoryItemManufacturerResponse,
   GetOrderInventoryResponse,
 } from "../interfaces/responses.dto";
@@ -9,15 +10,7 @@ import type {
   InventoryItemManufacturer,
   OrderInventoryElementItem,
 } from "../interfaces/create/order-inventory";
-
-export const getOrderInventory = async (
-  id: Order["ID"],
-): Promise<GetOrderInventoryResponse> => {
-  const response = await axiosInstance.get<GetOrderInventoryResponse>(
-    `/solicitudes/${id}/inventario`,
-  );
-  return response.data;
-};
+import type { OrderInventoryTableElement } from "../interfaces/create/order-inventory";
 
 export const getOrderInventoryItem = async (
   id: OrderInventoryElementItem["ID_Inventario"],
@@ -37,4 +30,37 @@ export const getInventoryItemManufacturer = async (
       `/fabricantes/${manufacturerId}`,
     );
   return response.data;
+};
+
+export const getFullOrderInventory = async (
+  id: Order["ID"],
+): Promise<GetFullOrderInventoryResponse> => {
+  const inventoryList = await axiosInstance.get<GetOrderInventoryResponse>(
+    `/solicitudes/${id}/inventario`,
+  );
+
+  const tableElements: OrderInventoryTableElement[] = [];
+
+  for (const item of inventoryList.data) {
+    // Obtener detalles del item (paralelo entre items)
+    const itemDetailPromise = getOrderInventoryItem(item.ID_Inventario);
+
+    // Manufacturer es secuencial por cada item
+    const itemDetail = await itemDetailPromise;
+    const manufacturer = await getInventoryItemManufacturer(
+      itemDetail.ID_Fabricante,
+    );
+
+    tableElements.push({
+      id: String(item.ID_Inventario),
+      producto: itemDetail.nombre_objeto,
+      fabricante: manufacturer.nombre_comercial,
+      estado: itemDetail.estado,
+      intencion: item.intencion,
+      cantidad: item.cantidad,
+      precio_unitario: parseFloat(itemDetail.precio_comercial),
+    });
+  }
+
+  return tableElements;
 };
