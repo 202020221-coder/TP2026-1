@@ -107,7 +107,9 @@ export function ViewQuotationPage() {
             <InventoryTable orderId={Number(orderId)} />
           </TabsContent>
 
-          <TabsContent value="conditions"></TabsContent>
+          <TabsContent value="conditions">
+            <ConditionSection/>
+          </TabsContent>
 
           <TabsContent value="visualize"></TabsContent>
         </ScrollArea>
