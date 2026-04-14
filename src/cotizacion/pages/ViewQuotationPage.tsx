@@ -107,8 +107,8 @@ export function ViewQuotationPage() {
 
           <TabsContent value="prices">
             <InventoryTable orderId={Number(orderId)} />
-            <TruckSelector onTruckSelect={() => {}} />
-            <TruckDriverSelector onChange={() => {}} />
+            <TruckSelector/>
+            <TruckDriverSelector/>
           </TabsContent>
 
           <TabsContent value="conditions">

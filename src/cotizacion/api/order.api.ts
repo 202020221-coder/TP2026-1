@@ -13,6 +13,11 @@ import type {
   OrderInventoryElementItem,
 } from "../interfaces/create/order-inventory";
 import type { OrderInventoryTableElement } from "../interfaces/create/order-inventory";
+import { toSearchParams } from "@/shared/lib/to-search-params";
+import type {
+  GetAvailableDriversQP,
+  GetAvailableTrucksQP,
+} from "../interfaces/query-params.dto";
 
 /**==============================PRODUCTOS=============================== */
 export const getOrderInventory = async (
@@ -75,34 +80,27 @@ export const getFullOrderInventory = async (
   }
 
   return tableElements;
-}
-
-/**==========================CAMIONES======================= */
-export const getAvailableTrucks = async () => {
-  const response =
-    await axiosInstance.get<GetAvailableTrucksResponse>(`/camiones`);
-
-  const data = response.data.filter(
-    () => true /**DEBE HABER UN CAMPO QUE FILTRE CAMIONES DISPONIBLES */,
-  );
-  return data;
 };
 
-export const getAvailableDrivers = async () => {
-  const response =
-    await axiosInstance.get<GetAvailableDriversResponse>(`/perfiles`);
-  const availableProfiles = response.data.filter(
-    (profile) => profile.estado === "disponible",
+/**==========================CAMIONES======================= */
+export const getAvailableTrucks = async ({
+  page = 1,
+  limit = 10,
+}: GetAvailableTrucksQP) => {
+  const response = await axiosInstance.get<GetAvailableTrucksResponse>(
+    `/camiones?${toSearchParams({ page, limit })}`,
   );
+  return response.data;
+};
 
-  const brevetesResponses = await Promise.all(
-    availableProfiles.map((profile) =>
-      axiosInstance.get<unknown[]>(`/perfiles/${profile.DNI}/brevetes`),
-    ),
+export const getAvailableDrivers = async ({
+  fecha = new Date().toISOString().split("T")[0],
+}: GetAvailableDriversQP) => {
+  const response = await axiosInstance.get<GetAvailableDriversResponse>(
+    `/perfiles/conductores/disponibles?${toSearchParams({ fecha })}`,
   );
-  //los que tienen brevetes son conductores
-  const availableDrivers = availableProfiles.filter(
-    (_, index) => brevetesResponses[index].data.length > 0,
+  const availableDrivers = response.data.filter(
+    (profile) => profile.estado === "disponible",
   );
 
   return availableDrivers;
