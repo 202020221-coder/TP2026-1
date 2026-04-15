@@ -19,10 +19,13 @@ import { TruckDriverSelector } from "../components/precios/camiones/TruckDriverS
 import { PickupSection } from "../components/precios/entrega/PickupSection";
 import { SummaryCard } from "../components/precios/resumen/SummarySection";
 import PdfPreview from "../components/visualizacion/PdfPreview";
+import { useTruck } from "../hooks/stores/orderTruckStore";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
+  const truck = useTruck(s=>s.selectedTruck)
+    const truckDriver = useTruck(s=>s.selectedTruckDriver)
 
   if (!orderId) {
     throw new Error("Id de la solicitud no especificada");
@@ -64,7 +67,7 @@ export function ViewQuotationPage() {
             Condiciones
           </TabsTrigger>
 
-          <TabsTrigger value="visualize" className={baseTriggerClass}>
+          <TabsTrigger value="visualize" className={baseTriggerClass} disabled={!truck || !truckDriver}>
             <Eye className="w-4 h-4" />
             Visualización
           </TabsTrigger>
