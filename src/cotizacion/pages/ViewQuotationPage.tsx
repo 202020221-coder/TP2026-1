@@ -18,14 +18,20 @@ import { TruckSelector } from "../components/precios/camiones/TruckSelector";
 import { TruckDriverSelector } from "../components/precios/camiones/TruckDriverSelector";
 import { PickupSection } from "../components/precios/entrega/PickupSection";
 import { SummaryCard } from "../components/precios/resumen/SummarySection";
-import PdfPreview from "../components/visualizacion/PdfPreview";
 import { useTruck } from "../hooks/stores/orderTruckStore";
+import { VisualizeSection } from "../components/visualizacion/VisualizeSection";
+import type { FC, PropsWithChildren } from "react";
+import { useOrderInventoryStore } from "../hooks/stores/orderInventoryStore";
+import {
+  TooltipContent,
+  TooltipTrigger,
+  Tooltip,
+} from "@/shared/components/ui/tooltip";
+import { cn } from "@/shared/lib/utils";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const truck = useTruck(s=>s.selectedTruck)
-    const truckDriver = useTruck(s=>s.selectedTruckDriver)
 
   if (!orderId) {
     throw new Error("Id de la solicitud no especificada");
@@ -67,10 +73,10 @@ export function ViewQuotationPage() {
             Condiciones
           </TabsTrigger>
 
-          <TabsTrigger value="visualize" className={baseTriggerClass} disabled={!truck || !truckDriver}>
+          <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
             <Eye className="w-4 h-4" />
             Visualización
-          </TabsTrigger>
+          </VisualizeTrigger>
         </TabsList>
 
         <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
@@ -88,12 +94,62 @@ export function ViewQuotationPage() {
             <ConditionSection />
           </TabsContent>
           <TabsContent value="visualize">
-            <PdfPreview key={Date.now()}/>
+            <VisualizeSection />
           </TabsContent>
         </ScrollArea>
       </Tabs>
     </div>
   );
 }
+
+const VisualizeTrigger: FC<PropsWithChildren<{ baseTriggerClass: string }>> = ({
+  children,
+  baseTriggerClass,
+}) => {
+  const truck = useTruck((s) => s.selectedTruck);
+  const truckDriver = useTruck((s) => s.selectedTruckDriver);
+  const inventory = useOrderInventoryStore((s) => s.items);
+
+  const hasInventory = Object.keys(inventory).length > 0;
+  const isDisabled = !truck || !truckDriver || !hasInventory;
+
+  const getDisabledReasons = () => {
+    const reasons: string[] = [];
+
+    if (!truck) reasons.push("Debe seleccionar un camión");
+    if (!truckDriver) reasons.push("Debe seleccionar un conductor");
+    if (!hasInventory)
+      reasons.push("Debe agregar al menos un item al inventario");
+
+    return reasons;
+  };
+
+  const disabledMessage = getDisabledReasons().join("\n");
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="block min-w-full">
+          <TabsTrigger
+            value="visualize"
+            className={cn(
+              baseTriggerClass,
+              "w-full",
+              isDisabled && "pointer-events-none opacity-50",
+            )}
+          >
+            {children}
+          </TabsTrigger>
+        </div>
+      </TooltipTrigger>
+
+      {isDisabled && (
+        <TooltipContent>
+          <p className="whitespace-pre-line">{disabledMessage}</p>
+        </TooltipContent>
+      )}
+    </Tooltip>
+  );
+};
 
 export default ViewQuotationPage;
