@@ -10,12 +10,17 @@ export const routes: IRoute[] = [
     path: "/",
     Component: ListQuotationPage,
     isPrivate: true,
-    // roles: ["CLIENT"]
+    roles: ["CLIENT"]
   },
   {
     path: "/detalle",
     Component: QuotationDetailPage,
     isPrivate: true,
   },
+  // {path: "/crear",
+  //   Component: ViewQuotationPage,
+  //   isPrivate: true,
+  //   roles: ["ADMIN"]
+  // },
 ];
 
