@@ -16,19 +16,17 @@ export const OrdersTable: FC = () => {
   return (
     <OrdersTableControls>
       <Table>
-        <OrdersTableHeader/>
+        <OrdersTableHeader />
         <TableBody>
           {isPending || isFetching ? (
-            <OrdersTablePlaceholder
-              rows={queryParams.per_page ?? 5}
-            />
+            <OrdersTablePlaceholder rows={queryParams.limit ?? 10} />
           ) : isError ? (
             <TableRow>
               <TableCell colSpan={6}>{error.message}</TableCell>
             </TableRow>
           ) : (
             <>
-              {data.map((o) => (
+              {data.data.map((o) => (
                 <OrderTableRow order={o} key={o.ID} />
               ))}
             </>
