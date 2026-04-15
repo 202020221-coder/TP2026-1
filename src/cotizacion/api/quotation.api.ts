@@ -8,7 +8,7 @@
 import sleep from "@/shared/lib/sleep";
 import type { Quotation } from "../interfaces/quotation";
 import axiosInstance from "@/shared/api/axios.config";
-import type { GetQuotationResponse, GetQuotationsResponse } from "../interfaces/responses.dto";
+import type { GetQuotationResponse, GetQuotationsResponse } from "../interfaces/quotation-responses.dto";
 
 
 export const getAllQuontation = async() : Promise<GetQuotationsResponse> => {
