@@ -22,3 +22,5 @@ export const useOrderConditions = create<OrderConditionsStore>((set) => ({
       [field]: value,
     })),
 }));
+
+export type ConditionState = State

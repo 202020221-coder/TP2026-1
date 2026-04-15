@@ -20,3 +20,5 @@ export const useOrderPickup = create<OrderPickupStore>((set) => ({
       [field]: value,
     })),
 }));
+
+export type PickupState = State

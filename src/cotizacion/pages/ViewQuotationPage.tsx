@@ -18,6 +18,7 @@ import { TruckSelector } from "../components/precios/camiones/TruckSelector";
 import { TruckDriverSelector } from "../components/precios/camiones/TruckDriverSelector";
 import { PickupSection } from "../components/precios/entrega/PickupSection";
 import { SummaryCard } from "../components/precios/resumen/SummarySection";
+import PdfPreview from "../components/visualizacion/PdfPreview";
 
 export function ViewQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -83,7 +84,9 @@ export function ViewQuotationPage() {
           <TabsContent value="conditions">
             <ConditionSection />
           </TabsContent>
-          <TabsContent value="visualize"></TabsContent>
+          <TabsContent value="visualize">
+            <PdfPreview key={Date.now()}/>
+          </TabsContent>
         </ScrollArea>
       </Tabs>
     </div>

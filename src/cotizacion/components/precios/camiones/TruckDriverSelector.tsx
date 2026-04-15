@@ -103,7 +103,7 @@ export const TruckDriverSelector = () => {
               return (
                 <SelectItem
                   key={driver.DNI}
-                  value={driver.DNI}
+                  value={JSON.stringify(driver)}
                   className="py-3"
                 >
                   <div className="flex items-center gap-3">
