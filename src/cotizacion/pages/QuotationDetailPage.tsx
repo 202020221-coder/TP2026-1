@@ -9,7 +9,7 @@ import { QuotationDetailFormCard } from "../components/QuotationDetailFormCard";
 import { QuotationMessagesStatesRecord } from "../enum/quotation-message-state.record";
 import { QuotationStatesRecord } from "../enum/quotation-state.record";
 
-import type { QuotationDetailForm } from "../interfaces/quotation-detail-form";
+import type { QuotationDetailForm } from "../schemas/quotation-detail-form";
 
 const toDisplayDate = (value: string) => {
   if (!value) return "";

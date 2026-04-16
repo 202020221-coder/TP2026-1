@@ -1,4 +1,4 @@
-import type { Client } from "./client";
+import type { Client } from "./create/client";
 import type {
   InventoryItem,
   InventoryItemManufacturer,
@@ -8,6 +8,11 @@ import type {
   Pagination,
 } from "./create/order-inventory";
 import type { Pilot, Truck } from "./create/order-trucks";
+import type { Quotation } from "./quotation";
+
+/**==============================COTIZACIONES ========================== */
+export type GetQuotationsResponse =Quotation[];
+export type GetQuotationResponse = Quotation;
 
 /**==========================ADD INVENTORY ITEM TO ORDER+==================== */
 export type GetInventoryItemsResponse = Pagination<InventoryItem[]>;

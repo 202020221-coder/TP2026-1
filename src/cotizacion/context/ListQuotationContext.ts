@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { GetQuotationQP } from "../interfaces/query-params.dto";
-import type { GetQuotationsResponse } from "../interfaces/quotation-responses.dto";
+import type { GetQuotationsResponse } from "../interfaces/responses.dto";
 
 interface IListQuotationContext {
   result: UseQueryResult<GetQuotationsResponse, Error>;

@@ -4,7 +4,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Textarea } from "@/shared/components/ui/textarea";
-import type { QuotationDetailForm } from "../interfaces/quotation-detail-form";
+import type { QuotationDetailForm } from "../schemas/quotation-detail-form";
 
 type QuotationDetailFormCardProps = {
   form: UseFormReturn<QuotationDetailForm>;
