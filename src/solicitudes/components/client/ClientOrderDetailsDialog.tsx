@@ -31,7 +31,7 @@ export function ClientOrderDetailsDialog({
             <DialogContent className="max-w-2xl rounded-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-semibold text-foreground">
-                        Detalle de la Solicitud
+                        Detalle de Mi Solicitud
                     </DialogTitle>
                 </DialogHeader>
 
