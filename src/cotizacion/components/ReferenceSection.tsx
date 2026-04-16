@@ -5,6 +5,7 @@ import type { FC } from "react";
 import { ClientCardSkeleton } from "./ClientCardSkeleton";
 import type { Order } from "@/solicitudes/interfaces/order";
 import { useSession } from "@/profile/hooks/stores/useSession.store";
+import { RolesRecord } from "@/profile/enum/roles.enum";
 /*============================TIPOS===========================*/
 export const ReferenceSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
   const user = useSession((state) => state.loggedUser);
@@ -32,7 +33,7 @@ export const ReferenceSection: FC<{ orderId: Order["ID"] }> = ({ orderId }) => {
 
   return (
     <section className="flex flex-col">
-      {user?.role === "ADMIN" && (
+      {user?.rol === RolesRecord.projectAdmin && (
         /**Recordar que solo el admin accede al id del cliente a traves de la solicitud */
         <ClientCard clientId={data.Id_Cliente ?? ""} />
       )}

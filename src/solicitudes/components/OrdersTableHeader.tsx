@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { TableHeader, TableHead, TableRow } from "@/shared/components/ui/table";
 import { useSession } from "@/profile/hooks/stores/useSession.store";
+import { RolesRecord } from "@/profile/enum/roles.enum";
 export const OrdersTableHeader: FC = () => {
   const user = useSession((state) => state.loggedUser);
   return (
@@ -8,8 +9,8 @@ export const OrdersTableHeader: FC = () => {
       <TableRow className="hover:bg-white">
         <TableHead className="text-gray-500 font-medium">Código</TableHead>
         <TableHead className="text-gray-500 font-medium">
-          {user?.role === "ADMIN" && `ID Cliente`}
-          {user?.role === "CLIENT" && `ID Empresa`}
+          {user?.rol === RolesRecord.projectAdmin && `ID Cliente`}
+          {user?.rol === RolesRecord.client && `ID Empresa`}
         </TableHead>
         <TableHead className="text-gray-500 font-medium">Ubicación</TableHead>
         <TableHead className="text-gray-500 font-medium">

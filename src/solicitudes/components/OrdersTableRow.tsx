@@ -19,11 +19,12 @@ import { useSession } from "@/profile/hooks/stores/useSession.store";
 import OrderRejectionMessageDialog from "./OrderRejectionMessageDialog";
 import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
+import { RolesRecord } from "@/profile/enum/roles.enum";
 export const OrderTableRow: FC<{
   order: Order;
 }> = ({ order }) => {
   const user = useSession((state) => state.loggedUser);
-  const Navigate=  useNavigate()
+  const Navigate = useNavigate();
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
   //   const [clientLink, setClientLink] = useState("");
   //   const queryClient = useQueryClient();
@@ -66,8 +67,8 @@ export const OrderTableRow: FC<{
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <TableCell className="font-medium py-3">{order.ID}</TableCell>
       <TableCell className="text-gray-700">
-        {user?.role === "ADMIN" && order.Id_Cliente}
-        {user?.role === "CLIENT" && order.Id_Company}
+        {user?.rol === RolesRecord.projectAdmin && order.Id_Cliente}
+        {user?.rol === RolesRecord.client && order.Id_Company}
       </TableCell>
       <TableCell className="text-gray-700">{order.ubicacion}</TableCell>
       <TableCell className="text-gray-700">
@@ -125,57 +126,59 @@ export const OrderTableRow: FC<{
             </TooltipContent>
           </Tooltip> */}
 
-          {user?.role === "ADMIN" && order.estado === "Pendiente" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                  onClick={() =>
-                    Navigate(
-                      `/intranet/cotizaciones/crear?${toSearchParams({ orderId: order.ID })}`,
-                    )
-                  }
-                  // disabled={sendToClient.isPending}
-                >
-                  <FileArchive className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
-                align="center"
-              >
-                Crear Cotización
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          {user?.role === "ADMIN" && order.estado === "Pendiente" && (
-            <>
+          {user?.rol === RolesRecord.projectAdmin &&
+            order.estado === "Pendiente" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                    // onClick={() => createNewVersion.mutate(Order.id)}
-                    // disabled={createNewVersion.isPending}
+                    className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
+                    onClick={() =>
+                      Navigate(
+                        `/intranet/cotizaciones/crear?${toSearchParams({ orderId: order.ID })}`,
+                      )
+                    }
+                    // disabled={sendToClient.isPending}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <FileArchive className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent
-                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                  className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
                   align="center"
                 >
-                  Rechazar Solicitud
+                  Crear Cotización
                 </TooltipContent>
               </Tooltip>
-            </>
-          )}
+            )}
 
-          {user?.role === "CLIENT" && order.estado === "Rechazada" && (
+          {user?.rol === RolesRecord.projectAdmin &&
+            order.estado === "Pendiente" && (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                      // onClick={() => createNewVersion.mutate(Order.id)}
+                      // disabled={createNewVersion.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                    align="center"
+                  >
+                    Rechazar Solicitud
+                  </TooltipContent>
+                </Tooltip>
+              </>
+            )}
+
+          {user?.rol === RolesRecord.client && order.estado === "Rechazada" && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
