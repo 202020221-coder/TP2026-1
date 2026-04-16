@@ -19,12 +19,9 @@ const AuthNavigation = lazy(() => import("@/auth/routing/AuthNavigation"));
 const QuotationNavigation = lazy(
   () => import("@/cotizacion/routing/Navigation"),
 );
+
+//Order matters since it defines hierarchy, this hierarchy makes the routing work properly
 export const routes: IRoute[] = [
-  {
-    path: "*",
-    Component: HomeNavigation,
-    isPrivate: false,
-  },
   {
     path: "/intranet/procesos/*",
     Component: ProcessNavigation,
@@ -42,8 +39,13 @@ export const routes: IRoute[] = [
   },
   {
     path: "/intranet/solicitudes/*",
-    Component: OrdersNavigation, //navegacion de solicitudes
+    Component: OrdersNavigation,
     isPrivate: true,
+  },
+  {
+    path: "/intranet/dashboard/*",
+    Component: DashboardClientPage,
+    isPrivate: false,
   },
   {
     path: "/auth/*",
@@ -51,8 +53,8 @@ export const routes: IRoute[] = [
     isPrivate: false,
   },
   {
-    path: "/intranet/dashboard/*",
-    Component: DashboardClientPage,
+    path: "/*",
+    Component: HomeNavigation,
     isPrivate: false,
   },
 ];

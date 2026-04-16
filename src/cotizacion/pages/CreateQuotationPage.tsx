@@ -29,7 +29,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 
-export function ViewQuotationPage() {
+export function CreateQuotationPage() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -152,4 +152,4 @@ const VisualizeTrigger: FC<PropsWithChildren<{ baseTriggerClass: string }>> = ({
   );
 };
 
-export default ViewQuotationPage;
+export default CreateQuotationPage;

@@ -31,9 +31,7 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
 };
 
 const TopControls: FC = () => {
-  const { query, queryParams, result } = useOrders();
-  console.log("ESTADO", queryParams.status);
-  
+  const { query, queryParams, result } = useOrders();  
   return (
     <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
       <div className="col-span-1 md:col-span-3 relative">

@@ -22,8 +22,7 @@ export const HomeNavigation = () => {
           }
         />
       ))}
-      {/* Redirección para rutas inválidas bajo /extranet/** */}
-      <Route path="*" element={<Navigate replace to="/welcome" />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

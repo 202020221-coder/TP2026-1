@@ -1,3 +1,4 @@
+import { RolesRecord } from "@/profile/enum/roles.enum";
 import type { User } from "@/profile/interfaces/user";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -16,24 +17,23 @@ export const useSession = create<SessionStore>()(
     {
       name: "user-session", // key name in localStorage
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );
 
 // Actions outside - they work the same way
 export const clearSession = () => {
-  alert("LIMPIANDO SESION");
   useSession.setState({ loggedUser: null, accessToken: null });
 };
 
-export const createSession = (email:string) => {
-  alert("CREANDO SESION");
-  const isClient = email==="cliente@gmail.com"
+export const createSession = (email: string) => {
+  const isClient = email === "cliente@gmail.com";
   useSession.setState({
     loggedUser: {
-      email: "usuario@example.com",
-      role: isClient?"CLIENT":"ADMIN",
-      username: isClient?"cliente":"administrador",
+      correo: email,
+      rol: isClient ? RolesRecord.client : RolesRecord.projectAdmin,
+      idusuario: 99999,
+      dni_perfil: "12345678",
     },
     accessToken: "token-de-acceso",
   });

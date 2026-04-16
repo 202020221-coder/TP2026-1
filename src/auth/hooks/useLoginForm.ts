@@ -29,8 +29,12 @@ export function useLoginForm() {
 
       // On successful login, redirect to /intranet/inventario (or similar)
       createSession(data.email);
-      // Primer ingreso de cliente crea solicitud navigate("/intranet/solicitudes"); 
-      navigate("/intranet/solicitudes/create-request");
+      // Primer ingreso de cliente crea solicitud navigate("/intranet/solicitudes");
+      if (data.email === "cliente@gmail.com") {
+        navigate("/intranet/solicitudes/create-request");
+      } else {
+        navigate("/intranet/solicitudes");
+      }
     } catch (error) {
       console.error("Login error:", error);
       form.setError("root", {

@@ -1,4 +1,4 @@
-import { useSession, clearSession } from "@/profile/hooks/stores/useSession.store";
+import { useSession } from "@/profile/hooks/stores/useSession.store";
 import type { JSX } from "react";
 import { Navigate } from "react-router";
 import { isValidatedJwt } from "@/shared/lib/jwt-decode";
@@ -15,14 +15,13 @@ export function PrivateRoute({ children, roles }: PrivateRouteProps) {
   const userInfo = useSession((state) => state.loggedUser);
   const accessToken = useSession((state) => state.accessToken);
   if (!isValidatedJwt(accessToken)) {
-    clearSession();
     return <Navigate to="/auth/login" replace />;
   }
 
   if (!userInfo) return <Navigate to="/auth/login" replace />;
 
-  if (roles && !roles.includes(userInfo.role))
-    return <Navigate to="/unauthorized" replace />;
+  if (roles && !roles.includes(userInfo.rol))
+    return <Navigate to="/intranet/unauthorized" replace />;
 
   return children;
 }

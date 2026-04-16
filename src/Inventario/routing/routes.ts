@@ -4,24 +4,25 @@ import {
   GestionarCamiones,
   InventarioCamiones,
 } from "../pages";
-// 🔹 Se definen todas las rutas privadas del módulo de Inventario
+import { RolesRecord } from "@/profile/enum/roles.enum";
+
 export const routes: IRoute[] = [
   {
     path: "/",
     Component: GestionarInventario,
-    roles: ["CLIENT"],
+    roles: [RolesRecord.projectAdmin],
     isPrivate: true,
   },
   {
     path: "camiones",
     Component: InventarioCamiones,
-    roles: ["ADMIN"],
+    roles: [RolesRecord.projectAdmin],
     isPrivate: true,
   },
   {
     path: "gestionar-camiones",
     Component: GestionarCamiones,
-    roles: ["ADMIN"],
+    roles: [RolesRecord.projectAdmin],
     isPrivate: true,
   },
 ];

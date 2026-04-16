@@ -6,18 +6,15 @@ import UnauthorizedPage from "../pages/UnauthorizedPage";
 export const Navigation = () => {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingPage/>}>
+      <Suspense fallback={<LoadingPage />}>
         <Routes>
-          {
-            routes.map(({path, Component}) => (
-              <Route key={path} path={path} element={<Component/>}/>
-            ))
-          }
-          <Route path="*" element={<NotFoundPage />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage/>} />
-
+          {routes.map(({ path, Component }) => (
+            <Route key={path} path={path} element={<Component />} />
+          ))}
+          <Route path="/intranet/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="/intranet/*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
-  )
-}
+  );
+};

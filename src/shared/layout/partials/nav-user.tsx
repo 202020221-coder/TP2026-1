@@ -6,7 +6,7 @@ import { SidebarMenu,SidebarMenuButton,SidebarMenuItem,useSidebar, } from "@/sha
 import { DropdownMenu,DropdownMenuContent,DropdownMenuGroup,DropdownMenuItem,DropdownMenuLabel,DropdownMenuSeparator,DropdownMenuTrigger, } from "@/shared/components/ui/dropdown-menu";
 
 import { ChevronsUpDown, LogOut, UserCog, } from "lucide-react";
-
+import { clearSession } from "@/profile/hooks/stores/useSession.store";
 interface Props {
   names: string;
   lastnames: string;
@@ -19,11 +19,8 @@ export function NavUser({ names, lastnames, email, role }: Props) {
   
   const { isMobile } = useSidebar()
   
-  function logout() {
-    // const { clearSession } = useAuthStore.getState();
-    
-    // clearSession();
-
+  function logout() {    
+    clearSession();
     navigate("/auth/login");
   }
 

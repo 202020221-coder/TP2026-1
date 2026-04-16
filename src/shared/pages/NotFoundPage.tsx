@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 // import { useAuthStore } from "@/shared/store/AuthStore";
 
 import { Ghost, Radar, Bug, Construction, AlertTriangle } from "lucide-react";
+import { Button } from "../components/ui/button";
 
 const messages = [
   "¿404? Aprende a escribir bien la URL, campeón 🧐",
@@ -29,6 +30,8 @@ export const NotFoundPage = () => {
     return { text, Icon };
   }, []);
 
+  const navigate = useNavigate();
+
   // if (!user) return <Navigate to="/extranet/login" replace />;
 
   return (
@@ -42,14 +45,14 @@ export const NotFoundPage = () => {
         {Message.text}
       </p>
 
-      <Link
-        to="/"
+      <Button
+        onClick={() => navigate(-1)}
         className="mt-9 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 sm:px-6 sm:py-3 text-white shadow transition hover:scale-105 hover:bg-primary/90 text-xl sm:text-2xl font-mono"
       >
         Volver
-      </Link>
+      </Button>
     </div>
   );
-}
+};
 
 export default NotFoundPage;

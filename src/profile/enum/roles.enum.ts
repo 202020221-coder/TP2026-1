@@ -1,5 +1,10 @@
 export const RolesRecord = {
-    client: "CLIENT",
-    administrator: "ADMIN",
-    /**Put more roles here*/
-} as const 
+  manager: "gerente",
+  client: "cliente",
+  projectAdmin: "adminproy",
+  fieldSupervisor: "supervisorCampo",
+  fieldWorker: "trabajCampo",
+  lawyer: "abogado",
+  workshopWorker: "trabajTaller",
+  /**Put more roles here*/
+} as const;
