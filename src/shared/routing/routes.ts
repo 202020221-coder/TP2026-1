@@ -1,3 +1,4 @@
+import DashboardClientPage from "@/dashboard/pages/DashboardClientPage";
 import type { IRoute } from "@/shared/interfaces/route";
 import { lazy } from "react";
 
@@ -47,6 +48,11 @@ export const routes: IRoute[] = [
   {
     path: "/auth/*",
     Component: AuthNavigation,
+    isPrivate: false,
+  },
+  {
+    path: "/intranet/dashboard/*",
+    Component: DashboardClientPage,
     isPrivate: false,
   },
 ];

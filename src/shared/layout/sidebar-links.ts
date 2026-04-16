@@ -5,6 +5,7 @@ export interface IMenu {
   url?: string;
   roles: string[];
   items?: ISubMenu[];
+  icon?: string;
 }
 
 export interface ISubMenu {
@@ -15,46 +16,27 @@ export interface ISubMenu {
 
 export const sidebarLinks: IMenu[] = [
   {
-    title: "Gestion de Personal",
-    roles: [],
-    items: [
-      {
-        title: "Directorio",
-        roles: [],
-        url: "/directorio",
-      },
-    ],
+    title: "Dashboard",
+    roles: ["cliente"],
+    url: "/intranet/dashboard",
+    icon: "LayoutDashboard",
   },
   {
-    title: "Procesos",
-    roles: [],
-    items: [
-      {
-        title: "Gestion de Proyectos",
-        roles: [],
-        url: "/procesos",
-      },
-    ],
+    title: "Mis Solicitudes",
+    roles: ["cliente"],
+    url: "/intranet/solicitudes/mis-solicitudes",
+    icon: "ClipboardList",
   },
   {
-    title: "Inventario",
-    roles: [],
-    items: [
-      {
-        title: "Gestion de Inventario",
-        roles: [],
-        url: "/Inventario",
-      },
-      {
-        title: "Inventario de Camiones",
-        roles: [],
-        url: "/inventario/camiones",
-      },
-      {
-        title: "Gestion de Camiones",
-        roles: [],
-        url: "/inventario/gestionar-camiones",
-      },
-    ],
+    title: "Mis Cotizaciones",
+    roles: ["cliente"],
+    url: "/intranet/cotizaciones/mis-cotizaciones",
+    icon: "Receipt",
+  },
+  {
+    title: "Mis Servicios",
+    roles: ["cliente"],
+    url: "/intranet/servicios/mis-servicios",
+    icon: "BriefcaseBusiness",
   },
 ];
