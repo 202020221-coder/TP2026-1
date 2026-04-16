@@ -11,6 +11,7 @@ export function CreateRequestPage() {
     const navigate = useNavigate();
     const [clientType, setClientType] = useState<'jurídica' | 'física' | null>(null);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+
     const [formData, setFormData] = useState({
         nameOrBusinessName: '',
         lastName: '',
@@ -185,7 +186,7 @@ export function CreateRequestPage() {
                             </div>
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Email
+                                    Email *
                                 </label>
                                 <Input
                                     type="email"
@@ -263,11 +264,12 @@ export function CreateRequestPage() {
                                     value={requesterData.dni}
                                     onChange={(e) => setRequesterData((prev) => ({ ...prev, dni: e.target.value }))}
                                     placeholder="Ej: 12345678"
+                                    maxLength={8}
                                 />
                             </div>
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Email
+                                    Email *
                                 </label>
                                 <Input
                                     type="email"
@@ -331,7 +333,7 @@ export function CreateRequestPage() {
                             <Textarea
                                 value={serviceData.serviceDescription}
                                 onChange={(e) => setServiceData((prev) => ({ ...prev, serviceDescription: e.target.value }))}
-                                placeholder="Describe el servicio requerido"
+                                placeholder="Describe el servicio requerido (minimo 20 caracteres)"
                                 className="min-h-24"
                             />
                         </div>
@@ -378,6 +380,7 @@ export function CreateRequestPage() {
                             <Input
                                 type="number"
                                 min={0}
+                                max={24}
                                 value={serviceData.hoursPerDay}
                                 onChange={(e) => setServiceData((prev) => ({ ...prev, hoursPerDay: e.target.value }))}
                                 placeholder="Ej: 8"
@@ -504,6 +507,15 @@ export function CreateRequestPage() {
                             }
 
                             if (currentStep === 6) {
+                                // Aquí iría la lógica de envío de la solicitud
+                                console.log('Solicitud lista para enviar', {
+                                    clientType,
+                                    formData,
+                                    requesterData,
+                                    serviceData,
+                                    selectedCatalogItems,
+                                    preferencesData,
+                                });
                                 navigate('/intranet/solicitudes/', { replace: true });
                             }
                         }}
@@ -519,5 +531,3 @@ export function CreateRequestPage() {
         </div>
     );
 };
-
-

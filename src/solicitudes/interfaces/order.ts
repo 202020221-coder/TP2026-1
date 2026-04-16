@@ -6,6 +6,7 @@ export interface Order {
   Id_Cliente?: string; //Only visible if the user is an Administrator
   Id_Company?: string; //Only visible if the user is a client
   descripcion: string;
+  observacion?: string;
   ubicacion: string;
   estado: OrderState;
   fecha_inicio: string;

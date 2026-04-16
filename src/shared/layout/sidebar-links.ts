@@ -17,26 +17,32 @@ export interface ISubMenu {
 export const sidebarLinks: IMenu[] = [
   {
     title: "Dashboard",
-    roles: ["cliente"],
+    roles: ["ADMIN", "CLIENT"],
     url: "/intranet/dashboard",
     icon: "LayoutDashboard",
   },
   {
     title: "Solicitudes",
-    roles: ["cliente"],
+    roles: ["ADMIN"],
     url: "/intranet/solicitudes/",
     icon: "ClipboardList",
   },
   {
     title: "Cotizaciones",
-    roles: ["cliente"],
+    roles: ["ADMIN"],
     url: "/intranet/cotizaciones/",
     icon: "Receipt",
   },
   {
     title: "Servicios",
-    roles: ["cliente"],
-    url: "/intranet/servicios/mis-servicios",
+    roles: ["ADMIN"],
+    url: "/intranet/servicios/servicios",
     icon: "BriefcaseBusiness",
+  },
+  {
+    title: "Mis Solicitudes",
+    roles: ["ADMIN"],
+    url: "/intranet/solicitudes/mis-solicitudes",
+    icon: "Receipt",
   },
 ];

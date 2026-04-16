@@ -1,6 +1,7 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import ListOrdersPage from "../pages/ListOrdersPage";
 import { CreateRequestPage } from "../pages/create-request/CreateRequestPage";
+import { ListOrdersClientPage } from "../pages/ListOrdersClientPage";
 
 // 🔹 Se definen todas las rutas publicas del modulo de autenticacion
 export const routes: IRoute[] = [
@@ -17,7 +18,7 @@ export const routes: IRoute[] = [
   },
   {
     path: "/mis-solicitudes",
-    Component: ListOrdersPage,
+    Component: ListOrdersClientPage,
     isPrivate: true,
   },
 ];
