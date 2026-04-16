@@ -9,19 +9,18 @@ export const ListOrdersProvider: FC<{ children: ReactNode }> = ({
 }) => {
   const [queryParams, setQueryParams] = useState<GetOrdersQP>({
     page: 1,
+    limit: 10,
   });
   const result = useQuery({
     queryKey: ["orders", queryParams],
-    queryFn: () => getAllOrders(),
+    queryFn: () => getAllOrders(queryParams),
   });
   const query = (queryParams: GetOrdersQP) => {
     setQueryParams(queryParams);
   };
   //trayendo categorias
   return (
-    <ListOrdersContext.Provider
-      value={{ result, query, queryParams }}
-    >
+    <ListOrdersContext.Provider value={{ result, query, queryParams }}>
       {children}
     </ListOrdersContext.Provider>
   );

@@ -1,4 +1,4 @@
-import type { Client } from "../interfaces/client";
+import type { Client } from "../interfaces/create/client";
 import type { GetClientResponse } from "../interfaces/responses.dto";
 import axiosInstance from "@/shared/api/axios.config";
 export const getClient = async (id:Client["DNI_O_RUC"]) => {
