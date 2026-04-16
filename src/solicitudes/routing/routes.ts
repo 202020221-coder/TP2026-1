@@ -1,7 +1,6 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import ListOrdersPage from "../pages/ListOrdersPage";
 import { CreateRequestPage } from "../pages/create-request/CreateRequestPage";
-import { ListOrdersClientPage } from "../pages/ListOrdersClientPage";
 import { RolesRecord } from "@/profile/enum/roles.enum";
 
 // 🔹 Se definen todas las rutas publicas del modulo de autenticacion
@@ -22,7 +21,7 @@ export const routes: IRoute[] = [
   },
   {
     path: "/mis-solicitudes",
-    Component: ListOrdersClientPage,
+    Component: ListOrdersPage,
     isPrivate: true,
     roles: [RolesRecord.client],
   },

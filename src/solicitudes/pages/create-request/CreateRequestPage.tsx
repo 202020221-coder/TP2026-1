@@ -828,7 +828,7 @@ export function CreateRequestPage() {
                                     selectedTrucks,
                                     preferencesData,
                                 });
-                                navigate('/intranet/solicitudes/', { replace: true });
+                                navigate('/intranet/solicitudes/mis-solicitudes', { replace: true });
                             }
                         }}
                         className={`px-8 py-2 rounded-lg font-semibold transition-all ${(currentStep === 1 && !clientType)
