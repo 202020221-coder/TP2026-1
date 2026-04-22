@@ -35,6 +35,7 @@ export function RecoverPasswordDialog() {
       onOpenChange={(open) => (open ? openDialog() : closeDialog())}
     >
       <DialogContent
+        data-testid="recover-password-dialog"
         className="sm:max-w-[425px]"
         showCloseButton={defaultExitAllowed}
         onInteractOutside={(e) => !defaultExitAllowed && e.preventDefault()}
