@@ -15,6 +15,7 @@ export function RecoverPasswordEmailForm() {
   return (
     <Form {...emailForm}>
       <form
+        noValidate
         onSubmit={emailForm.handleSubmit(onSubmitEmail)}
         className="space-y-4"
       >

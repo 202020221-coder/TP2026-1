@@ -12,6 +12,8 @@ import {
   recoverPasswordEmailFormSchema,
 } from "../schemas/recover-password.schema";
 import type { IRecoverPasswordContext } from "../context/recover-password-context";
+import { toast } from "sonner";
+import { sendRecoveryEmail } from "../api/recover.api";
 
 export type RecoverPhase =
   | "Type Email"
@@ -59,13 +61,14 @@ export function useRecoverPassword(): IRecoverPasswordContext {
         console.log("Sending recovery code to:", values.email);
 
         // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
+        await sendRecoveryEmail()
         // Success handling
         console.log("Code sent successfully!");
         setCurrentRecoverPhase("Type Code");
       } catch (error) {
-        console.error("Failed to send recovery code:", error);
+        toast.error("Error", {
+          description: "No se pudo enviar el código",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -142,7 +145,7 @@ export function useRecoverPassword(): IRecoverPasswordContext {
     setIsDialogOpen,
     emailForm,
     codeForm,
-    passwordForm
+    passwordForm,
   ]);
 
   const closeDialog = useCallback(() => {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const recoverPasswordEmailFormSchema = z.object({
-  email: z.email("Por favor ingrese un correo electronico válido."),
+  email: z.email("Por favor ingrese un correo electrónico válido."),
 });
 
 export type RecoverPasswordEmailFormValues = z.infer<
