@@ -15,13 +15,13 @@ export const OrdersTable: FC = () => {
   const { isPending, isFetching, isError, error, data } = result;
   return (
     <OrdersTableControls>
-      <Table>
+      <Table containerClassname="flex-1 overflow-auto flex-col">
         <OrdersTableHeader />
         <TableBody>
           {isPending || isFetching ? (
             <OrdersTablePlaceholder rows={queryParams.limit ?? 10} />
           ) : isError ? (
-            <TableRow>
+            <TableRow className="">
               <TableCell colSpan={6}>{error.message}</TableCell>
             </TableRow>
           ) : (

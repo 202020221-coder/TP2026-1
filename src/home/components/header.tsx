@@ -1,14 +1,13 @@
 "use client";
 
-import { Menu, X, User, Shield } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 interface Props {
-  onClientLoginClick?: () => void;
-  onAdminLoginClick?: () => void;
+  onLogin?: () => void;
 }
 
-export default function Header({ onClientLoginClick, onAdminLoginClick }: Props) {
+export default function Header({ onLogin }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -58,32 +57,18 @@ export default function Header({ onClientLoginClick, onAdminLoginClick }: Props)
             </nav>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Client Login Button */}
+              {/*Login Button */}
               <button
-                onClick={onClientLoginClick}
-                className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
-                  scrolled 
-                    ? 'text-primary bg-primary/10 hover:bg-primary hover:text-white' 
-                    : 'text-white bg-white/10 hover:bg-white hover:text-primary'
-                }`}
-                title="Login Cliente"
-              >
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Cliente</span>
-              </button>
-
-              {/* Admin Login Button */}
-              <button
-                onClick={onAdminLoginClick}
+                onClick={onLogin}
                 className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
                   scrolled 
                     ? 'text-white bg-secondary hover:bg-secondary/90' 
                     : 'text-secondary bg-white hover:bg-white/90'
                 }`}
-                title="Login Administrativo"
+                title="Login"
               >
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin</span>
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Iniciar Sesión</span>
               </button>
 
               {/* Mobile Menu Button */}
