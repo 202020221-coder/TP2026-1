@@ -1,7 +1,4 @@
-"use client";
-
 import { useState } from "react";
-import { Layout } from "@/shared/layout/Layout";
 import { CamionesForm, CamionesTable } from "../components";
 
 export const InventarioCamiones = () => {
@@ -27,7 +24,7 @@ export const InventarioCamiones = () => {
   };
 
   return (
-    <Layout title="Inventario de Camiones">
+    <>
       {view === "table" ? (
         <CamionesTable
           onEdit={handleEdit}
@@ -38,6 +35,6 @@ export const InventarioCamiones = () => {
       ) : (
         <CamionesForm camionId={selectedCamionId} onCancel={handleCancel} />
       )}
-    </Layout>
+    </>
   );
 };

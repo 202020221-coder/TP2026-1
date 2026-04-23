@@ -1,6 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { FileText, Users, Package, TrendingUp } from "lucide-react"
-import { Layout } from '@/shared/layout/Layout';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import { FileText, Users, Package, TrendingUp } from "lucide-react";
 const dashboardItems = [
   {
     title: "Cotizaciones",
@@ -34,13 +39,15 @@ const dashboardItems = [
     color: "from-green-600 to-green-700",
     count: 0,
   },
-]
+];
 
 export function Menu() {
   return (
-    <Layout title="Gestionar personal" className="w-full h-full px-4 sm:px-6 lg:px-8 py-12 bg-blue-100">
+    <>
       <div className="mb-12">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">Sistema de Gestión</h1>
+        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
+          Sistema de Gestión
+        </h1>
         <p className="text-lg text-slate-600 dark:text-slate-400">
           Administra cotizaciones, clientes y proyectos de forma eficiente
         </p>
@@ -48,7 +55,7 @@ export function Menu() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pl-3">
         {dashboardItems.map((item) => {
-          const Icon = item.icon
+          const Icon = item.icon;
           return (
             <a key={item.href} href={item.href}>
               <Card className="h-full cursor-pointer hover:shadow-lg transition-shadow">
@@ -62,13 +69,15 @@ export function Menu() {
                   <CardDescription>{item.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">{item.count}</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {item.count}
+                  </div>
                 </CardContent>
               </Card>
             </a>
-          )
+          );
         })}
       </div>
-    </Layout>
-  )
+    </>
+  );
 }

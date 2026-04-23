@@ -7,7 +7,6 @@ import { Label } from "@/shared/components/ui/label"
 import { Badge } from "@/shared/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Search, Plus, Pencil, Trash2, Eye, Download, Filter } from "lucide-react"
-import { Layout } from '@/shared/layout/Layout'
 interface Cotizacion {
   id: string
   numeroRef: string
@@ -158,7 +157,7 @@ export function MenuCotizaciones({
   }
 
   return (
-    <Layout className="w-full space-y-6" title="Gestionar Cotizaciones">
+    <>
       <div className='px-5'>
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -523,7 +522,7 @@ export function MenuCotizaciones({
       </div>
 
       </div>
-    </Layout>
+    </>
   )
 }
 

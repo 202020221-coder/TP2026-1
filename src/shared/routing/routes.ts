@@ -45,7 +45,7 @@ export const routes: IRoute[] = [
   {
     path: "/intranet/dashboard/*",
     Component: DashboardClientPage,
-    isPrivate: false,
+    isPrivate: true,
   },
   {
     path: "/auth/*",
