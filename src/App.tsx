@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Navigation } from "./shared/routing/Navigation";
+import { Navigation } from "./routing/Navigation";
 import { TooltipProvider } from "./shared/components/ui/tooltip";
 const queryClient = new QueryClient();
 

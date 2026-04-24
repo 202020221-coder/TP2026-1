@@ -1,4 +1,4 @@
-import type { UserRole } from "@/profile/interfaces/roles";
+import type { UserRole } from "@/security/session/interfaces/roles";
 import type { JSX } from "react";
 
 type JSXComponent = () => JSX.Element;

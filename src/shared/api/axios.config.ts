@@ -1,5 +1,5 @@
 // src/lib/axios.ts
-import { useSession } from "@/profile/hooks/stores/useSession.store";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import axios from "axios";
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,

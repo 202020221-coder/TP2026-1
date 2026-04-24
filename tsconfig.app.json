@@ -24,11 +24,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@intranet/*": ["./src/intranet/*"],
+      "@extranet/*": ["./src/extranet/*"]
     }
   },
   "include": ["src"]
-
 }
