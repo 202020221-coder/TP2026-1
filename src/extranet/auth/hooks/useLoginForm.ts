@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 import { createSession } from "@/security/session/hooks/stores/useSession.store";
+import { LogIn } from "../api/session.api";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 
 export function useLoginForm() {
   const navigate = useNavigate();
@@ -21,24 +23,30 @@ export function useLoginForm() {
     setIsLoading(true);
 
     try {
-      // Simulate API call with 3-second delay
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Here you would normally make an actual API call to authenticate
-      console.log("Login attempt with:", data);
-
-      // On successful login, redirect to /intranet/inventario (or similar)
-      createSession(data.email);
-      // Primer ingreso de cliente crea solicitud navigate("/intranet/solicitudes");
-      if (data.email === "cliente@gmail.com") {
-        navigate("/intranet/solicitudes/create-request");
+      const response = await LogIn(data.email, data.password);
+      console.log(response);
+      
+      if ("error" in response) {
+        console.log("SETEO");
+        
+        form.setError("root", {
+          message: response.error.error,
+        });
+        return;
+      }
+      createSession(response);
+      console.log(response);
+      
+      const { user } = response;
+      const FIRSTTIME = true;
+      if (user.rol === RolesRecord.client && FIRSTTIME) {
+        navigate("/intranet/solicitudes/crear");
       } else {
         navigate("/intranet/solicitudes");
       }
     } catch (error) {
-      console.error("Login error:", error);
       form.setError("root", {
-        message: "Ocurrió un error. Inténtelo nuevamente.",
+        message: "Ocurrió un error. Comuníquese con sistemas.",
       });
     } finally {
       setIsLoading(false);

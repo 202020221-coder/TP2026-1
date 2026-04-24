@@ -1,4 +1,4 @@
-import { RolesRecord } from "../../enum/roles.enum";
+import type { LogInResponse } from "@/extranet/auth/interfaces/responses.dto";
 import type { User } from "../../interfaces/user";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -26,15 +26,14 @@ export const clearSession = () => {
   useSession.setState({ loggedUser: null, accessToken: null });
 };
 
-export const createSession = (email: string) => {
-  const isClient = email === "cliente@gmail.com";
+export const createSession = ({ user, token }: LogInResponse) => {
   useSession.setState({
     loggedUser: {
-      correo: email,
-      rol: isClient ? RolesRecord.client : RolesRecord.projectAdmin,
-      idusuario: 99999,
-      dni_perfil: "12345678",
+      correo: user.correo,
+      rol: user.rol,
+      idusuario: user.idusuario,
+      dni_perfil: user.dni_perfil,
     },
-    accessToken: "token-de-acceso",
+    accessToken: token,
   });
 };

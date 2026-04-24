@@ -1,7 +1,7 @@
 export const RolesRecord = {
   manager: "gerente",
   client: "cliente",
-  projectAdmin: "adminproy",
+  projectAdmin: "asistproy",
   fieldSupervisor: "supervisorCampo",
   fieldWorker: "trabajCampo",
   lawyer: "abogado",
