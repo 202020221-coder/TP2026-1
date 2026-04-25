@@ -10,21 +10,15 @@ export const PdfPreview = () => {
   // Obtenemos datos de cada store
   const inventory = useOrderInventoryStore((state) => state.items);
   const truck = useTruck((state) => state.selectedTruck);
-  const pilot = useTruck((state) => state.selectedTruckDriver);
   const pickupCost = useOrderPickup((state) => state.pickupCost);
   const pickupDate = useOrderPickup((state) => state.pickupDate);
   const emissionDate = useOrderConditions((state) => state.emissionDate);
   const expirationDate = useOrderConditions((state) => state.expirationDate);
   const conditions = useOrderConditions((state) => state.conditions);
 
-  if (!pilot || !truck) {
-    throw new Error("TRUCK Y PILOT NO DEFINIDOS");
-  }
-
-  console.log(pilot);
-  console.log(truck);
-  
-  
+  if (!truck) {
+    throw new Error("TRUCK NO DEFINIDO");
+  } 
 
   // Datos del cliente (pueden venir de otro store o props)
   const client = {
@@ -38,7 +32,6 @@ export const PdfPreview = () => {
     client,
     inventory,
     truck,
-    pilot,
     pickup: {
       pickupCost,
       pickupDate,

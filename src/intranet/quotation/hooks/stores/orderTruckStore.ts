@@ -1,8 +1,7 @@
-import type { Pilot, Truck } from "../../interfaces/create/order-trucks";
+import type { Truck } from "../../interfaces/create/order-trucks";
 import { create } from "zustand";
 
 type State = {
-  selectedTruckDriver?: Pilot;
   selectedTruck?: Truck;
 };
 
@@ -13,8 +12,7 @@ type Actions = {
 type UseTruckStore = State & Actions;
 
 export const useTruck = create<UseTruckStore>((set) => ({
-  selectedTruckDriverID: undefined,
-  selectedTruckPlate: undefined,
+  selectedTruck: undefined,
   update: (field, value) =>
     set((state) => ({
       ...state,

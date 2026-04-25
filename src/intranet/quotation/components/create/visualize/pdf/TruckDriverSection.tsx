@@ -1,4 +1,4 @@
-import type { Pilot, Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
+import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -28,30 +28,19 @@ const styles = StyleSheet.create({
   },
 });
 
-const TruckDriverSection = ({
-  truck,
-  pilot,
-}: {
-  truck: Truck;
-  pilot: Pilot;
-}) => (
+const TruckDriverSection = ({ truck }: { truck: Truck }) => (
   <View style={styles.section}>
     <Text style={styles.title}>Camión y Conductor Asignado</Text>
 
     {/* Datos del conductor */}
     <View style={styles.row}>
       <Text style={styles.label}>Conductor:</Text>
-      <Text style={styles.value}>
-        {pilot?.Nombre} {pilot?.Apellido}
-      </Text>
     </View>
     <View style={styles.row}>
       <Text style={styles.label}>DNI:</Text>
-      <Text style={styles.value}>{pilot?.DNI}</Text>
     </View>
     <View style={styles.row}>
       <Text style={styles.label}>Rol:</Text>
-      <Text style={styles.value}>{pilot?.rol}</Text>
     </View>
 
     {/* Datos del camión */}

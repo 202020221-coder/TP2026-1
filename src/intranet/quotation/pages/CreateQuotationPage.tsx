@@ -13,9 +13,8 @@ import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
 
 import { useSearchParams } from "react-router";
 import { InventoryTable } from "../components/create/prices/products/InventoryTable";
-import { ConditionSection } from "../components/create/conditions/ConditionSection";
+import { ConditionSection } from "../components/conditions/ConditionSection";
 import { TruckSelector } from "../components/create/prices/trucks/TruckSelector";
-import { TruckDriverSelector } from "../components/create/prices/trucks/TruckDriverSelector";
 import { PickupSection } from "../components/create/prices/delivery/PickupSection";
 import { SummaryCard } from "../components/create/prices/summary/SummarySection";
 import { useTruck } from "../hooks/stores/orderTruckStore";
@@ -86,7 +85,6 @@ export function CreateQuotationPage() {
           <TabsContent value="prices" className="space-y-6 pt-1">
             <InventoryTable orderId={Number(orderId)} />
             <TruckSelector />
-            <TruckDriverSelector />
             <PickupSection orderId={Number(orderId)} />
             <SummaryCard />
           </TabsContent>
@@ -107,17 +105,15 @@ const VisualizeTrigger: FC<PropsWithChildren<{ baseTriggerClass: string }>> = ({
   baseTriggerClass,
 }) => {
   const truck = useTruck((s) => s.selectedTruck);
-  const truckDriver = useTruck((s) => s.selectedTruckDriver);
   const inventory = useOrderInventoryStore((s) => s.items);
 
   const hasInventory = Object.keys(inventory).length > 0;
-  const isDisabled = !truck || !truckDriver || !hasInventory;
+  const isDisabled = !truck || !hasInventory;
 
   const getDisabledReasons = () => {
     const reasons: string[] = [];
 
     if (!truck) reasons.push("Debe seleccionar un camión");
-    if (!truckDriver) reasons.push("Debe seleccionar un conductor");
     if (!hasInventory)
       reasons.push("Debe agregar al menos un item al inventario");
 

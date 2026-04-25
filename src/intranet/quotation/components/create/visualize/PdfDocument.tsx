@@ -6,7 +6,7 @@ import CostSummary from "./pdf/CostSummary";
 import PickupSection from "./pdf/PickupSection";
 import TruckDriverSection from "./pdf/TruckDriverSection";
 import ConditionsSection from "./pdf/ConditionsSection";
-import type { Pilot, Truck } from "../../../interfaces/create/order-trucks";
+import type { Truck } from "../../../interfaces/create/order-trucks";
 import type { OrderInventoryTableElement } from "../../../interfaces/create/order-inventory";
 const styles = StyleSheet.create({
   page: { padding: 30, fontFamily: "Helvetica" },
@@ -21,7 +21,6 @@ interface PDFQuotationDocumentProps {
     };
     inventory: Record<string, OrderInventoryTableElement>;
     truck: Truck;
-    pilot: Pilot;
     pickup: {
       pickupCost: number;
       pickupDate: string;
@@ -40,7 +39,7 @@ export const PdfDocument = ({ data }: PDFQuotationDocumentProps) => (
       <Header />
       {/* <ClientInfo client={data.client} /> */}
       <InventoryTable items={data.inventory} />
-      <TruckDriverSection truck={data.truck} pilot={data.pilot} />
+      <TruckDriverSection truck={data.truck}/>
       <PickupSection pickup={data.pickup} />
       <ConditionsSection conditions={data.conditions} />
       <CostSummary inventory={data.inventory} pickup={data.pickup} />
