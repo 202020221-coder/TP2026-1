@@ -5,7 +5,6 @@ import { CreateRequestPage } from "../orders/pages/create-request/CreateRequestP
 import { routes } from "./routes";
 import { IntranetLayout } from "../layout/IntranetLayout";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
-
 export const IntranetNavigation = () => {
   return (
     <Routes>

@@ -21,6 +21,9 @@ export const sidebarLinks: IMenu[] = [
     url: "/intranet/dashboard",
     icon: "LayoutDashboard",
   },
+
+
+
   {
     title: "Solicitudes",
     roles: ["ADMIN"],
