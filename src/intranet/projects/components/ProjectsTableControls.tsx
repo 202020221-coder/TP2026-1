@@ -39,32 +39,17 @@ export const ProjectsTableControls: FC<{ children: ReactNode }> = ({
 
 
 
-
-
-
-// Valida que el string tenga formato dd/MM/yyyy y sea una fecha real
-
-
 const TopControls: FC = () => {
   const { query, queryParams, result } = useProjects();
 
   const [nameInput, setNameInput] = useState(queryParams.project_name ?? "");
 
-  // Estados locales para los inputs de fecha en formato dd/MM/yyyy
- 
   
-  
-
   const debouncedSearch = useDebounced((value: string) => {
     query({ ...queryParams, page: 1, project_name: value || undefined });
   }, 600);
 
-  // Formatea automáticamente mientras el usuario escribe: agrega "/" después del día y mes
   
-
-  
-
-
   return (
     <div className="flex flex-wrap gap-2 items-start justify-between">
       {/* Buscar por nombre */}
@@ -96,6 +81,7 @@ const TopControls: FC = () => {
       disabled={result.isFetching}
       value={queryParams.start_date ?? ""}
       max={queryParams.end_date ?? ""}
+      onKeyDown={(e) => e.preventDefault()}
       onChange={(e) => {
         const val = e.target.value;
         if (queryParams.end_date && val > queryParams.end_date) return;
@@ -109,6 +95,7 @@ const TopControls: FC = () => {
       disabled={result.isFetching}
       value={queryParams.end_date ?? ""}
       min={queryParams.start_date ?? ""}
+      onKeyDown={(e) => e.preventDefault()}
       onChange={(e) => {
         const val = e.target.value;
         if (queryParams.start_date && val < queryParams.start_date) return;
