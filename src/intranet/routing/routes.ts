@@ -1,6 +1,9 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import { lazy } from "react";
 
+const ServicesNavigation = lazy(
+  () =>import("@/intranet/services/routing/Navigation"),
+)
 const DashboardNavigation = lazy(
   () => import("@/intranet/dashboard/routing/Navigation"),
 );
@@ -62,6 +65,12 @@ export const routes: IRoute[] = [
   {
     path: "/dashboard/*",
     Component: DashboardNavigation,
+    isPrivate: true,
+  },
+
+  {
+    path: "/servicio/*",
+    Component: ServicesNavigation,
     isPrivate: true,
   },
 ];
