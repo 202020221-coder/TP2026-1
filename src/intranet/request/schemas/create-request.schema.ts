@@ -1,13 +1,15 @@
 import { z } from "zod";
 
-const peruPhoneRegex = /^\d{7,9}$/;
+const peruPhoneRegex = /^\d{9}$/;
 const dniRegex = /^\d{8}$/;
 const rucRegex = /^\d{11}$/;
 
+//Primer paso
 export const clientTypeSchema = z.enum(["jurídica", "física"], {
   error: "Seleccione un tipo de cliente.",
 });
 
+// Segundo paso datos del cliente
 export const clientDataSchema = z.object({
   nameOrBusinessName: z
     .string()
@@ -39,7 +41,7 @@ export const clientDataSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(peruPhoneRegex, "Teléfono debe tener 7 a 9 dígitos")
+    .regex(peruPhoneRegex, "Teléfono debe tener 9 dígitos")
     .optional()
     .or(z.literal("")),
 
@@ -51,6 +53,7 @@ export const clientDataSchema = z.object({
     .or(z.literal("")),
 });
 
+// Tercer paso
 export const createClientStepSchema = z
   .object({
     clientType: clientTypeSchema,
@@ -85,6 +88,7 @@ export const createClientStepSchema = z
     }
   });
 
+  // DAtos de solicitante de servicio
 export const requesterDataSchema = z.object({
   name: z
     .string()
@@ -108,7 +112,7 @@ export const requesterDataSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(peruPhoneRegex, "Teléfono debe tener 7 a 9 dígitos"),
+    .regex(peruPhoneRegex, "Teléfono debe tener 9 dígitos"),
 
   workAddress: z
     .string()
@@ -125,6 +129,7 @@ export const requesterDataSchema = z.object({
     .or(z.literal("")),
 });
 
+//Cuarto paso
 export const serviceDataSchema = z
   .object({
     serviceDescription: z
@@ -210,6 +215,7 @@ export const selectedTrucksSchema = z
     });
   });
 
+  // septimo paso
 export const preferencesDataSchema = z.object({
   generalObservations: z
     .string()
