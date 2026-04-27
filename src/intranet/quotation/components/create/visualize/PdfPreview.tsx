@@ -3,7 +3,7 @@ import { PdfDocument } from "./PdfDocument";
 // Importamos los stores
 import { useTruck } from "@/intranet/quotation/hooks/stores/orderTruckStore";
 import { useOrderPickup } from "@/intranet/quotation/hooks/stores/orderPickupStore";
-import { useOrderConditions } from "@/intranet/quotation/hooks/stores/orderConditions.store";
+import { useOrderConditions } from "@/intranet/quotation/hooks/stores/conditions.store";
 import { useOrderInventoryStore } from "@/intranet/quotation/hooks/stores/orderInventoryStore";
 
 export const PdfPreview = () => {
