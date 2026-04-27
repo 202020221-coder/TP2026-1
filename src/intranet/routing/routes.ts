@@ -14,6 +14,7 @@ const OrdersNavigation = lazy(() => import("@/intranet/orders/routing/Navigation
 const QuotationNavigation = lazy(
   () => import("@/intranet/quotation/routing/Navigation"),
 );
+const TrucksNavigation = lazy(() => import("@/intranet/trucks/routing/Navigation"));
 
 //Order matters since it defines hierarchy, this hierarchy makes the routing work properly
 export const routes: IRoute[] = [
@@ -30,6 +31,11 @@ export const routes: IRoute[] = [
   {
     path: "/cotizaciones/*",
     Component: QuotationNavigation,
+    isPrivate: true,
+  },
+  {
+    path: "/trucks/*",
+    Component: TrucksNavigation,
     isPrivate: true,
   },
   {
