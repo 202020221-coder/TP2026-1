@@ -3,7 +3,8 @@ import type {
   PostRequestDTO,
   ResponseRequestDTO,
   UpdateRequestDTO,
-  DeleteRequestDTO
+  DeleteRequestDTO,
+  GetProductDTO
 } from "../interfaces";
 
 export const CreateRequest = async (data: PostRequestDTO) =>
@@ -29,5 +30,14 @@ export const DeleteRequest = async (id: number) =>
 export const GetAllRequest = async () =>
   safeRequest<ResponseRequestDTO>({
     url: "/solicitudes",
+    method: "GET",
+  });
+
+
+
+  //------------------------------------------------
+export const GetAllProducts = async (id: number) =>
+  safeRequest<GetProductDTO[]>({
+    url: `/solicitudes/${id}`,
     method: "GET",
   });

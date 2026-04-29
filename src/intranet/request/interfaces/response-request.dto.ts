@@ -5,3 +5,13 @@ export interface ResponseRequestDTO {
   ubicacion: string;
   Cliente_Nombre: string;
 }
+
+export interface GetRequestQP {
+  data: ResponseRequestDTO[];
+  pagination: {
+    total: number,
+    page: number,
+    limit: number,
+    totalPages: number
+  }
+}
