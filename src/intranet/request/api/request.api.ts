@@ -1,10 +1,11 @@
-import { safeRequest } from "@/shared/api/safe-request";
+import { safePagination, safeRequest } from "@/shared/api/safe-request";
 import type {
   PostRequestDTO,
   ResponseRequestDTO,
   UpdateRequestDTO,
   DeleteRequestDTO,
-  GetProductDTO
+  GetProductDTO,
+  GetServiceDTO
 } from "../interfaces";
 
 export const CreateRequest = async (data: PostRequestDTO) =>
@@ -33,11 +34,17 @@ export const GetAllRequest = async () =>
     method: "GET",
   });
 
-
-
   //------------------------------------------------
-export const GetAllProducts = async (id: number) =>
-  safeRequest<GetProductDTO[]>({
-    url: `/solicitudes/${id}`,
+export const GetAllProducts = async (page:number, limit:number) =>
+  safePagination<GetProductDTO[]>({
+    url: `/inventario`,
     method: "GET",
+    params: { page, limit },
+  });
+
+export const GetAllServices = async (page:number, limit:number) =>
+  safePagination<GetServiceDTO[]>({
+    url: `/servicios`,
+    method: "GET",
+    params: { page, limit },
   });

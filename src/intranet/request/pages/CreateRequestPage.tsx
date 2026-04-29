@@ -6,12 +6,16 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Truck, ShoppingCart, Trash2, Plus, Minus, Calendar } from "lucide-react";
+import type { GetProductDTO, GetServiceDTO } from '../interfaces/read-service-producs.dto';
+import { useDataFetching } from '../hooks/useDataRequest';
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
     const [clientType, setClientType] = useState<'jurídica' | 'física' | null>(null);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
-
+    
+    const { products, services, loading, error } = useDataFetching();
+      
     const [formData, setFormData] = useState({
         nameOrBusinessName: '',
         lastName: '',
@@ -87,18 +91,18 @@ export function CreateRequestPage() {
         { id: 'boquillas-hf500', category: 'BOQUILLAS', name: 'ELKHART BRASS HF-500' },
     ];
 
-    const addProductToCart = (productId: string, name: string, intent: 'alquilar' | 'comprar', category?: string) => {
-        const newItem: SelectedProduct = {
-            id: `${productId}-${Date.now()}`,
-            productId,
-            name,
-            category,
-            intent,
-            quantity: 1,
-            days: intent === 'alquilar' ? 1 : undefined,
-        };
-        setSelectedProducts((prev) => [...prev, newItem]);
-    };
+    // const addProductToCart = (productId: string, name: string, intent: 'alquilar' | 'comprar', category?: string) => {
+    //     const newItem: SelectedProduct = {
+    //         id: `${productId}-${Date.now()}`,
+    //         productId,
+    //         name,
+    //         category,
+    //         intent,
+    //         quantity: 1,
+    //         days: intent === 'alquilar' ? 1 : undefined,
+    //     };
+    //     setSelectedProducts((prev) => [...prev, newItem]);
+    // };
 
     const updateProductQuantity = (id: string, delta: number) => {
         setSelectedProducts((prev) => prev.map(prod => {
@@ -143,17 +147,17 @@ export function CreateRequestPage() {
         { id: 7, label: 'Preferencias' },
     ];
 
-    const addTruckToCart = (truckId: string, name: string, intent: 'alquilar' | 'comprar') => {
-        const newItem: SelectedTruck = {
-            id: `${truckId}-${Date.now()}`,
-            truckId,
-            name,
-            intent,
-            quantity: 1,
-            days: intent === 'alquilar' ? 1 : undefined,
-        };
-        setSelectedTrucks((prev) => [...prev, newItem]);
-    };
+    // const addTruckToCart = (truckId: string, name: string, intent: 'alquilar' | 'comprar') => {
+    //     const newItem: SelectedTruck = {
+    //         id: `${truckId}-${Date.now()}`,
+    //         truckId,
+    //         name,
+    //         intent,
+    //         quantity: 1,
+    //         days: intent === 'alquilar' ? 1 : undefined,
+    //     };
+    //     setSelectedTrucks((prev) => [...prev, newItem]);
+    // };
 
     const updateTruckQuantity = (id: string, delta: number) => {
         setSelectedTrucks((prev) => prev.map(truck => {
@@ -536,7 +540,7 @@ export function CreateRequestPage() {
                                             <h4 className="font-semibold text-gray-800 text-center mb-1 min-h-[40px] text-sm">{product.name}</h4>
                                             <p className="text-[10px] text-gray-400 text-center mb-4 min-h-[30px]">{product.category}</p>
                                             <div className="flex w-full gap-2 mt-auto">
-                                                <Button 
+                                                {/* <Button 
                                                     variant="outline" 
                                                     className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 text-xs px-2"
                                                     onClick={() => addProductToCart(product.id, product.name, 'alquilar', product.category)}
@@ -549,7 +553,7 @@ export function CreateRequestPage() {
                                                     onClick={() => addProductToCart(product.id, product.name, 'comprar', product.category)}
                                                 >
                                                     Comprar
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </div>
                                     ))}
@@ -657,7 +661,7 @@ export function CreateRequestPage() {
                                             </div>
                                             <h4 className="font-semibold text-gray-800 text-center mb-4 min-h-[48px]">{truck.name}</h4>
                                             <div className="flex w-full gap-2 mt-auto">
-                                                <Button 
+                                                {/* <Button 
                                                     variant="outline" 
                                                     className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 text-xs px-2"
                                                     onClick={() => addTruckToCart(truck.id, truck.name, 'alquilar')}
@@ -670,7 +674,7 @@ export function CreateRequestPage() {
                                                     onClick={() => addTruckToCart(truck.id, truck.name, 'comprar')}
                                                 >
                                                     Comprar
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </div>
                                     ))}
