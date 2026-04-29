@@ -33,7 +33,10 @@ export const ProjectsTableHeader: FC = () => {
           Incidencias
         </TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
-          Editar proyecto
+          Editar
+        </TableHead>
+        <TableHead className="text-center text-gray-500 font-medium">
+          Eliminar
         </TableHead>
       </TableRow>
     </TableHeader>

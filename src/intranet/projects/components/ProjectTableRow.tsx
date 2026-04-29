@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil } from "lucide-react";
+import { Users, FileText, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -154,6 +154,24 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
           </TooltipTrigger>
           <TooltipContent className="bg-white border border-gray-400 text-gray-600">
             Editar proyecto
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+
+      {/* Eliminar proyecto */}
+      <TableCell className="text-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-red-500 border-red-300 bg-white hover:bg-red-50 hover:text-red-500 hover:border-red-500 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="bg-white border border-red-400 text-red-500">
+            Eliminar proyecto
           </TooltipContent>
         </Tooltip>
       </TableCell>
