@@ -1,6 +1,5 @@
 import { safePagination, safeRequest } from "@/shared/api/safe-request";
 import type {
-  PostRequestDTO,
   ResponseRequestDTO,
   UpdateRequestDTO,
   DeleteRequestDTO,
@@ -8,12 +7,6 @@ import type {
   GetServiceDTO
 } from "../interfaces";
 
-export const CreateRequest = async (data: PostRequestDTO) =>
-  safeRequest<PostRequestDTO>({
-    url: "/solicitudes",
-    data: data,
-    method: "POST",
-  });
 
 export const UpdateRequest = async (id: number, data: UpdateRequestDTO) =>
   safeRequest<UpdateRequestDTO>({
@@ -29,7 +22,7 @@ export const DeleteRequest = async (id: number) =>
   });
 
 export const GetAllRequest = async () =>
-  safeRequest<ResponseRequestDTO>({
+  safePagination<ResponseRequestDTO>({
     url: "/solicitudes",
     method: "GET",
   });
