@@ -1,8 +1,3 @@
-export interface Pilot {
-  id: string;
-  nombre: string;
-}
-
 export interface Truck {
   Placa: string;
   nombre: string;
@@ -19,12 +14,4 @@ export interface Truck {
   soat_empresa: string;
   soat_precio: string;
   soat_dia_pago: string;
-}
-
-export interface Pilot {
-  DNI: string;
-  Nombre: string;
-  Apellido: string;
-  rol: string;
-  estado: "disponible" | "en trabajo";
 }

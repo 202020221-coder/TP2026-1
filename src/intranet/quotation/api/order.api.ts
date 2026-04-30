@@ -1,43 +1,17 @@
 import type { Order } from "@/intranet/orders/interfaces/order";
 import type {
-  GetAvailableDriversResponse,
   GetAvailableTrucksResponse,
-  GetDetailedOrderInventoryItemResponse,
-  GetFullOrderInventoryResponse,
   GetInventoryItemManufacturerResponse,
-  GetOrderInventoryResponse,
 } from "../interfaces/responses.dto";
 import axiosInstance from "@/shared/api/axios.config";
-import type {
-  InventoryItemManufacturer,
-  OrderInventoryElementItem,
-} from "../interfaces/create/order-inventory";
-import type { OrderInventoryTableElement } from "../interfaces/create/order-inventory";
+import type { InventoryItemManufacturer } from "../interfaces/create/order-inventory";
+
 import { toSearchParams } from "@/shared/lib/to-search-params";
-import type {
-  GetAvailableDriversQP,
-  GetAvailableTrucksQP,
-} from "../interfaces/query-params.dto";
+import type { GetAvailableTrucksQP } from "../interfaces/query-params.dto";
+import type { QuotationProductIntention } from "../enum/order-inventory-intention";
+import sleep from "@/shared/lib/sleep";
 
 /**==============================PRODUCTOS=============================== */
-export const getOrderInventory = async (
-  id: Order["ID"],
-): Promise<GetOrderInventoryResponse> => {
-  const response = await axiosInstance.get<GetOrderInventoryResponse>(
-    `/solicitudes/${id}/inventario`,
-  );
-  return response.data;
-};
-
-export const getOrderInventoryItem = async (
-  id: OrderInventoryElementItem["ID_Inventario"],
-) => {
-  const response =
-    await axiosInstance.get<GetDetailedOrderInventoryItemResponse>(
-      `/inventario/${id}`,
-    );
-  return response.data;
-};
 
 export const getInventoryItemManufacturer = async (
   manufacturerId: InventoryItemManufacturer["ID_Fabricante"],
@@ -49,37 +23,16 @@ export const getInventoryItemManufacturer = async (
   return response.data;
 };
 
-export const getFullOrderInventory = async (
-  id: Order["ID"],
-): Promise<GetFullOrderInventoryResponse> => {
-  const inventoryList = await axiosInstance.get<GetOrderInventoryResponse>(
-    `/solicitudes/${id}/inventario`,
-  );
+export const getOrderProducts = async (_id: Order["ID"]): Promise<Product[]> => {
+  await sleep(4000);
+  return productosMock.slice(0,2);
+};
 
-  const tableElements: OrderInventoryTableElement[] = [];
-
-  for (const item of inventoryList.data) {
-    // Obtener detalles del item (paralelo entre items)
-    const itemDetailPromise = getOrderInventoryItem(item.ID_Inventario);
-
-    // Manufacturer es secuencial por cada item
-    const itemDetail = await itemDetailPromise;
-    const manufacturer = await getInventoryItemManufacturer(
-      itemDetail.ID_Fabricante,
-    );
-
-    tableElements.push({
-      id: String(item.ID_Inventario),
-      producto: itemDetail.nombre_objeto,
-      fabricante: manufacturer.nombre_comercial,
-      estado: itemDetail.estado,
-      intencion: item.intencion,
-      cantidad: item.cantidad,
-      precio_unitario: parseFloat(itemDetail.precio_comercial),
-    });
-  }
-
-  return tableElements;
+export const getQuotationProducts = async (
+  _id: string,
+): Promise<Product[]> => {
+  await sleep(4000);
+  return productosMock;
 };
 
 /**==========================CAMIONES======================= */
@@ -93,15 +46,54 @@ export const getAvailableTrucks = async ({
   return response.data;
 };
 
-export const getAvailableDrivers = async ({
-  fecha = new Date().toISOString().split("T")[0],
-}: GetAvailableDriversQP) => {
-  const response = await axiosInstance.get<GetAvailableDriversResponse>(
-    `/perfiles/conductores/disponibles?${toSearchParams({ fecha })}`,
-  );
-  const availableDrivers = response.data.filter(
-    (profile) => profile.estado === "disponible",
-  );
+interface Product {
+  id: string;
+  nombre: string;
+  fabricante: string;
+  intencion: QuotationProductIntention;
+  cantidad: number;
+  precio_unitario: number;
+}
 
-  return availableDrivers;
-};
+const productosMock: Product[] = [
+  {
+    id: "1",
+    nombre: "Laptop X",
+    fabricante: "TechCorp",
+    intencion: "alquilar",
+    cantidad: 2,
+    precio_unitario: 1500,
+  },
+  {
+    id: "2",
+    nombre: "Mouse inalámbrico",
+    fabricante: "PeriTech",
+    intencion: "alquilar",
+    cantidad: 5,
+    precio_unitario: 25,
+  },
+  {
+    id: "3",
+    nombre: "Teclado mecánico",
+    fabricante: "KeyMasters",
+    intencion: "comprar",
+    cantidad: 3,
+    precio_unitario: 80,
+  },
+  {
+    id: "4",
+    nombre: "Monitor 24''",
+    fabricante: "DisplayPro",
+    intencion: "alquilar",
+    cantidad: 4,
+    precio_unitario: 200,
+  },
+  {
+    id: "5",
+    nombre: "Auriculares",
+    fabricante: "SoundMax",
+    intencion: "alquilar",
+    cantidad: 6,
+    precio_unitario: 60,
+  },
+];
