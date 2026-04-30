@@ -1,10 +1,10 @@
-import { useOrderConditions } from "@/intranet/quotation/hooks/stores/conditions.store";
+import { useConditionStore } from "../../hooks/stores/conditions.store.provider";
 import { ConditionSectionView } from "./ConditionSectionView";
 export const ConditionSection = () => {
-  const update = useOrderConditions((s) => s.update);
-  const conditions = useOrderConditions((s) => s.conditions);
-  const emissionDate = useOrderConditions((s) => s.emissionDate);
-  const expirationDate = useOrderConditions((s) => s.expirationDate);
+  const update = useConditionStore((s) => s.update);
+  const conditions = useConditionStore((s) => s.conditions);
+  const emissionDate = useConditionStore((s) => s.emissionDate);
+  const expirationDate = useConditionStore((s) => s.expirationDate);
   return (
     <ConditionSectionView
       conditions={conditions}

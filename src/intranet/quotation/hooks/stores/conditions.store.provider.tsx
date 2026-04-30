@@ -1,10 +1,11 @@
 import {
   createContext,
+  useContext,
   useState,
   type FC,
   type PropsWithChildren,
 } from "react";
-import { type StoreApi } from "zustand";
+import { useStore, type StoreApi } from "zustand";
 import {
   createConditionsStore,
   type ConditionsStore,
@@ -25,4 +26,16 @@ export const ConditionStoreProvider: FC<
       {children}
     </ConditionStoreContext.Provider>
   );
+};
+
+export const useConditionStore = <T,>(
+  selector: (state: ConditionsStore) => T,
+) => {
+  const store = useContext(ConditionStoreContext);
+  if (!store) {
+    throw new Error(
+      "useConditionStore must be used inside ConditionStoreProvider",
+    );
+  }
+  return useStore(store, selector);
 };
