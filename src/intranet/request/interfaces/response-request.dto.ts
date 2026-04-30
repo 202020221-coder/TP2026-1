@@ -4,14 +4,9 @@ export interface ResponseRequestDTO {
   descripcion: string;
   ubicacion: string;
   Cliente_Nombre: string;
+  ProductoEnvio: null,
+  CamionesEnvio: null,
+  ObsGenerales: null,
+  ObsEleccion: null,
 }
 
-export interface GetRequestQP {
-  data: ResponseRequestDTO[];
-  pagination: {
-    total: number,
-    page: number,
-    limit: number,
-    totalPages: number
-  }
-}

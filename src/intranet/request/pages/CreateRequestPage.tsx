@@ -6,8 +6,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Truck, ShoppingCart, Trash2, Plus, Minus, Calendar } from "lucide-react";
-import type { GetProductDTO, GetServiceDTO } from '../interfaces/read-service-producs.dto';
-import { useDataFetching } from '../hooks/useDataRequest';
+import { useDataFetching } from '../hooks/useDataFetching';
+import type { PostClientContactDTO, PostClientDTO, PostClientPerfilDTO, PostRequestDTO, PostRequestInventoryDTO, PostRequestServiceDTO, UpdateRequestDTO } from '../interfaces';
+import { CreateClient, CreateClientContact, CreateClientPerfil, CreateRequest, CreateRequestInventory, CreateRequestService, UpdateRequest } from '../api';
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
@@ -16,6 +17,119 @@ export function CreateRequestPage() {
     
     const { products, services, loading, error } = useDataFetching();
       
+    const handleSubmitClient = async (
+        clientData: PostClientDTO,
+        perfilData: PostClientPerfilDTO
+      ) => {
+        try {
+          const clientResponse = await CreateClient(clientData);
+      
+          if ("error" in clientResponse) {
+            console.error(clientResponse.error);
+            return;
+          }
+      
+          const perfilResponse = await CreateClientPerfil(perfilData);
+      
+          if ("error" in perfilResponse) {
+            console.error(perfilResponse.error);
+            return;
+          }
+      
+          console.log("Cliente y perfil creados correctamente");
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    
+      const handleSubmitClientContact = async (
+        clientId: number,
+        data: PostClientContactDTO
+      ) => {
+        try {
+          const response = await CreateClientContact(clientId, data);
+      
+          if ("error" in response) {
+            console.error("Error creando contacto:", response.error);
+            return;
+          }
+      
+          console.log("Contacto creado:", response);
+        } catch (error) {
+          console.error("Error inesperado:", error);
+        }
+      };
+
+      const handleSubmitRequestWithService = async (
+        requestData: PostRequestDTO,
+        serviceData: PostRequestServiceDTO
+      ) => {
+        try {
+          // 1. Crear solicitud
+          const requestResponse = await CreateRequest(requestData);
+      
+          if ("error" in requestResponse) {
+            console.error("Error creando solicitud:", requestResponse.error);
+            return;
+          }
+      
+          console.log("Solicitud creada:", requestResponse);
+      
+          // 2. Obtener ID de la solicitud creada
+          const requestId = requestResponse.id;
+      
+          // 3. Crear servicio asociado a esa solicitud
+          const serviceResponse = await CreateRequestService(
+            requestId,
+            serviceData
+          );
+      
+          if ("error" in serviceResponse) {
+            console.error("Error creando servicio:", serviceResponse.error);
+            return;
+          }
+      
+          console.log("Servicio creado:", serviceResponse);
+        } catch (error) {
+          console.error("Error inesperado:", error);
+        }
+      };
+      
+      const handleSubmitRequestInventory = async (
+        requestId: number,
+        data: PostRequestInventoryDTO
+      ) => {
+        try {
+          const response = await CreateRequestInventory(requestId, data);
+      
+          if ("error" in response) {
+            console.error("Error creando inventario:", response.error);
+            return;
+          }
+      
+          console.log("Inventario creado:", response);
+        } catch (error) {
+          console.error("Error inesperado:", error);
+        }
+      };
+
+      const handleUpdateRequest = async (
+        requestId: number,
+        data: UpdateRequestDTO
+      ) => {
+        try {
+          const response = await UpdateRequest(requestId, data);
+      
+          if ("error" in response) {
+            console.error("Error actualizando solicitud:", response.error);
+            return;
+          }
+      
+          console.log("Solicitud actualizada:", response);
+        } catch (error) {
+          console.error("Error inesperado:", error);
+        }
+      };
     const [formData, setFormData] = useState({
         nameOrBusinessName: '',
         lastName: '',
@@ -92,10 +206,10 @@ export function CreateRequestPage() {
     ];
 
     // const addProductToCart = (productId: string, name: string, intent: 'alquilar' | 'comprar', category?: string) => {
-    //     const newItem: SelectedProduct = {
+    //     const newItem: S,
+    //         name,electedProduct = {
     //         id: `${productId}-${Date.now()}`,
-    //         productId,
-    //         name,
+    //         productId
     //         category,
     //         intent,
     //         quantity: 1,

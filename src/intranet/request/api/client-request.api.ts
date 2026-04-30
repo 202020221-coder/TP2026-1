@@ -5,6 +5,7 @@ import type {
   PostClientPerfilDTO,
   PostRequestDTO,
   PostRequestInventoryDTO,
+  PostRequestResponseDTO,
   PostRequestServiceDTO,
 } from "../interfaces";
 
@@ -25,7 +26,7 @@ export const CreateClientPerfil = async (data: PostClientPerfilDTO) =>
   });
 
 //Crea cliente-contacto
-export const CreateClientContact = async (id: number, data: PostClientDTO) =>
+export const CreateClientContact = async (id: number, data: PostClientContactDTO) =>
   safeRequest<PostClientContactDTO>({
     url: `/clientes/${id}/contactos`,
     data: data,
@@ -55,7 +56,7 @@ export const CreateRequestInventory = async (
   });
 
 export const CreateRequest = async (data: PostRequestDTO) =>
-  safeRequest<PostRequestDTO>({
+  safeRequest<PostRequestResponseDTO>({
     url: "/solicitudes",
     data: data,
     method: "POST",

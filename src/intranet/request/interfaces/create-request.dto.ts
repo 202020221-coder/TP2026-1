@@ -65,3 +65,7 @@ export interface PostRequestDTO {
   obsgenerales: string | null;
   obseleccion: string | null;
 }
+export interface PostRequestResponseDTO {
+  id: number;
+  message: string;
+}
