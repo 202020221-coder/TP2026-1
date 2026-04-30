@@ -14,34 +14,42 @@ export function CreateRequestPage() {
     const navigate = useNavigate();
     const [clientType, setClientType] = useState<'jurídica' | 'física' | null>(null);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
+    const [createdClientId, setCreatedClientId] = useState<number | null>(null);
+    const [createdRequestId, setCreatedRequestId] = useState<number | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
     
     const { products, services, loading, error } = useDataFetching();
       
     const handleSubmitClient = async (
         clientData: PostClientDTO,
         perfilData: PostClientPerfilDTO
-      ) => {
+      ) : Promise<number | null> => {
         try {
           const clientResponse = await CreateClient(clientData);
       
           if ("error" in clientResponse) {
             console.error(clientResponse.error);
-            return;
+            return null;
           }
+
+          const clientId = (clientResponse as any)?.id ?? null;
+          if (clientId) setCreatedClientId(clientId);
       
           const perfilResponse = await CreateClientPerfil(perfilData);
       
           if ("error" in perfilResponse) {
             console.error(perfilResponse.error);
-            return;
+            return clientId;
           }
       
           console.log("Cliente y perfil creados correctamente");
+          return clientId;
         } catch (error) {
           console.error(error);
+          return null;
         }
-      };
-    
+    }
       const handleSubmitClientContact = async (
         clientId: number,
         data: PostClientContactDTO
@@ -60,38 +68,37 @@ export function CreateRequestPage() {
         }
       };
 
-      const handleSubmitRequestWithService = async (
-        requestData: PostRequestDTO,
-        serviceData: PostRequestServiceDTO
-      ) => {
+      const handleCreateRequest = async (requestData: PostRequestDTO) => {
         try {
-          // 1. Crear solicitud
           const requestResponse = await CreateRequest(requestData);
-      
+
           if ("error" in requestResponse) {
             console.error("Error creando solicitud:", requestResponse.error);
-            return;
+            return null;
           }
-      
+
           console.log("Solicitud creada:", requestResponse);
-      
-          // 2. Obtener ID de la solicitud creada
-          const requestId = requestResponse.id;
-      
-          // 3. Crear servicio asociado a esa solicitud
-          const serviceResponse = await CreateRequestService(
-            requestId,
-            serviceData
-          );
-      
+          return requestResponse.id;
+        } catch (error) {
+          console.error("Error inesperado al crear solicitud:", error);
+          return null;
+        }
+      };
+
+      const handleCreateRequestService = async (requestId: number, serviceData: PostRequestServiceDTO) => {
+        try {
+          const serviceResponse = await CreateRequestService(requestId, serviceData);
+
           if ("error" in serviceResponse) {
             console.error("Error creando servicio:", serviceResponse.error);
-            return;
+            return null;
           }
-      
+
           console.log("Servicio creado:", serviceResponse);
+          return serviceResponse;
         } catch (error) {
-          console.error("Error inesperado:", error);
+          console.error("Error inesperado al crear servicio:", error);
+          return null;
         }
       };
       
@@ -131,9 +138,9 @@ export function CreateRequestPage() {
         }
       };
     const [formData, setFormData] = useState({
-        nameOrBusinessName: '',
+        nombre_comercial: '',
         lastName: '',
-        documentNumber: '',
+        DNI_O_RUC: '',
         email: '',
         phone: '',
         address: '',
@@ -196,14 +203,11 @@ export function CreateRequestPage() {
         },
     ];
 
-    const catalogOptions = [
-        { id: 'acidzorb', category: 'ABSORVENTES DE ÁCIDOS E HIDROCARBUROS', name: 'ACIDZORB' },
-        { id: 'cf-campanas', category: 'EQUIPOS DE DETECCIÓN', name: 'CAMPANAS DE ALARMA CONTRA INCENDIO' },
-        { id: 'cf-humo', category: 'EQUIPOS DE DETECCIÓN', name: 'DETECTORES DE HUMO' },
-        { id: 'cf-temp', category: 'EQUIPOS DE DETECCIÓN', name: 'DETECTORES DE TEMPERATURA' },
-        { id: 'dualzorb', category: 'SIN CATEGORIZAR', name: 'DUALZORB' },
-        { id: 'boquillas-hf500', category: 'BOQUILLAS', name: 'ELKHART BRASS HF-500' },
-    ];
+    const catalogOptions = (products ?? []).map((p) => ({
+        id: `product-${p.Id_Objeto}`,
+        category: p.Fabricante_Nombre ?? '',
+        name: p.nombre_objeto ?? '',
+    }));
 
     // const addProductToCart = (productId: string, name: string, intent: 'alquilar' | 'comprar', category?: string) => {
     //     const newItem: S,
@@ -242,14 +246,19 @@ export function CreateRequestPage() {
         setSelectedProducts((prev) => prev.filter(prod => prod.id !== id));
     };
 
-    const truckOptions = [
-        { id: 'spartan', name: 'Camión SPARTAN' },
-        { id: 'vw-fire', name: 'Volkswagen Bomberos' },
-        { id: 'vw-cisterna', name: 'Cisterna Volkswagen' },
-        { id: 'airport-fire', name: 'Airport Firetruck' },
-        { id: 'industrial-fire', name: 'Industrial Firetruck' },
-        { id: 'rescue-truck', name: 'Camión de Rescate' },
-    ];
+    const truckOptions = (services ?? []).map((s) => {
+        const rawId = (s as any).ID_Servicio ?? (s as any).Id_Objeto ?? (s as any).id ?? Date.now();
+        const name = (s as any).nombre ?? (s as any).nombre_objeto ?? (s as any).Fabricante_Nombre ?? `Servicio ${rawId}`;
+        const description = (s as any).descripcion ?? (s as any).observaciones ?? '';
+        const price = (s as any).precio_regular ?? (s as any).precio_comercial ?? '';
+
+        return {
+            id: `service-${rawId}`,
+            name,
+            description,
+            price,
+        };
+    });
 
     const steps = [
         { id: 1, label: 'Tipo de Cliente' },
@@ -347,6 +356,22 @@ export function CreateRequestPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Estado de carga / error del hook */}
+                {loading && (
+                    <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                        <p className="text-sm text-yellow-800">Cargando catálogo y servicios...</p>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded">
+                        <p className="text-sm text-red-800">Error cargando datos: {error}</p>
+                        <div className="mt-2">
+                            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Client Type Selection */}
                 {currentStep === 1 && (
@@ -927,26 +952,77 @@ export function CreateRequestPage() {
                         Anterior
                     </Button>
                     <Button
-                        disabled={currentStep === 1 && !clientType}
-                        onClick={() => {
-                            if (currentStep === 1 && clientType) { setCurrentStep(2); return; }
-                            if (currentStep === 2) { setCurrentStep(3); return; }
-                            if (currentStep === 3) { setCurrentStep(4); return; }
-                            if (currentStep === 4) { setCurrentStep(5); return; }
-                            if (currentStep === 5) { setCurrentStep(6); return; }
-                            if (currentStep === 6) { setCurrentStep(7); return; }
-                            
-                            if (currentStep === 7) {
-                                console.log('Solicitud lista para enviar', {
-                                    clientType,
-                                    formData,
-                                    requesterData,
-                                    serviceData,
-                                    selectedProducts,
-                                    selectedTrucks,
-                                    preferencesData,
-                                });
-                                navigate('/intranet/solicitudes/mis-solicitudes', { replace: true });
+                        disabled={(currentStep === 1 && !clientType) || isProcessing}
+                        onClick={async () => {
+                            if (isProcessing) return;
+                            setIsProcessing(true);
+                            try {
+                                // Step 1 -> just advance when clientType selected
+                                if (currentStep === 1 && clientType) { setCurrentStep(2); setIsProcessing(false); return; }
+
+                                // Step 2 -> crear cliente y perfil
+                                if (currentStep === 2) {
+                                    const clientData = (formData as unknown) as PostClientDTO;
+                                    const perfilData = {} as PostClientPerfilDTO;
+                                    const newClientId = await handleSubmitClient(clientData, perfilData);
+                                    if (newClientId) { setCurrentStep(3); }
+                                    else { alert('Error creando cliente'); }
+                                    setIsProcessing(false);
+                                    return;
+                                }
+
+                                // Step 3 -> crear contacto del cliente
+                                if (currentStep === 3) {
+                                    if (!createdClientId) { alert('Client ID no disponible. Crea el cliente primero.'); setIsProcessing(false); return; }
+                                    const contactData = (requesterData as unknown) as PostClientContactDTO;
+                                    await handleSubmitClientContact(createdClientId, contactData);
+                                    setCurrentStep(4);
+                                    setIsProcessing(false);
+                                    return;
+                                }
+
+                                // Step 4 -> crear solicitud
+                                if (currentStep === 4) {
+                                    const requestData = (serviceData as unknown) as PostRequestDTO;
+                                    const newRequestId = await handleCreateRequest(requestData);
+                                    if (newRequestId) { setCreatedRequestId(newRequestId); setCurrentStep(5); }
+                                    else { alert('Error creando solicitud'); }
+                                    setIsProcessing(false);
+                                    return;
+                                }
+
+                                // Step 5 -> crear inventario asociado a la solicitud
+                                if (currentStep === 5) {
+                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    const inventoryData = {} as PostRequestInventoryDTO;
+                                    await handleSubmitRequestInventory(createdRequestId, inventoryData);
+                                    setCurrentStep(6);
+                                    setIsProcessing(false);
+                                    return;
+                                }
+
+                                // Step 6 -> crear servicios (camiones u otros)
+                                if (currentStep === 6) {
+                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    const svcData = (serviceData as unknown) as PostRequestServiceDTO;
+                                    await handleCreateRequestService(createdRequestId, svcData);
+                                    setCurrentStep(7);
+                                    setIsProcessing(false);
+                                    return;
+                                }
+
+                                // Step 7 -> actualizar solicitud final
+                                if (currentStep === 7) {
+                                    if (!createdRequestId) { alert('Request ID no disponible.'); setIsProcessing(false); return; }
+                                    const updateData = (preferencesData as unknown) as UpdateRequestDTO;
+                                    await handleUpdateRequest(createdRequestId, updateData);
+                                    navigate('/intranet/solicitudes/mis-solicitudes', { replace: true });
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert('Ocurrió un error. Revisa la consola.');
+                            } finally {
+                                setIsProcessing(false);
                             }
                         }}
                         className={`px-8 py-2 rounded-lg font-semibold transition-all ${(currentStep === 1 && !clientType)
@@ -954,7 +1030,7 @@ export function CreateRequestPage() {
                             : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
                             }`}
                     >
-                        {currentStep === 7 ? 'Enviar Solicitud' : 'Siguiente'}
+                        {currentStep === 7 ? (isProcessing ? 'Enviando...' : 'Enviar Solicitud') : (isProcessing ? 'Procesando...' : 'Siguiente')}
                     </Button>
                 </div>
             </div>
