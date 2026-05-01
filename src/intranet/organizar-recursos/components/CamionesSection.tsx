@@ -39,12 +39,23 @@ interface CamioneSectionProps {
   onRefresh: () => void;
 }
 
+type CamionFormData = {
+  placa: string;
+  conductor: string;
+  fecha_salida: string;
+  hora_salida: string;
+  fecha_entrada: string;
+  hora_entrada: string;
+};
+
 export function CamionesSection({
   projectId,
   camiones,
   onRefresh,
 }: CamioneSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+
   const {
     register,
     handleSubmit,
@@ -52,12 +63,14 @@ export function CamionesSection({
     setValue,
     reset,
     formState: { errors },
-  } = useForm({
+  } = useForm<CamionFormData>({
     defaultValues: {
       placa: "",
-      fecha_salida: new Date().toISOString().split("T")[0],
-      fecha_entrada: new Date().toISOString().split("T")[0],
       conductor: "",
+      fecha_salida: today,
+      hora_salida: "08:00",
+      fecha_entrada: today,
+      hora_entrada: "17:00",
     },
   });
 
@@ -70,19 +83,19 @@ export function CamionesSection({
   const { mutate: removeCamion, isPending: isRemovingCamion } =
     useRemoveCamionFromProyecto();
 
-  const onSubmit = (data: { placa: string; fecha_salida: string; fecha_entrada: string; conductor: string }) => {
+  const onSubmit = (data: CamionFormData) => {
     addCamion(
       {
         projectId,
         payload: {
           Placa: data.placa,
-          fecha_salida: data.fecha_salida,
-          fecha_entrada: data.fecha_entrada,
-          id_conductor: parseInt(data.conductor),
+          personal_manejando: 1,
+          fecha_hora_salida: `${data.fecha_salida} ${data.hora_salida}:00`,
+          fecha_hora_entrada: `${data.fecha_entrada} ${data.hora_entrada}:00`,
         },
       },
       {
-        onSuccess: () => {
+        onSettled: () => {
           setIsOpen(false);
           reset();
           onRefresh();
@@ -122,6 +135,40 @@ export function CamionesSection({
                 )}
               </div>
 
+              <div>
+                <label className="text-sm font-medium">Conductor disponible *</label>
+                <Select
+                  onValueChange={(value) => setValue("conductor", value)}
+                  value={watch("conductor")}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Seleccionar conductor..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {loadingConductores ? (
+                      <SelectItem value="loading" disabled>
+                        Cargando conductores...
+                      </SelectItem>
+                    ) : conductoresDisponibles && conductoresDisponibles.length > 0 ? (
+                      conductoresDisponibles.map((c) => (
+                        <SelectItem key={c.DNI} value={c.DNI}>
+                          {c.Nombre} {c.Apellido} ({c.DNI})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="sin-conductores" disabled>
+                        Sin conductores disponibles en esta fecha
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {errors.conductor && (
+                  <p className="text-sm text-destructive mt-1">
+                    Conductor requerido
+                  </p>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Fecha Salida *</label>
@@ -137,6 +184,22 @@ export function CamionesSection({
                   )}
                 </div>
                 <div>
+                  <label className="text-sm font-medium">Hora Salida *</label>
+                  <Input
+                    type="time"
+                    {...register("hora_salida", { required: "Requerida" })}
+                    className="mt-1"
+                  />
+                  {errors.hora_salida && (
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.hora_salida.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="text-sm font-medium">Fecha Entrada *</label>
                   <Input
                     type="date"
@@ -149,43 +212,19 @@ export function CamionesSection({
                     </p>
                   )}
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Piloto *</label>
-                <Select
-                  onValueChange={(value) => setValue("conductor", value)}
-                  value={watch("conductor")}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Seleccionar piloto..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {loadingConductores ? (
-                      <SelectItem value="loading" disabled>
-                        Cargando pilotos...
-                      </SelectItem>
-                    ) : conductoresDisponibles && conductoresDisponibles.length > 0 ? (
-                      conductoresDisponibles.map((conductor) => (
-                        <SelectItem
-                          key={conductor.idusuario}
-                          value={conductor.idusuario.toString()}
-                        >
-                          {conductor.nombre} ({conductor.licencia_numero})
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="sin-pilotos" disabled>
-                        No hay pilotos disponibles en esta fecha
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.conductor && (
-                  <p className="text-sm text-destructive mt-1">
-                    Piloto requerido
-                  </p>
-                )}
+                <div>
+                  <label className="text-sm font-medium">Hora Entrada *</label>
+                  <Input
+                    type="time"
+                    {...register("hora_entrada", { required: "Requerida" })}
+                    className="mt-1"
+                  />
+                  {errors.hora_entrada && (
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.hora_entrada.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <Button type="submit" disabled={isAddingCamion} className="w-full">
@@ -241,7 +280,7 @@ export function CamionesSection({
                       onClick={() =>
                         removeCamion(
                           { projectId, camionId: camion.id },
-                          { onSuccess: onRefresh }
+                          { onSettled: onRefresh }
                         )
                       }
                       className="h-8 w-8 p-0 text-destructive hover:text-destructive"

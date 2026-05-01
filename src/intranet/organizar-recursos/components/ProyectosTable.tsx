@@ -117,7 +117,7 @@ export function ProyectosTable({
       <div className="flex items-center gap-2">
         <Search className="h-5 w-5 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nombre o descripción..."
+          placeholder="Buscar por nombre de proyecto"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-10"

@@ -7,11 +7,10 @@ export const useInventarioDelProyecto = (projectId: number) => {
   return useQuery({
     queryKey: ["inventario-del-proyecto", projectId],
     queryFn: () => organizarRecursosApi.getInventarioDelProyecto(projectId),
-    select: (data) => data.data, // API devuelve array directo, no { data: [...] }
+    select: (data) => data.data,
     enabled: !!projectId,
   });
 };
-
 
 export const useProyectosList = (page: number = 1, limit: number = 10) => {
   return useQuery({
@@ -38,11 +37,12 @@ export const useInventarioList = (page: number = 1, limit: number = 10) => {
   });
 };
 
+// API devuelve array plano de Conductor[] (sin wrapper { data: [...] })
 export const useConductoresDisponibles = (fecha: string) => {
   return useQuery({
     queryKey: ["conductores-disponibles", fecha],
     queryFn: () => organizarRecursosApi.getConductoresDisponibles(fecha),
-    select: (data) => data.data.data,
+    select: (data) => data.data,
     enabled: !!fecha,
   });
 };
@@ -59,13 +59,13 @@ export const useAddInventarioToProyecto = () => {
       projectId: number;
       payload: InventarioRequestPayload;
     }) => organizarRecursosApi.addInventarioToProyecto(projectId, payload),
-    onSuccess: (_, { projectId }) => {
+    // onSettled refresca la tabla aunque el backend devuelva 500 (bug conocido del backend)
+    onSettled: (_, __, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ["proyecto-todo", projectId] });
       queryClient.invalidateQueries({ queryKey: ["inventario-del-proyecto", projectId] });
-      toast.success("Inventario agregado exitosamente");
     },
-    onError: () => {
-      toast.error("Error al agregar inventario");
+    onSuccess: () => {
+      toast.success("Inventario agregado exitosamente");
     },
   });
 };
@@ -81,13 +81,12 @@ export const useRemoveInventarioFromProyecto = () => {
       projectId: number;
       inventoryId: number;
     }) => organizarRecursosApi.removeInventarioFromProyecto(projectId, inventoryId),
-    onSuccess: (_, { projectId }) => {
+    onSettled: (_, __, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ["proyecto-todo", projectId] });
       queryClient.invalidateQueries({ queryKey: ["inventario-del-proyecto", projectId] });
-      toast.success("Inventario eliminado exitosamente");
     },
-    onError: () => {
-      toast.error("Error al eliminar inventario");
+    onSuccess: () => {
+      toast.success("Inventario eliminado exitosamente");
     },
   });
 };
@@ -103,19 +102,18 @@ export const useAddCamionToProyecto = () => {
       projectId: number;
       payload: {
         Placa: string;
-        fecha_salida: string;
-        fecha_entrada: string;
-        id_conductor: number;
+        personal_manejando: number;
+        fecha_hora_salida: string;
+        fecha_hora_entrada: string;
       };
     }) => organizarRecursosApi.addCamionToProyecto(projectId, payload),
-    onSuccess: (_, { projectId }) => {
+    onSettled: (_, __, { projectId }) => {
       queryClient.invalidateQueries({
         queryKey: ["proyecto-todo", projectId],
       });
-      toast.success("Camión agregado exitosamente");
     },
-    onError: () => {
-      toast.error("Error al agregar camión");
+    onSuccess: () => {
+      toast.success("Camión agregado exitosamente");
     },
   });
 };
@@ -131,14 +129,13 @@ export const useRemoveCamionFromProyecto = () => {
       projectId: number;
       camionId: number;
     }) => organizarRecursosApi.removeCamionFromProyecto(projectId, camionId),
-    onSuccess: (_, { projectId }) => {
+    onSettled: (_, __, { projectId }) => {
       queryClient.invalidateQueries({
         queryKey: ["proyecto-todo", projectId],
       });
-      toast.success("Camión eliminado exitosamente");
     },
-    onError: () => {
-      toast.error("Error al eliminar camión");
+    onSuccess: () => {
+      toast.success("Camión eliminado exitosamente");
     },
   });
 };

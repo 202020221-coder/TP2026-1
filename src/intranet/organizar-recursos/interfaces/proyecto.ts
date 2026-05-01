@@ -48,9 +48,9 @@ export interface Camion {
 
 export interface CamionRequest {
   Placa: string;
-  fecha_salida: string;
-  fecha_entrada: string;
-  id_conductor: number;
+  personal_manejando: number;
+  fecha_hora_salida: string;
+  fecha_hora_entrada: string;
 }
 
 export interface InventarioAsignado {
@@ -99,7 +99,7 @@ export interface InventarioListResponse {
 }
 
 export interface InventarioRequestPayload {
-  id_objeto: number;
+  Id_Objeto: number;
   cantidad_objeto: number;
   estado_post: string;
   fecha_salida: string;
@@ -108,18 +108,11 @@ export interface InventarioRequestPayload {
 }
 
 export interface Conductor {
-  idusuario: number;
-  nombre: string;
-  dni: string;
-  correo: string;
-  telefono: string;
-  licencia_numero: string;
-  licencia_vigencia: string;
+  DNI: string;
+  Nombre: string;
+  Apellido: string;
+  rol: string;
   estado: string;
-}
-
-export interface ConductoresDisponiblesResponse {
-  data: Conductor[];
 }
 
 export interface InventarioDelProyectoItem {

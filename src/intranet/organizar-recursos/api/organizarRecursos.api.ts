@@ -4,7 +4,7 @@ import type {
   ProyectoTodoResponse,
   InventarioListResponse,
   InventarioDelProyectoItem,
-  ConductoresDisponiblesResponse,
+  Conductor,
   InventarioRequestPayload,
 } from "../interfaces/proyecto";
 
@@ -37,26 +37,23 @@ export const organizarRecursosApi = {
   removeInventarioFromProyecto: (projectId: number, inventoryId: number) =>
     axiosInstance.delete(`/proyectos/${projectId}/inventario/${inventoryId}`),
 
-  // Camiones del proyecto
+  // Camiones del proyecto — payload corregido según Swagger
   addCamionToProyecto: (
     projectId: number,
     payload: {
       Placa: string;
-      fecha_salida: string;
-      fecha_entrada: string;
-      id_conductor: number;
+      personal_manejando: number;
+      fecha_hora_salida: string;
+      fecha_hora_entrada: string;
     }
   ) => axiosInstance.post(`/proyectos/${projectId}/camiones`, payload),
 
   removeCamionFromProyecto: (projectId: number, camionId: number) =>
     axiosInstance.delete(`/proyectos/${projectId}/camiones/${camionId}`),
 
-  // Conductores disponibles
+  // Conductores disponibles — devuelve array plano de Conductor[]
   getConductoresDisponibles: (fecha: string) =>
-    axiosInstance.get<ConductoresDisponiblesResponse>(
-      "/perfiles/conductores/disponibles",
-      {
-        params: { fecha },
-      }
-    ),
+    axiosInstance.get<Conductor[]>("/perfiles/conductores/disponibles", {
+      params: { fecha },
+    }),
 };

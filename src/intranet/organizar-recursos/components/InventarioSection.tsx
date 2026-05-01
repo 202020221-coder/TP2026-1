@@ -87,7 +87,7 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
       {
         projectId,
         payload: {
-          id_objeto: parseInt(data.objeto),
+          Id_Objeto: parseInt(data.objeto),
           cantidad_objeto: parseInt(data.cantidad),
           estado_post: data.estado,
           fecha_salida: data.fecha_salida,
@@ -96,7 +96,7 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
         },
       },
       {
-        onSuccess: () => {
+        onSettled: () => {
           setIsOpen(false);
           reset();
         },
