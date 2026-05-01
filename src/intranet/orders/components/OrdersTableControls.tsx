@@ -168,7 +168,7 @@ const BottomControls: FC = () => {
             type="number"
             step={1}
             min={1}
-            max={result.data.pagination.page}
+            max={result.data.pagination.totalPages}
             value={pseudoPagestr}
             onChange={(e) => {
               setPseudoPagestr(e.target.value);
@@ -177,7 +177,7 @@ const BottomControls: FC = () => {
             disabled={result.data.pagination.totalPages === 1}
           />
           <p>de</p>
-          <p>{result.data.pagination.totalPages}</p>
+          <p>{Math.max(result.data.pagination.totalPages,1)}</p>
         </div>
       </div>
     )

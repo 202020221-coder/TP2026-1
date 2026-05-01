@@ -1,7 +1,8 @@
 export const OrderStatesRecord = {
-  rejected: "Rechazada",
-  approved: "Aprobada",
-  pending: "Pendiente",
+  rejected: "rechazado",
+  approved: "aceptado",
+  pending: "pendiente",
 } as const;
 
-export type OrderState = (typeof OrderStatesRecord)[keyof typeof OrderStatesRecord];
+export type OrderState =
+  (typeof OrderStatesRecord)[keyof typeof OrderStatesRecord];
