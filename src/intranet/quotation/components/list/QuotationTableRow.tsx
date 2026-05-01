@@ -27,20 +27,20 @@ export const QuotationTableRow: FC<{
     quotation.nombre.split(" - ").slice(1).join(" - ") || quotation.nombre;
 
   const statusStyles = new Map<QuotationState, string>([
-    ["Aprobada", "bg-green-200 text-green-600 border-green-400"],
-    ["Rechazada", "bg-red-200 text-red-600 border-red-400"],
-    ["Pendiente", "bg-yellow-200 text-yellow-600 border-yellow-400"],
+    ["aprobado", "bg-green-200 text-green-600 border-green-400"],
+    ["rechazado", "bg-red-200 text-red-600 border-red-400"],
+    ["pendiente", "bg-yellow-200 text-yellow-600 border-yellow-400"],
   ]);
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
       <TableCell className="text-gray-700">
-        {new Date(quotation.fecha_inicio).toLocaleDateString("es-ES", {
+        {quotation.fecha_emision ? new Date(quotation.fecha_emision).toLocaleDateString("es-ES", {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
-        })}
+        }) : "-"}
       </TableCell>
       <TableCell className="font-medium py-3">
         s/. {quotation.precio_total}
@@ -55,7 +55,6 @@ export const QuotationTableRow: FC<{
         </Badge>
       </TableCell>
 
-      {/* Columna de acciones */}
       <TableCell>
         <div className="flex justify-center gap-2">
           <Tooltip>
@@ -82,33 +81,7 @@ export const QuotationTableRow: FC<{
           </Tooltip>
 
           {user?.rol === RolesRecord.projectAdmin &&
-            quotation.estado === "Pendiente" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                    onClick={() =>
-                      Navigate(
-                        `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
-                      )
-                    }
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
-                  align="center"
-                >
-                  Registrar Comentario
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-          {user?.rol === RolesRecord.projectAdmin &&
-            quotation.estado === "Pendiente" && (
+            quotation.estado === "pendiente" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -127,37 +100,63 @@ export const QuotationTableRow: FC<{
                 </TooltipContent>
               </Tooltip>
             )}
-
-          {user?.rol === RolesRecord.client &&
-            quotation.estado === "Rechazada" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                    onClick={() => setRejectionMsgModalOpen(true)}
-                  >
-                    <Mail className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                  align="center"
-                >
-                  Ver Mensaje de Declinación
-                </TooltipContent>
-              </Tooltip>
-            )}
         </div>
-        <QuotationRejectionMessageDialog
-          open={rejectionMsgModalOpen}
-          onOpenChange={(open) => setRejectionMsgModalOpen(open)}
-          quotationId={quotation.ID}
-        />
       </TableCell>
 
-      {/* Columna de mensajes */}
+      <TableCell className="text-center">
+        {user?.rol === RolesRecord.projectAdmin && quotation.estado === "pendiente" ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
+                onClick={() =>
+                  Navigate(
+                    `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
+                  )
+                }
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
+              align="center"
+            >
+              Registrar Comentario
+            </TooltipContent>
+          </Tooltip>
+        ) : user?.rol === RolesRecord.client && quotation.estado === "rechazado" ? (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                  onClick={() => setRejectionMsgModalOpen(true)}
+                >
+                  <Mail className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                align="center"
+              >
+                Ver Mensaje de Declinación
+              </TooltipContent>
+            </Tooltip>
+            <QuotationRejectionMessageDialog
+              open={rejectionMsgModalOpen}
+              onOpenChange={(open) => setRejectionMsgModalOpen(open)}
+              quotationId={quotation.ID}
+            />
+          </>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
       <TableCell>
         <div className="flex justify-center gap-2">
           {quotation.mensajes === "Enviado" && (

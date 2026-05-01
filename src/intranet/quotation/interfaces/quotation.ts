@@ -1,5 +1,6 @@
 import type { QuotationMessagesState } from "../enum/quotation-message-state.record";
 import { type QuotationState } from "../enum/quotation-state.record";
+
 export interface Quotation {
   ID: number;
   version: number;
@@ -10,5 +11,10 @@ export interface Quotation {
   precio_total: string;
   estado: QuotationState;
   comentario_cliente?: string;
+  fecha_emision: string | null;
+  fecha_vigencia: string | null;
+  observacion: string | null;
+  Tasa_Cambio?: number;
+  condiciones?: string;
   mensajes: QuotationMessagesState;
 }
