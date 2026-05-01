@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { LoadingPage, NotFoundPage } from "@/shared/pages";
 import { routes } from "./routes";
 import { PrivateRoute } from "@/security/routing/PrivateRoute";
+import { UnauthorizedPage } from "@/security/pages";
 export const Navigation = memo(() => {
   return (
     <BrowserRouter>
@@ -23,7 +24,7 @@ export const Navigation = memo(() => {
               }
             />
           ))}
-          {/* <Route path="/intranet/unauthorized" element={<UnauthorizedPage />} /> */}
+          <Route path="/intranet/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

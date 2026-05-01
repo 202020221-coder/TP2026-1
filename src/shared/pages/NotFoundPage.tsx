@@ -1,8 +1,5 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-
-// import { useAuthStore } from "@/shared/store/AuthStore";
-
 import { Ghost, Radar, Bug, Construction, AlertTriangle } from "lucide-react";
 import { Button } from "../components/ui/button";
 

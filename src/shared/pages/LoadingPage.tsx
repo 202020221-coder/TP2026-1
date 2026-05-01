@@ -1,6 +1,6 @@
-import React from "react";
+import type { FC } from "react";
 
-export const LoadingPage: React.FC = () => {
+export const LoadingPage: FC = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-white text-black space-y-6">
       {/* Spinner animado tipo radar */}
@@ -16,14 +16,16 @@ export const LoadingPage: React.FC = () => {
         <span className="inline-block animate-bounce delay-[200ms]">.</span>{" "}
         <span className="inline-block animate-bounce delay-[400ms]">.</span>
       </p>
-      
-      <p className="text-muted-foreground">Por favor espere mientras preparamos todo para usted</p>
+
+      <p className="text-muted-foreground">
+        Por favor espere mientras preparamos todo para usted
+      </p>
     </div>
   );
 };
 
 // Animación personalizada lenta
-const style = document.createElement('style');
+const style = document.createElement("style");
 
 style.textContent = `
   @keyframes spin-slow {

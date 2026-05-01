@@ -4,7 +4,7 @@ import { lazy } from "react";
 const DashboardNavigation = lazy(
   () => import("@/intranet/dashboard/routing/Navigation"),
 );
-const ProcessNavigation = lazy(
+const PersonnelNavigation = lazy(
   () => import("@/intranet/personnel/routing/Navigation"),
 );
 const InventoryNavigation = lazy(
@@ -18,8 +18,8 @@ const QuotationNavigation = lazy(
 //Order matters since it defines hierarchy, this hierarchy makes the routing work properly
 export const routes: IRoute[] = [
   {
-    path: "/procesos/*",
-    Component: ProcessNavigation,
+    path: "/personal/*",
+    Component: PersonnelNavigation,
     isPrivate: true,
   },
   {
