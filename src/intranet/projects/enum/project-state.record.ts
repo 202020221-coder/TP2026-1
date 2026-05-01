@@ -3,6 +3,7 @@ export const ProjectStatesRecord = {
   inExecution: "En ejecución",
   completed: "Completado",
   legalProcess: "En proceso legal",
+  cancelled: "Cancelado",
 } as const;
 
 export type ProjectState =

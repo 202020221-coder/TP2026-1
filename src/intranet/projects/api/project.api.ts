@@ -1,9 +1,10 @@
 import type { GetProjectsQP } from "../interfaces/query-params.dto";
 import type { GetProjectsResponse } from "../interfaces/responses.dto";
 import type { Project } from "../interfaces/project";
+import type { ProjectState } from "../enum/project-state.record";
 
-// Datos mock para el front-end (sin backend)
-const MOCK_PROJECTS: Project[] = [
+// Datos mock mutables (permite actualizar el estado)
+let MOCK_PROJECTS: Project[] = [
   {
     ID: 1,
     nombre: "PROY 1",
@@ -54,10 +55,19 @@ const MOCK_PROJECTS: Project[] = [
   },
 ];
 
+export async function updateProjectState(
+  id: number,
+  newState: ProjectState
+): Promise<void> {
+  await new Promise((r) => setTimeout(r, 200));
+  MOCK_PROJECTS = MOCK_PROJECTS.map((p) =>
+    p.ID === id ? { ...p, estado: newState } : p
+  );
+}
+
 export async function getAllProjects(
   params: GetProjectsQP
 ): Promise<GetProjectsResponse> {
-  // Simula un delay de red
   await new Promise((r) => setTimeout(r, 400));
 
   let filtered = [...MOCK_PROJECTS];

@@ -35,9 +35,7 @@ export const ProjectsTableHeader: FC = () => {
         <TableHead className="text-center text-gray-500 font-medium">
           Editar
         </TableHead>
-        <TableHead className="text-center text-gray-500 font-medium">
-          Eliminar
-        </TableHead>
+        
       </TableRow>
     </TableHeader>
   );

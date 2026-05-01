@@ -1,8 +1,7 @@
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
-import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil, Trash2 } from "lucide-react";
+import { Users, FileText, AlertTriangle, Pencil } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,13 +10,30 @@ import {
 import type { Project } from "../interfaces/project";
 import type { ProjectState } from "../enum/project-state.record";
 
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { ProjectStatesRecord } from "../enum/project-state.record";
+
+import { updateProjectState } from "../api/project.api";
+import { useQueryClient } from "@tanstack/react-query";
+
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
+  const queryClient = useQueryClient();
   const statusStyles = new Map<ProjectState, string>([
     ["Pendiente", "bg-yellow-100 text-yellow-700 border-yellow-300"],
     ["En ejecución", "bg-blue-100 text-blue-700 border-blue-300"],
     ["Completado", "bg-green-100 text-green-700 border-green-300"],
     ["En proceso legal", "bg-red-100 text-red-700 border-red-300"],
+    ["Cancelado", "bg-gray-100 text-gray-600 border-gray-300"],
   ]);
+
+  const [currentEstado, setCurrentEstado] = useState<ProjectState>(project.estado);
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("es-ES", {
@@ -45,13 +61,30 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
       <TableCell className="text-gray-700">{project.cliente}</TableCell>
 
       {/* Estado */}
-      <TableCell>
-        <Badge
-          className={`block mx-auto rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(project.estado) ?? ""}`}
-        >
-          {project.estado}
-        </Badge>
-      </TableCell>
+<TableCell>
+  <Select
+    value={currentEstado}
+    onValueChange={async (val) => {
+  const newEstado = val as ProjectState;
+  setCurrentEstado(newEstado);
+  await updateProjectState(project.ID, newEstado);
+  await queryClient.invalidateQueries({ queryKey: ["projects"] });
+}}
+  >
+    <SelectTrigger
+      className={`w-fit rounded-full px-3 py-1 text-[13px] font-medium border mx-auto ${statusStyles.get(currentEstado) ?? ""}`}
+    >
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent>
+      {Object.values(ProjectStatesRecord).map((estado) => (
+        <SelectItem key={estado} value={estado}>
+          {estado}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</TableCell>
 
       {/* Trabajadores */}
       <TableCell className="text-center">
@@ -158,23 +191,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         </Tooltip>
       </TableCell>
 
-      {/* Eliminar proyecto */}
-      <TableCell className="text-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-red-500 border-red-300 bg-white hover:bg-red-50 hover:text-red-500 hover:border-red-500 transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-red-500" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-white border border-red-400 text-red-500">
-            Eliminar proyecto
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
+      
     </TableRow>
   );
 };
