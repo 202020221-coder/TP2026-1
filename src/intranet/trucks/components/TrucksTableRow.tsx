@@ -11,6 +11,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 import type { Truck } from "../interfaces/truck.interface";
+import { EditTruckDialog } from "./EditTruckDialog";
 import {
   formatTruckTableDate,
   getSoatStatus,
@@ -52,6 +53,7 @@ export const TrucksTableRow: FC<{
       </TableCell>
       <TableCell className="text-center">
         <div className="flex justify-center gap-2">
+          <EditTruckDialog camion={camion} />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

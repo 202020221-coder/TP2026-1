@@ -2,6 +2,7 @@ import type { FC, ReactNode } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Search } from "lucide-react";
 import { useTrucks } from "../hooks/useTrucks";
+import { RegisterTruckDialog } from "./RegisterTruckDialog";
 
 export const TrucksTableControls: FC<{ children: ReactNode }> = ({ children }) => {
   const { search, setSearch, fromDate, setFromDate, toDate, setToDate, result } =
@@ -26,7 +27,7 @@ export const TrucksTableControls: FC<{ children: ReactNode }> = ({ children }) =
           </div>
         </div>
 
-        <div className="flex items-end gap-2 md:col-span-5 md:justify-end">
+        <div className="flex flex-wrap items-end gap-2 md:col-span-5 md:justify-end">
           <div className="w-full max-w-[190px] space-y-1">
             <p className="text-xs text-muted-foreground">Desde</p>
             <Input
@@ -46,6 +47,8 @@ export const TrucksTableControls: FC<{ children: ReactNode }> = ({ children }) =
               disabled={result.isFetching}
             />
           </div>
+
+          <RegisterTruckDialog disabled={result.isFetching} />
         </div>
       </div>
       {children}

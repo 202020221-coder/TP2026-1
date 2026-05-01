@@ -263,8 +263,6 @@ export function TruckInventoryPage() {
                 setInventoryForm(getInitialInventoryForm());
                 setIsAddItemDialogOpen(true);
               }}
-              variant="outline"
-              className="border-green-500 bg-white text-green-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50"
               disabled={isLoading || hasInlineEditing}
             >
               Agregar ítem
@@ -720,7 +718,6 @@ export function TruckInventoryPage() {
               </Button>
               <Button
                 type="submit"
-                className="bg-green-600 text-white hover:bg-green-700"
                 disabled={isLoading || !isCreateFormValid}
               >
                 Guardar ítem
