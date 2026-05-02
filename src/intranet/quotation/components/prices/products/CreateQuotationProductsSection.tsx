@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { useEffect, useMemo, useRef, useState, type FC } from "react";
+import { useEffect, useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
 import type { Order } from "@/intranet/orders/interfaces/order";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +18,6 @@ import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-
 export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
   orderId,
 }) => {
-  const hasHydrated = useRef(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data, isError, isPending } = useQuery({
     queryKey: ["products", "order", orderId], //clave identificadora de la consulta
@@ -34,9 +33,8 @@ export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
   useEffect(() => {
     if (data && !initialized) {
       initialize(data);
-      hasHydrated.current = true;
     }
-  }, [initialize, data, items]);
+  }, [initialize, data]);
 
   const products = useMemo(() => {
     return Object.values(items);

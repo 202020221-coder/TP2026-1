@@ -4,7 +4,7 @@ import {
   TableHead,
   TableHeader,
 } from "@/shared/components/ui/table";
-import { memo, type FC } from "react";
+import { memo, useMemo, type FC } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
@@ -23,6 +23,7 @@ import {
   QuotationProductIntentionsRecord,
   type QuotationProductIntention,
 } from "@/intranet/quotation/enum/order-inventory-intention";
+import { formatCurrency } from "@/shared/lib/format-currency";
 
 type UpdateQuantityHandler = (
   id: QuotationProduct["id"],
@@ -87,8 +88,13 @@ export const QuotationProductsTable: FC<QuotationTableProps> = memo(
                   <div className="h-full flex flex-col">
                     <Bird className="flex-1 w-auto stroke-1 text-gray-400" />
                     <div className="text-center space-y-1">
-                      <h2 className="font-bold text-lg text-gray-500">Sin Productos Escogidos</h2>
-                      <p className="text-md text-gray-500">Puede escoger más productos haciendo click en el botón <span className="font-black">Agregar Productos</span>.</p>
+                      <h2 className="font-bold text-lg text-gray-500">
+                        Sin Productos Escogidos
+                      </h2>
+                      <p className="text-md text-gray-500">
+                        Puede escoger más productos haciendo click en el botón{" "}
+                        <span className="font-black">Agregar Productos</span>.
+                      </p>
                     </div>
                   </div>
                 </TableCell>
@@ -115,12 +121,10 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
     onUpdateIntention,
     onDelete,
   }) => {
-    const formattedSubtotal = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(product.precio_unitario * product.cantidad);
+    const formattedSubtotal = useMemo(() => {
+      const subtotal = product.precio_unitario * product.cantidad;
+      return formatCurrency(subtotal, "USD", 2);
+    }, [product.precio_unitario, product.cantidad]);
     return (
       <TableRow
         key={product.id}

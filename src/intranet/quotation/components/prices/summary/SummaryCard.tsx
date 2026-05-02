@@ -1,6 +1,7 @@
-import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
-import { useOrderPickup } from "@/intranet/quotation/hooks/stores/orderPickupStore";
-import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
+import {
+  getExchangeRate,
+  type ExchangeRate,
+} from "@/intranet/quotation/api/exchange-rate.api";
 import {
   Card,
   CardContent,
@@ -8,53 +9,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { ReceiptText, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
-import type { FC } from "react";
+import { type FC } from "react";
+import { useSummaryCard } from "./useSummaryCard";
+import { formatCurrency } from "@/shared/lib/format-currency";
 
-export const SummaryCard: FC = () => {
-  const products = useQuotationProductStore((s) => s.items);
-  const pickupCost = useOrderPickup((s) => s.pickupCost);
-  const { isPending, error, data } = useQuery({
-    queryKey: ["exchange", "rate"],
-    queryFn: () => getExchangeRate(),
-  });
-
-  const formatCurrency = (value?: number | string) => {
-    const num = Number(value ?? 0);
-    const currency = "USD";
-    try {
-      return Intl.NumberFormat(undefined, {
-        style: "currency",
-        currency,
-        maximumFractionDigits: 2,
-      }).format(num);
-    } catch {
-      const symbol = "$";
-      return symbol + num.toFixed(2);
-    }
-  };
-
-  const formatPEN = (value?: number | string) => {
-    const num = Number(value ?? 0);
-    try {
-      return Intl.NumberFormat("es-PE", {
-        style: "currency",
-        currency: "PEN",
-        maximumFractionDigits: 2,
-      }).format(num);
-    } catch {
-      return "S/ " + num.toFixed(2);
-    }
-  };
-
-  const subtotal = Object.values(products).reduce(
-    (acc, item) => acc + (item.precio_unitario ?? 0) * (item.cantidad ?? 0),
-    0,
+interface SummaryCardProps {
+  getExchangeRateFn?: () => Promise<ExchangeRate>;
+}
+export const SummaryCard: FC<SummaryCardProps> = ({ getExchangeRateFn }) => {
+  const { pickupCost, subtotal, total, rateQuery } = useSummaryCard(
+    getExchangeRateFn ?? getExchangeRate,
   );
-
-  const total = subtotal + pickupCost;
-
+  const { data, isPending, error } = rateQuery;
   return (
     <Card className="sm:col-span-2 flex flex-col border shadow-none">
       <CardHeader>
@@ -88,44 +55,38 @@ export const SummaryCard: FC = () => {
               <AlertCircle className="h-4 w-4" />
               <span className="text-xs">Error al cargar tasas</span>
             </div>
-          ) : data ? (
+          ) : (
             <div className="flex flex-row gap-4">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">Compra</span>
                 <span className="text-sm font-semibold text-foreground">
-                  {formatPEN(data.tasa_compra)}
+                  {formatCurrency(data.buyingRate, "PEN", 2)}
                 </span>
               </div>
               <div className="w-px bg-border" />
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">Venta</span>
                 <span className="text-sm font-semibold text-foreground">
-                  {formatPEN(data.tasa_venta)}
+                  {formatCurrency(data.sellingRate, "PEN", 2)}
                 </span>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
-
         <div className="flex flex-row justify-between min-w-full">
           <p>Subtotal:</p>
-          <p>{formatCurrency(subtotal)}</p>
+          <p>{subtotal}</p>
         </div>
-
         <div className={`flex flex-row justify-between `}>
           <p>Costo de Recojo:</p>
           <div className="flex flex-row gap-x-2 items-center">
-            <p>{formatCurrency(pickupCost)}</p>
+            <p>{pickupCost}</p>
           </div>
         </div>
-
         <div className="h-px w-full bg-border" />
-
         <div className="flex flex-row justify-between min-w-full">
           <p className="text-xl font-bold text-foreground">Total:</p>
-          <p className="text-xl font-bold text-foreground">
-            {formatCurrency(total)}
-          </p>
+          <p className="text-xl font-bold text-foreground">{total}</p>
         </div>
       </CardContent>
     </Card>
