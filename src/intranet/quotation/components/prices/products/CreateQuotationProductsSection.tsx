@@ -15,7 +15,7 @@ import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quot
 import { Button } from "@/shared/components/ui/button";
 import { AddProductsDialog } from "./AddProductsDialog";
 import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-inventory-intention";
-export const OrderProductsSection: FC<{ orderId: Order["ID"] }> = ({
+export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
   orderId,
 }) => {
   const hasHydrated = useRef(false);
