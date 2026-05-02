@@ -2,22 +2,17 @@ import { z } from "zod";
 
 export const SelectedInventoryItemSchema = z.object({
   idInventario: z.string(),
-  idFabricante: z.string()
-,  cantidad: z
+  cantidad: z
     .number()
-    .min(1, "Cantidad must be at least 1")
-    .max(1000, "Cantidad cannot exceed 1000"),
+    .min(1, "La cantidad debe ser mayor a 0"),
   intencion: z
     .string()
-    .min(1, "Intention is required")
-    .max(200, "Intention cannot exceed 200 characters"),
+    .min(1, "Debe seleccionar la intención"),
   precio_unitario: z
     .number()
-    .min(0.01, "Price must be greater than 0")
-    .max(999999, "Price is too high"),
+    .min(0.01, "El precio debe ser mayor a 0"),
   nombre: z.string(),
   precio_comercial: z.number(),
-  estado: z.string()
 });
 
 export const SelectInventoryFormSchema = z.object({

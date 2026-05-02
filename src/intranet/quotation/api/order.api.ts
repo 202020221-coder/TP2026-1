@@ -1,36 +1,23 @@
 import type { Order } from "@/intranet/orders/interfaces/order";
 import type {
   GetAvailableTrucksResponse,
-  GetInventoryItemManufacturerResponse,
 } from "../interfaces/responses.dto";
 import axiosInstance from "@/shared/api/axios.config";
-import type { InventoryItemManufacturer } from "../interfaces/create/order-inventory";
 
 import { toSearchParams } from "@/shared/lib/to-search-params";
 import type { GetAvailableTrucksQP } from "../interfaces/query-params.dto";
-import type { QuotationProductIntention } from "../enum/order-inventory-intention";
 import sleep from "@/shared/lib/sleep";
+import type { QuotationProduct } from "../interfaces/quotation";
 
 /**==============================PRODUCTOS=============================== */
-
-export const getInventoryItemManufacturer = async (
-  manufacturerId: InventoryItemManufacturer["ID_Fabricante"],
-) => {
-  const response =
-    await axiosInstance.get<GetInventoryItemManufacturerResponse>(
-      `/fabricantes/${manufacturerId}`,
-    );
-  return response.data;
-};
-
-export const getOrderProducts = async (_id: Order["ID"]): Promise<Product[]> => {
+export const getOrderProducts = async (_id: Order["ID"]): Promise<QuotationProduct[]> => {
   await sleep(4000);
   return productosMock.slice(0,2);
 };
 
 export const getQuotationProducts = async (
   _id: string,
-): Promise<Product[]> => {
+): Promise<QuotationProduct[]> => {
   await sleep(4000);
   return productosMock;
 };
@@ -46,16 +33,9 @@ export const getAvailableTrucks = async ({
   return response.data;
 };
 
-interface Product {
-  id: string;
-  nombre: string;
-  fabricante: string;
-  intencion: QuotationProductIntention;
-  cantidad: number;
-  precio_unitario: number;
-}
 
-const productosMock: Product[] = [
+
+const productosMock: QuotationProduct[] = [
   {
     id: "1",
     nombre: "Laptop X",

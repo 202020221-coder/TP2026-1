@@ -1,24 +1,15 @@
 import { ReferenceSection } from "../components/create/reference/ReferenceSection";
-
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
-
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
-
 import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
-
 import { useSearchParams } from "react-router";
-import { InventoryTable } from "../components/create/prices/products/InventoryTable";
-import { ConditionSection } from "../components/conditions/ConditionSection";
-import { TruckSelector } from "../components/create/prices/trucks/TruckSelector";
 import { PickupSection } from "../components/create/prices/delivery/PickupSection";
-import { SummaryCard } from "../components/create/prices/summary/SummarySection";
 import { useTruck } from "../hooks/stores/orderTruckStore";
-import { VisualizeSection } from "../components/create/visualize/VisualizeSection";
 import type { FC, PropsWithChildren } from "react";
 import { useOrderInventoryStore } from "../hooks/stores/orderInventoryStore";
 import {
@@ -27,6 +18,8 @@ import {
   Tooltip,
 } from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
+import { OrderProductsSection } from "../components/prices/products/OrderProductsSection";
+import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 
 export function CreateQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -82,18 +75,20 @@ export function CreateQuotationPage() {
           <TabsContent value="reference">
             <ReferenceSection orderId={Number(orderId)} />
           </TabsContent>
-          <TabsContent value="prices" className="space-y-6 pt-1">
-            <InventoryTable orderId={Number(orderId)} />
-            <TruckSelector />
-            <PickupSection orderId={Number(orderId)} />
-            <SummaryCard />
-          </TabsContent>
-          <TabsContent value="conditions">
-            <ConditionSection />
-          </TabsContent>
-          <TabsContent value="visualize">
-            <VisualizeSection />
-          </TabsContent>
+          <QuotationProductStoreProvider>
+            <TabsContent value="prices" className="space-y-6 pt-1">
+              <OrderProductsSection orderId={Number(orderId)} />
+              {/* <TruckSelector /> */}
+              <PickupSection orderId={Number(orderId)} />
+              {/* <SummaryCard /> */}
+            </TabsContent>
+            <TabsContent value="conditions">
+              {/* <ConditionSection /> */}
+            </TabsContent>
+            <TabsContent value="visualize">
+              {/* <VisualizeSection /> */}
+            </TabsContent>
+          </QuotationProductStoreProvider>
         </ScrollArea>
       </Tabs>
     </div>
