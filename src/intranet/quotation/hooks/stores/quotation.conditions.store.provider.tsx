@@ -10,28 +10,27 @@ import {
   createConditionsStore,
   type ConditionsStore,
   type ConditionState,
-} from "./conditions.store";
+} from "./quotation.conditions.store";
 
-const ConditionStoreContext = createContext<StoreApi<ConditionsStore> | null>(
-  null,
-);
+const QuotationConditionStoreContext =
+  createContext<StoreApi<ConditionsStore> | null>(null);
 
-export const ConditionStoreProvider: FC<
-  PropsWithChildren<{ initialData?: Partial<ConditionState> }>
+export const QuotationConditionStoreProvider: FC<
+  PropsWithChildren<{ initialData?: ConditionState }>
 > = ({ children, initialData }) => {
   const [store] = useState(() => createConditionsStore(initialData)); //lazy initialization
 
   return (
-    <ConditionStoreContext.Provider value={store}>
+    <QuotationConditionStoreContext.Provider value={store}>
       {children}
-    </ConditionStoreContext.Provider>
+    </QuotationConditionStoreContext.Provider>
   );
 };
 
-export const useConditionStore = <T,>(
+export const useQuotationConditionStore = <T,>(
   selector: (state: ConditionsStore) => T,
 ) => {
-  const store = useContext(ConditionStoreContext);
+  const store = useContext(QuotationConditionStoreContext);
   if (!store) {
     throw new Error(
       "useConditionStore must be used inside ConditionStoreProvider",

@@ -1,4 +1,4 @@
-import type { ConditionState } from "@/intranet/quotation/hooks/stores/conditions.store";
+import type { ConditionState } from "@/intranet/quotation/hooks/stores/quotation.conditions.store";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({

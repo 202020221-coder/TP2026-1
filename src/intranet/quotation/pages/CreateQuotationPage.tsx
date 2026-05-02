@@ -8,7 +8,7 @@ import {
 } from "@/shared/components/ui/tabs";
 import { FileText, DollarSign, ClipboardList, Eye } from "lucide-react";
 import { useSearchParams } from "react-router";
-import { PickupSection } from "../components/create/prices/delivery/PickupSection";
+import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import type { FC, PropsWithChildren } from "react";
 import {
   TooltipContent,
@@ -17,12 +17,16 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
-import { QuotationProductStoreProvider, useQuotationProductStore } from "../hooks/stores/quotation.products.store.provider";
+import {
+  QuotationProductStoreProvider,
+  useQuotationProductStore,
+} from "../hooks/stores/quotation.products.store.provider";
 import {
   QuotationTruckStoreProvider,
   useQuotationTruckStore,
 } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
+import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 
 export function CreateQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -76,18 +80,20 @@ export function CreateQuotationPage() {
               <TabsContent value="reference">
                 <ReferenceSection orderId={Number(orderId)} />
               </TabsContent>
-              <TabsContent value="prices" className="space-y-6 pt-1">
-                <CreateQuotationProductsSection orderId={Number(orderId)} />
-                <CreateQuotationTruckSelector/>
-                <PickupSection orderId={Number(orderId)} />
-                {/* <SummaryCard /> */}
-              </TabsContent>
-              <TabsContent value="conditions">
-                {/* <ConditionSection /> */}
-              </TabsContent>
-              <TabsContent value="visualize">
-                {/* <VisualizeSection /> */}
-              </TabsContent>
+              <QuotationPickupStoreProvider>
+                <TabsContent value="prices" className="space-y-6 pt-1">
+                  <CreateQuotationProductsSection orderId={Number(orderId)} />
+                  <CreateQuotationTruckSelector />
+                  <CreateQuotationPickupSection orderId={Number(orderId)} />
+                  {/* <SummaryCard /> */}
+                </TabsContent>
+                <TabsContent value="conditions">
+                  {/* <ConditionSection /> */}
+                </TabsContent>
+                <TabsContent value="visualize">
+                  {/* <VisualizeSection /> */}
+                </TabsContent>
+              </QuotationPickupStoreProvider>
             </ScrollArea>
           </QuotationProductStoreProvider>
         </QuotationTruckStoreProvider>

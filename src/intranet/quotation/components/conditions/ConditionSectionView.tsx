@@ -11,11 +11,20 @@ type ConditionSectionViewProps = {
   emissionDate: string;
   expirationDate: string;
   conditions: string;
-  readOnly?: boolean;
-  onEmissionChange?: (v: string) => void;
-  onExpirationChange?: (v: string) => void;
-  onConditionsChange?: (v: string) => void;
-};
+} & (
+  | {
+      readOnly?: false;
+      onEmissionChange: (v: string) => void;
+      onExpirationChange: (v: string) => void;
+      onConditionsChange: (v: string) => void;
+    }
+  | {
+      readOnly?: true;
+      onEmissionChange: undefined;
+      onExpirationChange: undefined;
+      onConditionsChange: undefined;
+    }
+);
 
 export const ConditionSectionView: FC<ConditionSectionViewProps> = ({
   emissionDate,

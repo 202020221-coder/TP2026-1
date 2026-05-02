@@ -1,10 +1,10 @@
-import { useConditionStore } from "../../hooks/stores/conditions.store.provider";
+import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 import { ConditionSectionView } from "./ConditionSectionView";
 export const ConditionSection = () => {
-  const update = useConditionStore((s) => s.update);
-  const conditions = useConditionStore((s) => s.conditions);
-  const emissionDate = useConditionStore((s) => s.emissionDate);
-  const expirationDate = useConditionStore((s) => s.expirationDate);
+  const update = useQuotationConditionStore((s) => s.update);
+  const conditions = useQuotationConditionStore((s) => s.conditions);
+  const emissionDate = useQuotationConditionStore((s) => s.emissionDate);
+  const expirationDate = useQuotationConditionStore((s) => s.expirationDate);
   return (
     <ConditionSectionView
       conditions={conditions}

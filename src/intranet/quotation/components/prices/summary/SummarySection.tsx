@@ -1,6 +1,6 @@
 import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
-import { useOrderInventoryStore } from "@/intranet/quotation/hooks/stores/orderInventoryStore";
 import { useOrderPickup } from "@/intranet/quotation/hooks/stores/orderPickupStore";
+import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { ReceiptText, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import type { FC } from "react";
 
 export const SummaryCard: FC = () => {
-  const products = useOrderInventoryStore((s) => s.items);
+  const products = useQuotationProductStore((s) => s.items);
   const pickupCost = useOrderPickup((s) => s.pickupCost);
   const { isPending, error, data } = useQuery({
     queryKey: ["exchange", "rate"],

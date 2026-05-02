@@ -5,15 +5,20 @@ type State = {
   emissionDate: string;
   expirationDate: string;
   conditions: string;
+  initialized: boolean;
 };
 
 type Actions = {
-  update: <K extends keyof State>(field: K, value: State[K]) => void;
-  setAll: (data: Partial<State>) => void;
+  update: <K extends keyof ConditionState>(
+    field: K,
+    value: ConditionState[K],
+  ) => void;
+  initialize: (data: ConditionState) => void;
   reset: () => void;
 };
 
 export type ConditionsStore = State & Actions;
+export type ConditionState = Omit<State, "initialized">;
 
 const defaultState = () => ({
   emissionDate: format(new Date(), "yyyy-MM-dd"),
@@ -21,16 +26,15 @@ const defaultState = () => ({
   conditions: `Incluye combustible solo para el traslado y retorno al punto.\nSe requiere un espacio adecuado y protegido para la ubicación de las unidades de emergencia.\nEl costo no incluye IGV.\nEl costo está expresado en dólares.\nIncluye el sctr del personal piloto y bombero.\nNo incluye nada que no esté expresado en la cotización.\nPago al contado previo al servicio.`,
 });
 
-export const createConditionsStore = (initialData?: Partial<ConditionState>) =>
+export const createConditionsStore = (initialData?: ConditionState) =>
   createStore<ConditionsStore>((set) => ({
     ...defaultState(),
     ...initialData,
+    initialized: false,
     update: (field, value) =>
       set(() => ({
         [field]: value,
       })),
-    setAll: (data) => set((s) => ({ ...s, ...data })),
+    initialize: (data) => set((s) => ({ ...s, ...data, initialized: true })),
     reset: () => set(defaultState),
   }));
-
-export type ConditionState = State;
