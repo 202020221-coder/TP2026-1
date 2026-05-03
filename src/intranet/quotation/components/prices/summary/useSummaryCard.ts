@@ -22,9 +22,7 @@ export const useSummaryCard = (rateQueryFn?: () => Promise<ExchangeRate>) => {
 
   useEffect(() => {
     if (rateQuery.data && !rateInitialized) {
-      console.log("INICIALIZANDO");
-      
-        initializeRate(rateQuery.data);
+      initializeRate(rateQuery.data);
     }
   }, [rateQuery.data]);
 
