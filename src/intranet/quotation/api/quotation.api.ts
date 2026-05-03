@@ -1,5 +1,5 @@
 import sleep from "@/shared/lib/sleep";
-import type { Quotation } from "../interfaces/quotation";
+import type { Quotation, QuotationProduct } from "../interfaces/quotation";
 import axiosInstance from "@/shared/api/axios.config";
 import type {
   GetQuotationResponse,
@@ -99,3 +99,48 @@ export const getQuotation = async (
   );
   return response.data;
 };
+
+export const getQuotationProducts = async (
+  _id: string,
+): Promise<QuotationProduct[]> => {
+  await sleep(4000);
+  return productosMock;
+};
+
+const productosMock: QuotationProduct[] = [
+  {
+    id: "1",
+    nombre: "Laptop X",
+    intencion: "alquilar",
+    cantidad: 2,
+    precio_unitario: 1500,
+  },
+  {
+    id: "2",
+    nombre: "Mouse inalámbrico",
+    intencion: "alquilar",
+    cantidad: 5,
+    precio_unitario: 25,
+  },
+  {
+    id: "3",
+    nombre: "Teclado mecánico",
+    intencion: "comprar",
+    cantidad: 3,
+    precio_unitario: 80,
+  },
+  {
+    id: "4",
+    nombre: "Monitor 24''",
+    intencion: "alquilar",
+    cantidad: 4,
+    precio_unitario: 200,
+  },
+  {
+    id: "5",
+    nombre: "Auriculares",
+    intencion: "alquilar",
+    cantidad: 6,
+    precio_unitario: 60,
+  },
+];

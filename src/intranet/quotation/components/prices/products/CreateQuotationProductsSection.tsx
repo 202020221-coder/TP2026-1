@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
 import type { Order } from "@/intranet/orders/interfaces/order";
 import { useQuery } from "@tanstack/react-query";
-import { getOrderProducts } from "@/intranet/quotation/api/order.api";
+import { getOrderProducts } from "@/intranet/orders/api/order.api";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddProductsDialog } from "./AddProductsDialog";
