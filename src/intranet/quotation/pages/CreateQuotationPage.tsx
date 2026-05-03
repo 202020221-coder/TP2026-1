@@ -1,4 +1,4 @@
-import { ReferenceSection } from "../components/create/reference/ReferenceSection";
+import { ClientCard } from "../components/reference/ClientCard";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
   Tabs,
@@ -81,7 +81,13 @@ export function CreateQuotationPage() {
               </TabsList>
               <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
                 <TabsContent value="reference">
-                  <ReferenceSection orderId={Number(orderId)} />
+                  <ClientCard
+                    client={{
+                      DNI_O_RUC: "12345678",
+                      nombre_comercial: "Edison",
+                      razon_social: "Edisonso SAC",
+                    }}
+                  />
                 </TabsContent>
                 <QuotationPickupStoreProvider>
                   <TabsContent value="prices" className="space-y-6 pt-1">
