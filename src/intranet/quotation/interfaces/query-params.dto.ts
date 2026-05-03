@@ -16,10 +16,8 @@ export interface GetAvailableTrucksQP {
 
 
 export interface GetQuotationQP {
-  quotation_name?: string;
   page?: number;
   per_page?: number;
-  earliest_sent_date?: string;
-  latest_sent_date?: string;
+  dni_o_ruc?: string;
   status?: QuotationState;
 }

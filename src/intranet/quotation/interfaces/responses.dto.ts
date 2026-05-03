@@ -1,3 +1,4 @@
+import type { Pagination } from "@/shared/interfaces/api-response";
 import type { Client } from "./create/client";
 import type {
   InventoryItem,
@@ -5,26 +6,33 @@ import type {
   OrderInventoryElementItem,
   OrderInventoryElementItemDetail,
   OrderInventoryTableElement,
-  Pagination,
 } from "./create/order-inventory";
 import type { Pilot, Truck } from "./create/order-trucks";
 import type { Quotation } from "./quotation";
-
-/**==============================COTIZACIONES ========================== */
-export type GetQuotationsResponse =Quotation[];
+import type {
+  QuotationTruck,
+  QuotationInventory,
+  QuotationService,
+  QuotationComplete,
+} from "./create/quotation-items";
+export type GetQuotationsResponse = Pagination<Quotation[]>;
 export type GetQuotationResponse = Quotation;
 
-/**==========================ADD INVENTORY ITEM TO ORDER+==================== */
+export type GetQuotationTrucksResponse = Pagination<QuotationTruck[]>;
+export type GetQuotationInventoryResponse = Pagination<QuotationInventory[]>;
+export type GetQuotationServicesResponse = Pagination<QuotationService[]>;
+export type GetCompleteQuotationResponse = QuotationComplete;
+
 export type GetInventoryItemsResponse = Pagination<InventoryItem[]>;
 export interface GetClientResponse extends Client {}
 
-/**=================================PRODUCTOS==================================== */
+
 export type GetOrderInventoryResponse = OrderInventoryElementItem[];
 export type GetDetailedOrderInventoryItemResponse =
   OrderInventoryElementItemDetail;
 export type GetInventoryItemManufacturerResponse = InventoryItemManufacturer;
 export type GetFullOrderInventoryResponse = OrderInventoryTableElement[];
 
-/**=================================CAMIONES==================================== */
+
 export type GetAvailableTrucksResponse = Pagination<Truck[]>;
 export type GetAvailableDriversResponse = Pilot[];

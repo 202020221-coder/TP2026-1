@@ -1,7 +1,7 @@
 export const QuotationStatesRecord = {
-  rejected: "Rechazada",
-  approved: "Aprobada",
-  pending: "Pendiente",
+  rejected: "rechazado",
+  approved: "aprobado",
+  pending: "pendiente",
 } as const;
 
 export type QuotationState = (typeof QuotationStatesRecord)[keyof typeof QuotationStatesRecord];
