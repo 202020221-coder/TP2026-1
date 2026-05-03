@@ -18,8 +18,7 @@ import type {
   GetAvailableDriversQP,
   GetAvailableTrucksQP,
 } from "../interfaces/query-params.dto";
-
-/**==============================PRODUCTOS=============================== */
+//productos
 export const getOrderInventory = async (
   id: Order["ID"],
 ): Promise<GetOrderInventoryResponse> => {
@@ -59,10 +58,8 @@ export const getFullOrderInventory = async (
   const tableElements: OrderInventoryTableElement[] = [];
 
   for (const item of inventoryList.data) {
-    // Obtener detalles del item (paralelo entre items)
+    // detalles del item
     const itemDetailPromise = getOrderInventoryItem(item.ID_Inventario);
-
-    // Manufacturer es secuencial por cada item
     const itemDetail = await itemDetailPromise;
     const manufacturer = await getInventoryItemManufacturer(
       itemDetail.ID_Fabricante,
@@ -82,7 +79,7 @@ export const getFullOrderInventory = async (
   return tableElements;
 };
 
-/**==========================CAMIONES======================= */
+//caminiones
 export const getAvailableTrucks = async ({
   page = 1,
   limit = 10,
