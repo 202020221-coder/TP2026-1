@@ -24,16 +24,3 @@ export interface InventoryItem {
   mant_responsable?: string;
   mant_contacto?: string;
 }
-
-
-
-/**MODULARIZE LATER */
-export interface Pagination<T> {
-  data: T;
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
