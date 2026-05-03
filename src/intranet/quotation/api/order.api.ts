@@ -4,7 +4,7 @@ import axiosInstance from "@/shared/api/axios.config";
 import { toSearchParams } from "@/shared/lib/to-search-params";
 import type { GetAvailableTrucksQP } from "../interfaces/query-params.dto";
 
-/**==========================CAMIONES======================= */
+//caminiones
 export const getAvailableTrucks = async ({
   page = 1,
   limit = 10,
