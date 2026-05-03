@@ -1,4 +1,5 @@
-import type { OrderInventoryTableElement } from "@/intranet/quotation/interfaces/create/order-inventory";
+import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
+import { formatCurrency } from "@/shared/lib/format-currency";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 // Estilos locales para la tabla
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
 const InventoryTable = ({
   items,
 }: {
-  items: Record<OrderInventoryTableElement["id"], OrderInventoryTableElement>;
+  items: Record<QuotationProduct["id"], QuotationProduct>;
 }) => {
   const rows = Object.values(items);
 
@@ -43,12 +44,6 @@ const InventoryTable = ({
       <View style={styles.tableRow}>
         <View style={styles.tableColHeader}>
           <Text style={styles.tableCell}>Producto</Text>
-        </View>
-        <View style={styles.tableColHeader}>
-          <Text style={styles.tableCell}>Fabricante</Text>
-        </View>
-        <View style={styles.tableColHeader}>
-          <Text style={styles.tableCell}>Estado</Text>
         </View>
         <View style={styles.tableColHeader}>
           <Text style={styles.tableCell}>Cantidad</Text>
@@ -65,13 +60,7 @@ const InventoryTable = ({
       {rows.map((item) => (
         <View style={styles.tableRow} key={item.id}>
           <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.producto}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.fabricante}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.estado}</Text>
+            <Text style={styles.tableCell}>{item.nombre}</Text>
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.tableCell}>{item.cantidad}</Text>
@@ -81,7 +70,7 @@ const InventoryTable = ({
           </View>
           <View style={styles.tableCol}>
             <Text style={styles.tableCell}>
-              ${item.cantidad * item.precio_unitario}
+              {formatCurrency(item.cantidad * item.precio_unitario, "USD", 2)}
             </Text>
           </View>
         </View>

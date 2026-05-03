@@ -1,4 +1,5 @@
-import type { PickupState } from "@/intranet/quotation/hooks/stores/orderPickupStore";
+import type { PickupState } from "@/intranet/quotation/hooks/stores/quotation.pickup.store";
+import { formatCurrency } from "@/shared/lib/format-currency";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -39,7 +40,9 @@ const PickupSection = ({ pickup }: { pickup: PickupState }) => (
 
     <View style={styles.row}>
       <Text style={styles.label}>Costo de Recojo:</Text>
-      <Text style={styles.value}>${pickup?.pickupCost}</Text>
+      <Text style={styles.value}>
+        {formatCurrency(pickup?.pickupCost, "USD", 2)}
+      </Text>
     </View>
   </View>
 );

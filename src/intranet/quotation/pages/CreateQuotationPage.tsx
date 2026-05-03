@@ -29,6 +29,9 @@ import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQ
 import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
 import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";
+import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
+import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
+import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQuotationVisualizeSection";
 
 export function CreateQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -48,11 +51,12 @@ export function CreateQuotationPage() {
       </h1>
 
       <Tabs defaultValue="reference" className="w-full">
-        <QuotationExchangeRateProvider>
-          <QuotationTruckStoreProvider>
-            <QuotationProductStoreProvider>
-              <TabsList
-                className="
+        <QuotationConditionStoreProvider>
+          <QuotationExchangeRateProvider>
+            <QuotationTruckStoreProvider>
+              <QuotationProductStoreProvider>
+                <TabsList
+                  className="
             grid w-full grid-cols-4
             border
             bg-background
@@ -61,52 +65,55 @@ export function CreateQuotationPage() {
             min-h-12
             gap-x-2
           "
-              >
-                <TabsTrigger value="reference" className={baseTriggerClass}>
-                  <FileText className="w-4 h-4" />
-                  Datos de Referencia
-                </TabsTrigger>
-                <TabsTrigger value="prices" className={baseTriggerClass}>
-                  <DollarSign className="w-4 h-4" />
-                  Precios
-                </TabsTrigger>
-                <TabsTrigger value="conditions" className={baseTriggerClass}>
-                  <ClipboardList className="w-4 h-4" />
-                  Condiciones
-                </TabsTrigger>
-                <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
-                  <Eye className="w-4 h-4" />
-                  Visualización
-                </VisualizeTrigger>
-              </TabsList>
-              <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
-                <TabsContent value="reference">
-                  <ClientCard
-                    client={{
-                      DNI_O_RUC: "12345678",
-                      nombre_comercial: "Edison",
-                      razon_social: "Edisonso SAC",
-                    }}
-                  />
-                </TabsContent>
-                <QuotationPickupStoreProvider>
-                  <TabsContent value="prices" className="space-y-6 pt-1">
-                    <CreateQuotationProductsSection orderId={Number(orderId)} />
-                    <CreateQuotationTruckSelector />
-                    <CreateQuotationPickupSection orderId={Number(orderId)} />
-                    <CreateQuotationSummaryCard />
+                >
+                  <TabsTrigger value="reference" className={baseTriggerClass}>
+                    <FileText className="w-4 h-4" />
+                    Datos de Referencia
+                  </TabsTrigger>
+                  <TabsTrigger value="prices" className={baseTriggerClass}>
+                    <DollarSign className="w-4 h-4" />
+                    Precios
+                  </TabsTrigger>
+                  <TabsTrigger value="conditions" className={baseTriggerClass}>
+                    <ClipboardList className="w-4 h-4" />
+                    Condiciones
+                  </TabsTrigger>
+                  <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                    <Eye className="w-4 h-4" />
+                    Visualización
+                  </VisualizeTrigger>
+                </TabsList>
+                <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
+                  <TabsContent value="reference">
+                    <ClientCard
+                      client={{
+                        DNI_O_RUC: "12345678",
+                        nombre_comercial: "Edison",
+                        razon_social: "Edisonso SAC",
+                      }}
+                    />
                   </TabsContent>
-                  <TabsContent value="conditions">
-                    {/* <ConditionSection /> */}
-                  </TabsContent>
-                  <TabsContent value="visualize">
-                    {/* <VisualizeSection /> */}
-                  </TabsContent>
-                </QuotationPickupStoreProvider>
-              </ScrollArea>
-            </QuotationProductStoreProvider>
-          </QuotationTruckStoreProvider>
-        </QuotationExchangeRateProvider>
+                  <QuotationPickupStoreProvider>
+                    <TabsContent value="prices" className="space-y-6 pt-1">
+                      <CreateQuotationProductsSection
+                        orderId={Number(orderId)}
+                      />
+                      <CreateQuotationTruckSelector />
+                      <CreateQuotationPickupSection orderId={Number(orderId)} />
+                      <CreateQuotationSummaryCard />
+                    </TabsContent>
+                    <TabsContent value="conditions">
+                      <CreateQuotationConditionCard />
+                    </TabsContent>
+                    <TabsContent value="visualize">
+                      <CreateQuotationVisualizeSection />
+                    </TabsContent>
+                  </QuotationPickupStoreProvider>
+                </ScrollArea>
+              </QuotationProductStoreProvider>
+            </QuotationTruckStoreProvider>
+          </QuotationExchangeRateProvider>
+        </QuotationConditionStoreProvider>
       </Tabs>
     </div>
   );

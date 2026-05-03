@@ -1,5 +1,5 @@
-import type { PickupState } from "@/intranet/quotation/hooks/stores/orderPickupStore";
-import type { OrderInventoryTableElement } from "@/intranet/quotation/interfaces/create/order-inventory";
+import type { PickupState } from "@/intranet/quotation/hooks/stores/quotation.pickup.store";
+import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -33,10 +33,7 @@ const CostSummary = ({
   inventory,
   pickup,
 }: {
-  inventory: Record<
-    OrderInventoryTableElement["id"],
-    OrderInventoryTableElement
-  >;
+  inventory: Record<QuotationProduct["id"], QuotationProduct>;
   pickup: PickupState;
 }) => {
   const subtotal = Object.values(inventory).reduce(

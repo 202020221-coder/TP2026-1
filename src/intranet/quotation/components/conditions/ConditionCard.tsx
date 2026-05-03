@@ -7,7 +7,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
-type ConditionSectionViewProps = {
+type ConditionCardProps = {
   emissionDate: string;
   expirationDate: string;
   conditions: string;
@@ -26,7 +26,7 @@ type ConditionSectionViewProps = {
     }
 );
 
-export const ConditionSectionView: FC<ConditionSectionViewProps> = ({
+export const ConditionCard: FC<ConditionCardProps> = ({
   emissionDate,
   expirationDate,
   conditions,

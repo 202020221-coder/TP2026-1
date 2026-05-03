@@ -5,7 +5,8 @@ import { useNavigate } from "react-router";
 import sleep from "@/shared/lib/sleep";
 import { toast } from "sonner";
 import { Send } from "lucide-react";
-export const VisualizeSection = async () => {
+
+export const CreateQuotationVisualizeSection = async () => {
   const [isSending, setIsSending] = useState(false);
   const Navigate = useNavigate();
   const handleSend = async () => {

@@ -1,20 +1,20 @@
 import { PDFViewer } from "@react-pdf/renderer";
 import { PdfDocument } from "./PdfDocument";
 // Importamos los stores
-import { useTruck } from "@/intranet/quotation/hooks/stores/orderTruckStore";
-import { useOrderPickup } from "@/intranet/quotation/hooks/stores/orderPickupStore";
-import { useOrderConditions } from "@/intranet/quotation/hooks/stores/quotation.conditions.store";
-import { useOrderInventoryStore } from "@/intranet/quotation/hooks/stores/orderInventoryStore";
+import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
+import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
+import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
+import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 
 export const PdfPreview = () => {
   // Obtenemos datos de cada store
-  const inventory = useOrderInventoryStore((state) => state.items);
-  const truck = useTruck((state) => state.selectedTruck);
-  const pickupCost = useOrderPickup((state) => state.pickupCost);
-  const pickupDate = useOrderPickup((state) => state.pickupDate);
-  const emissionDate = useOrderConditions((state) => state.emissionDate);
-  const expirationDate = useOrderConditions((state) => state.expirationDate);
-  const conditions = useOrderConditions((state) => state.conditions);
+  const inventory = useQuotationProductStore((state) => state.items);
+  const truck = useQuotationTruckStore((state) => state.selectedTruck);
+  const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
+  const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
+  const emissionDate = useQuotationConditionStore((state) => state.emissionDate);
+  const expirationDate = useQuotationConditionStore((state) => state.expirationDate);
+  const conditions = useQuotationConditionStore((state) => state.conditions);
 
   if (!truck) {
     throw new Error("TRUCK NO DEFINIDO");
