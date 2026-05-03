@@ -1,8 +1,3 @@
-/**
- * DTOs e Interfaces para tablas intermedias de cotizaciones
- */
-
-/** ============================= COTIZACION_CAMION ============================= */
 export interface QuotationTruck {
   ID: number;
   ID_Cotizacion: number;
