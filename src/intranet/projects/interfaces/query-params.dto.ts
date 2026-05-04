@@ -1,10 +1,10 @@
 import type { ProjectState } from "../enum/project-state.record";
 
 export interface GetProjectsQP {
-  project_name?: string;
+  buscar?: string;
   page?: number;
   limit?: number;
-  start_date?: string;
-  end_date?: string;
-  status?: ProjectState;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  estado?: ProjectState;
 }

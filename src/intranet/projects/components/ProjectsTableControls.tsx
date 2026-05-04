@@ -37,19 +37,15 @@ export const ProjectsTableControls: FC<{ children: ReactNode }> = ({
   );
 };
 
-
-
 const TopControls: FC = () => {
   const { query, queryParams, result } = useProjects();
 
-  const [nameInput, setNameInput] = useState(queryParams.project_name ?? "");
+  const [nameInput, setNameInput] = useState(queryParams.buscar ?? "");
 
-  
   const debouncedSearch = useDebounced((value: string) => {
-    query({ ...queryParams, page: 1, project_name: value || undefined });
+    query({ ...queryParams, page: 1, buscar: value || undefined });
   }, 600);
 
-  
   return (
     <div className="flex flex-wrap gap-2 items-start justify-between">
       {/* Buscar por nombre */}
@@ -71,49 +67,52 @@ const TopControls: FC = () => {
       </div>
 
       {/* Rango de fechas */}
-  
-<div className="flex flex-col gap-1">
-  <div className="flex items-center gap-2">
-    <CalendarRange size={16} className="text-gray-400 shrink-0" />
-    <Input
-      type="date"
-      className="w-36 text-sm"
-      disabled={result.isFetching}
-      value={queryParams.start_date ?? ""}
-      max={queryParams.end_date ?? ""}
-      onKeyDown={(e) => e.preventDefault()}
-      onChange={(e) => {
-        const val = e.target.value;
-        if (queryParams.end_date && val > queryParams.end_date) return;
-        query({ ...queryParams, page: 1, start_date: val || undefined });
-      }}
-    />
-    <span className="text-gray-400 text-sm">—</span>
-    <Input
-      type="date"
-      className="w-36 text-sm"
-      disabled={result.isFetching}
-      value={queryParams.end_date ?? ""}
-      min={queryParams.start_date ?? ""}
-      onKeyDown={(e) => e.preventDefault()}
-      onChange={(e) => {
-        const val = e.target.value;
-        if (queryParams.start_date && val < queryParams.start_date) return;
-        query({ ...queryParams, page: 1, end_date: val || undefined });
-      }}
-    />
-  </div>
-</div>
 
-
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <CalendarRange size={16} className="text-gray-400 shrink-0" />
+          <Input
+            type="date"
+            className="w-36 text-sm"
+            disabled={result.isFetching}
+            value={queryParams.fecha_inicio ?? ""}
+            max={queryParams.fecha_fin ?? ""}
+            onKeyDown={(e) => e.preventDefault()}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (queryParams.fecha_fin && val > queryParams.fecha_fin) return;
+              query({
+                ...queryParams,
+                page: 1,
+                fecha_inicio: val || undefined,
+              });
+            }}
+          />
+          <span className="text-gray-400 text-sm">—</span>
+          <Input
+            type="date"
+            className="w-36 text-sm"
+            disabled={result.isFetching}
+            value={queryParams.fecha_fin ?? ""}
+            min={queryParams.fecha_inicio ?? ""}
+            onKeyDown={(e) => e.preventDefault()}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (queryParams.fecha_inicio && val < queryParams.fecha_inicio)
+                return;
+              query({ ...queryParams, page: 1, fecha_fin: val || undefined });
+            }}
+          />
+        </div>
+      </div>
 
       {/* Filtro de estado + botón limpiar */}
       <div className="flex gap-x-2">
         <Select
           onValueChange={(value) => {
-            query({ ...queryParams, page: 1, status: value as ProjectState });
+            query({ ...queryParams, page: 1, estado: value as ProjectState });
           }}
-          value={queryParams.status ?? ""}
+          value={queryParams.estado ?? ""}
         >
           {/* Corregido: w-52 para que quepa "Seleccione un estado" completo */}
           <SelectTrigger className="w-52">
@@ -135,14 +134,14 @@ const TopControls: FC = () => {
           variant="outline"
           onClick={() => {
             setNameInput("");
-          
+
             query({ page: 1, limit: queryParams.limit });
           }}
           disabled={
-            !queryParams.status &&
-            !queryParams.project_name &&
-            !queryParams.start_date &&
-            !queryParams.end_date
+            !queryParams.estado &&
+            !queryParams.buscar &&
+            !queryParams.fecha_inicio &&
+            !queryParams.fecha_fin
           }
           title="Limpiar filtros"
         >
@@ -160,7 +159,7 @@ const BottomControls: FC = () => {
 
   useEffect(() => {
     setPseudoPageStr(
-      result.data ? result.data.pagination.page.toString() : "1"
+      result.data ? result.data.pagination.page.toString() : "1",
     );
   }, [result.data?.pagination.page]);
 
