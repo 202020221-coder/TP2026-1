@@ -1,10 +1,12 @@
-import { ListQuotationsProvider } from "../context/ListQuotationProvider";
 import { QuotationTable } from "../components/list/QuotationTable";
+import { ListQuotationsProvider } from "../context/ListQuotationProvider";
 
-export function ViewQuotationPage() {
+export function ListQuotationsPage() {
   return (
     <>
-      <h1 className="text-2xl font-semibold text-gray-800">Mis Cotizaciones</h1>
+      <h1 className="text-2xl font-semibold text-gray-800">
+        Listado de Cotizaciones
+      </h1>
       <ListQuotationsProvider>
         <div className="bg-white p-6 rounded-xl shadow-none border">
           <QuotationTable />
@@ -13,4 +15,3 @@ export function ViewQuotationPage() {
     </>
   );
 }
-export default ViewQuotationPage;
