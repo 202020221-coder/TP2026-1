@@ -1,13 +1,15 @@
 import { createContext } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import type { GetRequestQP, ResponseRequestDTO } from "../interfaces";
+import type { GetRequestsQP, GetRequestsResponse } from "../interfaces";
 
 interface IListRequestContext {
-  result: UseQueryResult<ResponseRequestDTO, Error>;
-  query: (queryParams: GetRequestQP) => void;
-  queryParams: GetRequestQP;
+  result: UseQueryResult<GetRequestsResponse, Error>;
+  query: (queryParams: GetRequestsQP) => void;
+  queryParams: GetRequestsQP;
 }
 
 export const ListRequestContext = createContext<IListRequestContext | null>(
   null,
 );
+
+export default ListRequestContext;

@@ -4,9 +4,12 @@ export interface ResponseRequestDTO {
   descripcion: string;
   ubicacion: string;
   Cliente_Nombre: string;
-  ProductoEnvio: null,
-  CamionesEnvio: null,
-  ObsGenerales: null,
-  ObsEleccion: null,
+  ProductoEnvio: string | null;
+  CamionesEnvio: string | null;
+  ObsGenerales: string | null;
+  ObsEleccion: string | null;
+  estado: string | null;
+  Respuesta: string | null;
+  FechaCreacion: string | null;
 }
 

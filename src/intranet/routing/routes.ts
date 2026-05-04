@@ -1,5 +1,6 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import { lazy } from "react";
+import RequestNavigation from "../request/routing/Navigation";
 
 const DashboardNavigation = lazy(
   () => import("@/intranet/dashboard/routing/Navigation"),
@@ -10,7 +11,11 @@ const ProcessNavigation = lazy(
 const InventoryNavigation = lazy(
   () => import("@/intranet/inventory/routing/Navigation"),
 );
-const OrdersNavigation = lazy(() => import("@/intranet/orders/routing/Navigation"));
+// const OrdersNavigation = lazy(() => import("@/intranet/orders/routing/Navigation"));
+
+const RequestNavigation = lazy(
+  () => import("@/intranet/request/routing/Navigation"),
+);
 const QuotationNavigation = lazy(
   () => import("@/intranet/quotation/routing/Navigation"),
 );
@@ -32,14 +37,19 @@ export const routes: IRoute[] = [
     Component: QuotationNavigation,
     isPrivate: true,
   },
-  {
-    path: "/solicitudes/*",
-    Component: OrdersNavigation,
-    isPrivate: true,
-  },
+  // {
+  //   path: "/solicitudes/*",
+  //   Component: OrdersNavigation,
+  //   isPrivate: true,
+  // },
   {
     path: "/dashboard/*",
     Component: DashboardNavigation,
+    isPrivate: true,
+  },
+  {
+    path: "/solicitudes/*",
+    Component: RequestNavigation,
     isPrivate: true,
   },
 ];

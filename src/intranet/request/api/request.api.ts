@@ -22,7 +22,7 @@ export const DeleteRequest = async (id: number) =>
   });
 
 export const GetAllRequest = async () =>
-  safePagination<ResponseRequestDTO>({
+  safePagination<ResponseRequestDTO[]>({
     url: "/solicitudes",
     method: "GET",
   });
