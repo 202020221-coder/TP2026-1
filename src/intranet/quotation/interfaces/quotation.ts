@@ -4,9 +4,6 @@ import type { QuotationMessagesState } from "../enum/quotation-message-state.rec
 import { type QuotationState } from "../enum/quotation-state.record";
 import type { Truck } from "./create/order-trucks";
 
-
-
-
 export interface Quotation {
   ID: number;
   nombre: string;
@@ -15,8 +12,8 @@ export interface Quotation {
   estado: QuotationState;
   tasaCambio: QuotationExchangeRate;
   mensajes: QuotationMessagesState;
+  version: number;
   /**solo visibles por el administrador */
-  version?: number;
   nombreCliente?: string;
 }
 
@@ -24,7 +21,7 @@ export interface DetailedQuotation extends Omit<Quotation, "nombreCliente"> {
   productos: QuotationProduct[];
   camionEspecificado: Truck;
   costoRecojo: QuotationPickUpCosts;
-  idSolicitud:Order["ID"];
+  idSolicitud: Order["ID"];
 }
 
 export interface QuotationProduct {
@@ -49,6 +46,6 @@ interface QuotationExchangeRate {
 interface QuotationConditions {
   fechaEmision: string;
   fechaVigencia: string;
-  condiciones:string;
-  observaciones:string;
+  condiciones: string;
+  observaciones: string;
 }

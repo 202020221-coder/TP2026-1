@@ -21,22 +21,16 @@ export function useLoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-
     try {
       const response = await LogIn(data.email, data.password);
-      console.log(response);
-      
+
       if ("error" in response) {
-        console.log("SETEO");
-        
         form.setError("root", {
           message: response.error.error,
         });
         return;
       }
       createSession(response);
-      console.log(response);
-      
       const { user } = response;
       const FIRSTTIME = true;
       if (user.rol === RolesRecord.client && FIRSTTIME) {
