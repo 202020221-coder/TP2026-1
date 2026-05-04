@@ -18,14 +18,14 @@ export const getAllQuotations = async (
   let response;
   if (sessionState.loggedUser?.rol === RolesRecord.client) {
     console.log("CLIENTE");
-    
+
     /**query for client's quotation*/
     response = await axiosInstance.get<GetQuotationsResponse>(
       `/perfiles/${sessionState.loggedUser.dni_perfil}/cotizaciones?${toSearchParams(params)}`,
     );
   } else {
     console.log("ADMIN");
-    
+
     /**query for project asistant*/
     response = await axiosInstance.get<GetQuotationsResponse>(
       `/cotizaciones?${toSearchParams(params)}`,
@@ -36,64 +36,9 @@ export const getAllQuotations = async (
 
 export const getQuotation = async (
   id: Quotation["ID"],
-  options?: { dni?: string },
-): Promise<GetQuotationResponse | any> => {
-  let profileMatch: any = null;
-
-  if (options?.dni) {
-    try {
-      const resp = await axiosInstance.get(
-        `/perfiles/${options.dni}/cotizaciones`,
-      );
-      const list = resp.data?.data ?? resp.data;
-      if (Array.isArray(list)) {
-        const found = list.find((q: any) => Number(q.ID) === Number(id));
-        if (found) {
-          profileMatch = found;
-          return found;
-        }
-      }
-    } catch (e) {}
-
-    try {
-      const resp2 = await axiosInstance.get(
-        `/clientes/${options.dni}/cotizaciones`,
-      );
-      const list2 = resp2.data?.data ?? resp2.data;
-      if (Array.isArray(list2)) {
-        const found2 = list2.find((q: any) => Number(q.ID) === Number(id));
-        if (found2) {
-          profileMatch = found2;
-          return found2;
-        }
-      }
-    } catch (e) {}
-  }
-
-  try {
-    const respDetail = await axiosInstance.get(`/cotizaciones/${id}/detalles`);
-    return respDetail.data;
-  } catch (err: any) {
-    if (profileMatch) {
-      return profileMatch;
-    }
-    try {
-      const response = await axiosInstance.get<GetQuotationResponse>(
-        `/cotizaciones/${id}`,
-      );
-      return response.data;
-    } catch (err2: any) {
-      if (err2?.response?.status === 404) {
-        throw new Error("Cotización no encontrada.");
-      }
-      if (err?.response?.status === 403 || err2?.response?.status === 403) {
-        throw new Error(
-          "No autorizado para ver los detalles de esta cotización.",
-        );
-      }
-      throw new Error("Error al obtener la cotización.");
-    }
-  }
+): Promise<GetQuotationResponse> => {
+  await sleep(4000);
+  return detailedQuotationMock;
 };
 
 export const getQuotationProducts = async (
@@ -140,3 +85,54 @@ const productosMock: QuotationProduct[] = [
     precio_unitario: 60,
   },
 ];
+
+const detailedQuotationMock: GetQuotationResponse = {
+  ID: 2,
+  camionEspecificado: {
+    ano_fabricacion: 2004,
+    caracteristicas: "Camion especial color negro",
+    color: "negro",
+    fecha_prox_revision: new Date().toISOString(),
+    ID_Fabricante: "4",
+    modelo: "sedan",
+    nombre: "suski epic",
+    Placa: "fgc-512",
+    revision_tecnica: "es una revision",
+    soat_dia_pago: new Date().toISOString(),
+    tarjeta_propiedad: "ABC123",
+    vencimiento_tarjeta: new Date().toISOString(),
+    soat_n_poliza: "POL123456",
+    soat_empresa: "Seguros XYZ",
+    soat_precio: "500.00",
+  },
+  condiciones: {
+    fechaEmision: new Date().toISOString(),
+    condiciones: "sdmvfsvks",
+    fechaVigencia: new Date().toISOString(),
+    observaciones: "cnsjdvnskjdnvjk",
+  },
+  costoRecojo: {
+    costo: 40.0,
+    direccionRecojo: "Av. Las casuarinas",
+    fechaRecojo: new Date().toISOString(),
+  },
+  estado: "pendiente",
+  idSolicitud: 1,
+  mensajes: "Pendiente",
+  nombre: "cotizacion xd",
+  precioTotal: "4102.32",
+  productos: [
+    {
+      cantidad: 20,
+      id: "2",
+      intencion: "alquilar",
+      nombre: "item de cotizacion",
+      precio_unitario: 24.0,
+    },
+  ],
+  tasaCambio: {
+    tasaCompra: 3.21,
+    tasaVenta: 3.52,
+  },
+  version: 2,
+};

@@ -37,7 +37,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
     pickupDate,
     onPickupCostChange,
     onPickupDateChange,
-    readOnly=false,
+    readOnly = false,
   }) => {
     const { isPending, error, data } = useQuery({
       queryKey: ["order"],
@@ -79,7 +79,10 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
               className="h-10"
               value={pickupDate}
               min={format(new Date(), "yyyy-MM-dd")}
-              onChange={(e) => onPickupDateChange?.(e.target.value)}
+              onChange={(e) => {
+                console.log(e.target.value);
+                onPickupDateChange?.(e.target.value);
+              }}
               readOnly={readOnly}
             />
           </div>
