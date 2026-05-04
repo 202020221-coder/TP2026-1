@@ -40,7 +40,7 @@ export const ProjectsTable: FC = () => {
           ) : (
             <>
               {data.data.map((p) => (
-                <ProjectTableRow project={p} key={p.ID} />
+                <ProjectTableRow project={p} key={p.id_Proyecto} />
               ))}
             </>
           )}

@@ -8,9 +8,7 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import type { Project } from "../interfaces/project";
-import type { ProjectState } from "../enum/project-state.record";
 
-import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -18,23 +16,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { ProjectStatesRecord } from "../enum/project-state.record";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type ProjectState,
+  ProjectStatesRecord,
+} from "../enum/project-state.record";
 import { updateProjectState } from "../api/project.api";
-import { useQueryClient } from "@tanstack/react-query";
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const queryClient = useQueryClient();
+  //Crear un objeto mutation
+  const mutation = useMutation({
+    mutationFn: updateProjectState,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+
   const statusStyles = new Map<ProjectState, string>([
-    ["Pendiente", "bg-yellow-100 text-yellow-700 border-yellow-300"],
-    ["En ejecución", "bg-blue-100 text-blue-700 border-blue-300"],
-    ["Completado", "bg-green-100 text-green-700 border-green-300"],
-    ["En proceso legal", "bg-red-100 text-red-700 border-red-300"],
-    ["Cancelado", "bg-gray-100 text-gray-600 border-gray-300"],
+    [
+      ProjectStatesRecord.pending,
+      "bg-yellow-100 text-yellow-700 border-yellow-300",
+    ],
+    [
+      ProjectStatesRecord.inExecution,
+      "bg-blue-100 text-blue-700 border-blue-300",
+    ],
+    [
+      ProjectStatesRecord.completed,
+      "bg-green-100 text-green-700 border-green-300",
+    ],
+    [
+      ProjectStatesRecord.legalProcess,
+      "bg-red-100 text-red-700 border-red-300",
+    ],
+    [
+      ProjectStatesRecord.cancelled,
+      "bg-gray-100 text-gray-600 border-gray-300",
+    ],
   ]);
-
-  const [currentEstado, setCurrentEstado] = useState<ProjectState>(project.estado);
-
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -45,46 +66,48 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       {/* Nombre */}
-      <TableCell className="font-medium py-3">{project.nombre}</TableCell>
+      <TableCell className="font-medium py-3">
+        {project.descripcion_servicio}
+      </TableCell>
 
       {/* Fecha inicio */}
       <TableCell className="text-gray-700">
-        {formatDate(project.fecha_inicio)}
+        {project.fecha_inicio ? formatDate(project.fecha_inicio) : "-"}
       </TableCell>
 
       {/* Fecha finalización */}
       <TableCell className="text-gray-700">
-        {formatDate(project.fecha_finalizacion)}
+        {project.fecha_fin ? formatDate(project.fecha_fin) : "-"}
       </TableCell>
 
       {/* Cliente */}
-      <TableCell className="text-gray-700">{project.cliente}</TableCell>
+      <TableCell className="text-gray-700">{project.Cliente_Nombre}</TableCell>
 
       {/* Estado */}
-<TableCell>
-  <Select
-    value={currentEstado}
-    onValueChange={async (val) => {
-  const newEstado = val as ProjectState;
-  setCurrentEstado(newEstado);
-  await updateProjectState(project.ID, newEstado);
-  await queryClient.invalidateQueries({ queryKey: ["projects"] });
-}}
-  >
-    <SelectTrigger
-      className={`w-fit rounded-full px-3 py-1 text-[13px] font-medium border mx-auto ${statusStyles.get(currentEstado) ?? ""}`}
-    >
-      <SelectValue />
-    </SelectTrigger>
-    <SelectContent>
-      {Object.values(ProjectStatesRecord).map((estado) => (
-        <SelectItem key={estado} value={estado}>
-          {estado}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</TableCell>
+      <TableCell>
+        <Select
+          defaultValue={project.estado}
+          onValueChange={(value) => {
+            mutation.mutate({
+              id: project.id_Proyecto,
+              newState: value as ProjectState,
+            });
+          }}
+        >
+          <SelectTrigger
+            className={`w-fit rounded-full px-3 py--1 text-[13px] font-medium border mx-auto ${statusStyles.get(project.estado) ?? ""}`}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(ProjectStatesRecord).map((estado) => (
+              <SelectItem key={estado} value={estado}>
+                {estado}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
 
       {/* Trabajadores */}
       <TableCell className="text-center">
@@ -107,9 +130,9 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
 
       {/* Orden de servicio */}
       <TableCell className="text-center">
-        {project.Id_servicio ? (
+        {project.orden_servicio ? (
           <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
-            {project.Id_servicio}
+            {project.orden_servicio}
           </span>
         ) : (
           <span className="text-gray-400 text-sm italic">—</span>
@@ -118,7 +141,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
 
       {/* Informe */}
       <TableCell className="text-center">
-        {project.Id_informe ? (
+        {project.informe_final ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -131,7 +154,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white border border-green-400 text-green-600">
-              Ver informe: {project.Id_informe}
+              Ver informe: {project.informe_final}
             </TooltipContent>
           </Tooltip>
         ) : (
@@ -163,7 +186,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
             >
               <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
-              {project.incidencias_count ?? 0}
+              {/* {project.incidencias_count ?? 0} */}-
             </Button>
           </TooltipTrigger>
           <TooltipContent className="bg-white border border-amber-400 text-amber-600">
@@ -190,8 +213,6 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
           </TooltipContent>
         </Tooltip>
       </TableCell>
-
-      
     </TableRow>
   );
 };
