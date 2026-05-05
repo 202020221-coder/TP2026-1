@@ -159,7 +159,7 @@ export default function Services({ onAddToCart }: Props) {
                         onAddToCart({ name: service.name, price: 0, image: service.image || "" })
                       }}
                     >
-                      Agregar
+                      Solicitar
                     </Button>
                   </div>
                 </div>
