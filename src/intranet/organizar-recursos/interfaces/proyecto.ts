@@ -44,6 +44,8 @@ export interface Camion {
   fecha_hora_salida: string | null;
   Camion_Nombre: string;
   precio: number;
+  razon: string | null;
+  estado: string | null;
 }
 
 export interface CamionRequest {
@@ -51,6 +53,8 @@ export interface CamionRequest {
   personal_manejando: number;
   fecha_hora_salida: string;
   fecha_hora_entrada: string;
+  razon: string;
+  estado: string;
 }
 
 export interface InventarioAsignado {
@@ -98,10 +102,12 @@ export interface InventarioListResponse {
   };
 }
 
+// estado renombrado de estado_post, razon es nuevo campo del backend
 export interface InventarioRequestPayload {
   Id_Objeto: number;
   cantidad_objeto: number;
-  estado_post: string;
+  estado: string;
+  razon: string;
   fecha_salida: string;
   fecha_retorno: string;
   metodo_traslado: string;
@@ -120,10 +126,21 @@ export interface InventarioDelProyectoItem {
   id_Proyecto: number;
   Id_Objeto: number;
   cantidad_objeto: number;
-  estado_post: string;
+  estado: string;
+  razon: string | null;
   fecha_salida: string;
   fecha_retorno: string | null;
   metodo_traslado: string;
   Objeto_Nombre: string;
 }
 
+export interface Incidencia {
+  id_incidencia: number;
+  id_proyecto: number;
+  empresa_involucrada: string | null;
+  cotizacion_remuneracion: string | null;
+  comentario: string;
+  estado: string;
+  Cotizacion_Nombre: string | null;
+  Cliente_Nombre: string | null;
+}

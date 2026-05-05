@@ -8,8 +8,9 @@ export const ORGANIZAR_RECURSOS_DEFAULTS = {
   ],
   ESTADOS_OBJETO: [
     { value: "aceptable", label: "Aceptable" },
-    { value: "rociadores_repuesto_bomba", label: "Rociadores Repuesto Bomba" },
-    { value: "equipo_herramienta", label: "Equipo Herramienta" },
+    { value: "robado", label: "Robado" },
+    { value: "averiado", label: "Averiado" },
+    { value: "desconocido", label: "Desconocido" },
   ],
   ESTADOS_PROYECTO: [
     { value: "Pendiente", label: "Pendiente" },

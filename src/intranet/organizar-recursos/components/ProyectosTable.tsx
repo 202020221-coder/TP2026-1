@@ -14,9 +14,8 @@ import { Edit2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { Proyecto } from "../interfaces/proyecto";
 import { formatDate } from "@/shared/lib/utils";
 import { ESTADO_BADGES } from "../lib/constants";
-import { useProyectoTodo } from "../hooks/useOrganizarRecursos";
+import { useInventarioDelProyecto, useCamionesByProyecto } from "../hooks/useOrganizarRecursos";
 
-// Fila individual que fetcha proyecto_todo para mostrar objetos/camiones/métodos
 function ProyectoRow({
   proyecto,
   onEdit,
@@ -24,22 +23,32 @@ function ProyectoRow({
   proyecto: Proyecto;
   onEdit: (id: number) => void;
 }) {
-  const { data: todo } = useProyectoTodo(proyecto.id_Proyecto);
+  const { data: inventario } = useInventarioDelProyecto(proyecto.id_Proyecto);
+  const { data: camiones } = useCamionesByProyecto(proyecto.id_Proyecto);
 
   const objetosFull = useMemo(() => {
-    if (!todo?.inventario?.length) return "Sin objetos";
-    return todo.inventario.map((i) => i.nombre_del_producto).join(", ");
-  }, [todo]);
+    if (!inventario?.length) return "Sin objetos";
+    return inventario.map((i) => i.Objeto_Nombre).join(", ");
+  }, [inventario]);
 
   const camionsFull = useMemo(() => {
-    if (!todo?.camiones?.length) return "Sin camiones";
-    return todo.camiones.map((c) => c.Camion_Nombre).join(", ");
-  }, [todo]);
-
+    if (!camiones?.length) return "Sin camiones";
+    return camiones.map((c) => c.Camion_Nombre).join(", ");
+  }, [camiones]);
+  /*
+    const nombreFull = useMemo(() => {
+      if (!Cotizacion_Nombre?.length) return "Sin objetos";
+      return Cotizacion_Nombre.map((i) => i.Objeto_Nombre).join(", ");
+    }, [Cotizacion_Nombre]);
+  */
   const objetosText =
     objetosFull.length > 30 ? objetosFull.slice(0, 30) + "..." : objetosFull;
   const camionesText =
     camionsFull.length > 30 ? camionsFull.slice(0, 30) + "..." : camionsFull;
+  /*
+    const nombreText =
+    nombreFull.length > 30 ? nombreFull.slice(0, 30) + "..." : nombreFull;
+*/
 
   const badgeVariant = ESTADO_BADGES[proyecto.estado] ?? "secondary";
 
@@ -47,7 +56,7 @@ function ProyectoRow({
     <TableRow className="hover:bg-muted/50">
       <TableCell className="font-medium">{proyecto.id_Proyecto}</TableCell>
       <TableCell className="font-medium">
-        {proyecto.Cliente_Nombre || proyecto.Cotizacion_Nombre || "Sin nombre"}
+        {proyecto.Cotizacion_Nombre || "Sin nombre"}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground max-w-[140px] truncate">
         <span title={objetosFull}>{objetosText}</span>
@@ -61,7 +70,6 @@ function ProyectoRow({
       <TableCell className="text-sm">
         {proyecto.fecha_fin ? formatDate(proyecto.fecha_fin) : "—"}
       </TableCell>
-      <TableCell className="text-sm">{"—"}</TableCell>
       <TableCell>
         <Badge variant={badgeVariant}>{proyecto.estado}</Badge>
       </TableCell>
@@ -102,15 +110,16 @@ export function ProyectosTable({
 }: ProyectosTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredProyectos = useMemo(
-    () =>
-      proyectos.filter(
-        (p) =>
-          p.Cliente_Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.descripcion_servicio?.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [proyectos, searchTerm]
-  );
+  const filteredProyectos = useMemo(() => {
+    if (!searchTerm.trim()) return proyectos;
+    const term = searchTerm.toLowerCase();
+    return proyectos.filter(
+      (p) =>
+        p.Cliente_Nombre?.toLowerCase().includes(term) ||
+        p.descripcion_servicio?.toLowerCase().includes(term) ||
+        p.id_Proyecto.toString().includes(term)
+    );
+  }, [proyectos, searchTerm]);
 
   return (
     <div className="space-y-4">
@@ -134,7 +143,6 @@ export function ProyectosTable({
               <TableHead className="font-semibold text-foreground">Camiones</TableHead>
               <TableHead className="font-semibold text-foreground">Primera Fecha de Salida</TableHead>
               <TableHead className="font-semibold text-foreground">Fecha de Último Retorno</TableHead>
-              <TableHead className="font-semibold text-foreground">Métodos Traslado</TableHead>
               <TableHead className="font-semibold text-foreground">Estado</TableHead>
               <TableHead className="text-center font-semibold text-foreground">Acciones</TableHead>
             </TableRow>
@@ -142,13 +150,13 @@ export function ProyectosTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   Cargando proyectos...
                 </TableCell>
               </TableRow>
             ) : filteredProyectos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No hay proyectos disponibles
                 </TableCell>
               </TableRow>

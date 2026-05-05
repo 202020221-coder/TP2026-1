@@ -2,10 +2,13 @@ import axiosInstance from "@/shared/api/axios.config";
 import type {
   ProyectoListResponse,
   ProyectoTodoResponse,
+  Proyecto,
   InventarioListResponse,
   InventarioDelProyectoItem,
   Conductor,
   InventarioRequestPayload,
+  Incidencia,
+  Camion,
 } from "../interfaces/proyecto";
 
 export const organizarRecursosApi = {
@@ -14,6 +17,9 @@ export const organizarRecursosApi = {
     axiosInstance.get<ProyectoListResponse>("/proyectos", {
       params: { page, limit },
     }),
+
+  getProyecto: (id: number) =>
+    axiosInstance.get<Proyecto>(`/proyectos/${id}`),
 
   getProyectoTodo: (id: number) =>
     axiosInstance.get<ProyectoTodoResponse>(`/proyectos/${id}/proyecto_todo`),
@@ -30,14 +36,16 @@ export const organizarRecursosApi = {
       `/proyectos/${projectId}/inventario`
     ),
 
-  // Inventario del proyecto
   addInventarioToProyecto: (projectId: number, payload: InventarioRequestPayload) =>
     axiosInstance.post(`/proyectos/${projectId}/inventario`, payload),
 
   removeInventarioFromProyecto: (projectId: number, inventoryId: number) =>
     axiosInstance.delete(`/proyectos/${projectId}/inventario/${inventoryId}`),
 
-  // Camiones del proyecto — payload corregido según Swagger
+  // Camiones del proyecto
+  getCamionesByProyecto: (projectId: number) =>
+    axiosInstance.get<Camion[]>(`/proyectos/${projectId}/camiones`),
+
   addCamionToProyecto: (
     projectId: number,
     payload: {
@@ -45,6 +53,8 @@ export const organizarRecursosApi = {
       personal_manejando: number;
       fecha_hora_salida: string;
       fecha_hora_entrada: string;
+      razon: string;
+      estado: string;
     }
   ) => axiosInstance.post(`/proyectos/${projectId}/camiones`, payload),
 
@@ -56,4 +66,8 @@ export const organizarRecursosApi = {
     axiosInstance.get<Conductor[]>("/perfiles/conductores/disponibles", {
       params: { fecha },
     }),
+
+  // Incidencias por proyecto
+  getIncidenciasByProyecto: (projectId: number) =>
+    axiosInstance.get<Incidencia[]>(`/incidencias/proyecto/${projectId}`),
 };

@@ -30,6 +30,7 @@ import {
   useRemoveInventarioFromProyecto,
   useInventarioList,
   useInventarioDelProyecto,
+  useIncidenciasByProyecto,
 } from "../hooks/useOrganizarRecursos";
 import { formatDate } from "@/shared/lib/utils";
 import { ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
@@ -41,11 +42,10 @@ interface InventarioSectionProps {
 export function InventarioSection({ projectId }: InventarioSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Catálogo general de objetos disponibles en la BD
   const { data: inventarioDisponible, isLoading: loadingCatalogo } = useInventarioList();
-  // Inventario asignado al proyecto (incluye Id_Objeto para eliminar)
   const { data: inventarioAsignado, isLoading: loadingAsignado } =
     useInventarioDelProyecto(projectId);
+  const { data: incidencias } = useIncidenciasByProyecto(projectId);
 
   const { mutate: addInventario, isPending: isAddingInventario } =
     useAddInventarioToProyecto();
@@ -66,8 +66,9 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
       cantidad: 1,
       fecha_salida: today,
       fecha_retorno: today,
-      metodo_traslado: "camión",
+      metodo_traslado: "",
       estado: "aceptable",
+      razon: "entrada",
     },
   });
 
@@ -89,7 +90,8 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
         payload: {
           Id_Objeto: parseInt(data.objeto),
           cantidad_objeto: parseInt(data.cantidad),
-          estado_post: data.estado,
+          estado: data.estado,
+          razon: data.razon,
           fecha_salida: data.fecha_salida,
           fecha_retorno: data.fecha_retorno,
           metodo_traslado: data.metodo_traslado,
@@ -132,10 +134,9 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     {loadingCatalogo ? (
-                      <div className="flex items-center justify-center py-4 gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">Cargando objetos...</span>
-                      </div>
+                      <SelectItem value="__loading__" disabled>
+                        Cargando objetos...
+                      </SelectItem>
                     ) : inventarioDisponible?.data ? (
                       inventarioDisponible.data.map((item) => (
                         <SelectItem
@@ -200,17 +201,35 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
 
               <div>
                 <label className="text-sm font-medium">Método Traslado *</label>
+                <Input
+                  placeholder="Ej: Camión, Automóvil, A pie..."
+                  {...register("metodo_traslado", { required: "El método es requerido" })}
+                  className="mt-1"
+                />
+                {errors.metodo_traslado && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.metodo_traslado.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Razón *</label>
                 <Select
-                  onValueChange={(value) => setValue("metodo_traslado", value)}
-                  value={watch("metodo_traslado")}
+                  onValueChange={(value) => setValue("razon", value)}
+                  value={watch("razon")}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ORGANIZAR_RECURSOS_DEFAULTS.METODOS_TRASLADO.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
+                    <SelectItem value="entrada">Entrada</SelectItem>
+                    {incidencias?.map((inc) => (
+                      <SelectItem
+                        key={inc.id_incidencia}
+                        value={inc.comentario}
+                      >
+                        #{inc.id_incidencia} — {inc.comentario}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -257,13 +276,15 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
               <TableHead className="font-semibold">Fecha Salida</TableHead>
               <TableHead className="font-semibold">Fecha Retorno</TableHead>
               <TableHead className="font-semibold">Método Traslado</TableHead>
+              <TableHead className="font-semibold">Razón</TableHead>
+              <TableHead className="font-semibold">Estado</TableHead>
               <TableHead className="text-center font-semibold">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loadingAsignado ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Cargando objetos...</span>
@@ -272,16 +293,14 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
               </TableRow>
             ) : !inventarioAsignado || inventarioAsignado.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   Sin objetos asignados
                 </TableCell>
               </TableRow>
             ) : (
               inventarioAsignado.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.Objeto_Nombre}
-                  </TableCell>
+                  <TableCell className="font-medium">{item.Objeto_Nombre}</TableCell>
                   <TableCell className="text-center">{item.cantidad_objeto}</TableCell>
                   <TableCell className="text-sm">
                     {item.fecha_salida ? formatDate(item.fecha_salida) : "—"}
@@ -289,9 +308,11 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                   <TableCell className="text-sm">
                     {item.fecha_retorno ? formatDate(item.fecha_retorno) : "—"}
                   </TableCell>
-                  <TableCell className="text-sm">
-                    {item.metodo_traslado || "—"}
+                  <TableCell className="text-sm">{item.metodo_traslado || "—"}</TableCell>
+                  <TableCell className="text-sm max-w-[150px] truncate">
+                    <span title={item.razon || "—"}>{item.razon || "—"}</span>
                   </TableCell>
+                  <TableCell className="text-sm">{item.estado || "—"}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"

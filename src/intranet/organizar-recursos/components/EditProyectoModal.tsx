@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { useProyectoTodo } from "../hooks/useOrganizarRecursos";
+import { useProyecto } from "../hooks/useOrganizarRecursos";
 import { InventarioSection } from "./InventarioSection";
 import { CamionesSection } from "./CamionesSection";
 
@@ -21,9 +21,7 @@ export function EditProyectoModal({
   isOpen,
   onClose,
 }: EditProyectoModalProps) {
-  const { data: proyectoData, isLoading, refetch } = useProyectoTodo(
-    projectId || 0
-  );
+  const { data: proyecto, isLoading, refetch } = useProyecto(projectId || 0);
 
   useEffect(() => {
     if (projectId && isOpen) {
@@ -33,50 +31,52 @@ export function EditProyectoModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      {/* flex flex-col + overflow-hidden para que el hijo scrollable funcione correctamente */}
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">
             {isLoading ? "Cargando..." : `Editar Proyecto #${projectId}`}
           </DialogTitle>
+          {!isLoading && proyecto?.Cotizacion_Nombre && (
+            <p className="text-sm text-muted-foreground">
+              {proyecto.Cotizacion_Nombre}
+            </p>
+          )}
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : proyectoData ? (
-          /* min-h-0 es crítico: sin él, flex-1 no puede contraerse y no hay scroll */
+        ) : proyecto ? (
           <div className="overflow-y-auto flex-1 min-h-0">
             <div className="space-y-6 pb-6 pr-1">
-              {/* Información del Proyecto */}
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold">Información del Proyecto</h2>
                 <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Cliente</p>
                     <p className="text-sm font-semibold">
-                      {proyectoData.proyecto.Cliente_Nombre || "—"}
+                      {proyecto.Cliente_Nombre || "—"}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                    <p className="text-sm font-semibold">{proyectoData.proyecto.estado}</p>
+                    <p className="text-sm font-semibold">{proyecto.estado}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-sm font-medium text-muted-foreground">Descripción</p>
-                    <p className="text-sm">{proyectoData.proyecto.descripcion_servicio}</p>
+                    <p className="text-sm">{proyecto.descripcion_servicio}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Fecha Inicio</p>
                     <p className="text-sm font-semibold">
-                      {new Date(proyectoData.proyecto.fecha_inicio).toLocaleDateString()}
+                      {new Date(proyecto.fecha_inicio).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Fecha Fin</p>
                     <p className="text-sm font-semibold">
-                      {new Date(proyectoData.proyecto.fecha_fin).toLocaleDateString()}
+                      {new Date(proyecto.fecha_fin).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -84,17 +84,11 @@ export function EditProyectoModal({
 
               <hr />
 
-              {/* Sección Inventario */}
               <InventarioSection projectId={projectId || 0} />
 
               <hr />
 
-              {/* Sección Camiones */}
-              <CamionesSection
-                projectId={projectId || 0}
-                camiones={proyectoData.camiones}
-                onRefresh={() => refetch()}
-              />
+              <CamionesSection projectId={projectId || 0} />
             </div>
           </div>
         ) : (
