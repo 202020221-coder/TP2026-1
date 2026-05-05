@@ -22,6 +22,7 @@ import { sidebarLinks, type IMenu, type ISubMenu } from "../sidebar-links";
 
 import {
   BriefcaseBusiness,
+  CalendarDays,
   ChevronRight,
   ClipboardList,
   FileText,
@@ -35,6 +36,7 @@ const lucideIconMap: Record<string, LucideIcon> = {
   ClipboardList,
   Receipt,
   BriefcaseBusiness,
+  CalendarDays,
 };
 
 export function NavMain({ userRole }: { userRole: UserRole }) {
