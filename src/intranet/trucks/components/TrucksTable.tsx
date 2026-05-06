@@ -62,13 +62,13 @@ export const TrucksTable: FC = () => {
               <TrucksTablePlaceholder rows={PLACEHOLDER_ROWS} />
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-destructive">
+                <TableCell colSpan={12} className="text-destructive">
                   {error.message}
                 </TableCell>
               </TableRow>
             ) : filteredCamiones.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center text-muted-foreground">
+                <TableCell colSpan={12} className="text-center text-muted-foreground">
                   No hay camiones para los filtros seleccionados.
                 </TableCell>
               </TableRow>

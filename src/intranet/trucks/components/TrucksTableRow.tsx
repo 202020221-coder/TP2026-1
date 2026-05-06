@@ -14,6 +14,7 @@ import type { Truck } from "../interfaces/truck.interface";
 import { EditTruckDialog } from "./EditTruckDialog";
 import {
   formatTruckTableDate,
+  getTruckEstadoBadge,
   getSoatStatus,
 } from "../lib/trucks-table.utils";
 
@@ -24,6 +25,7 @@ export const TrucksTableRow: FC<{
 }> = ({ camion, fabricanteLabel, onOpenMaintenance }) => {
   const navigate = useNavigate();
   const soatStatus = getSoatStatus(camion.soat_dia_pago);
+  const estadoBadge = getTruckEstadoBadge(camion.Estado);
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -31,6 +33,17 @@ export const TrucksTableRow: FC<{
       <TableCell className="text-gray-700">{camion.nombre}</TableCell>
       <TableCell className="text-gray-700">{camion.ano_fabricacion}</TableCell>
       <TableCell className="text-gray-700">{camion.modelo}</TableCell>
+      <TableCell className="text-center">
+        <Badge
+          variant={estadoBadge.variant}
+          className={cn(
+            "block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border",
+            estadoBadge.className,
+          )}
+        >
+          {estadoBadge.label}
+        </Badge>
+      </TableCell>
       <TableCell>
         <Badge
           variant={soatStatus.variant}

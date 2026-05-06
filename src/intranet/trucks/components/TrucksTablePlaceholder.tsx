@@ -23,6 +23,9 @@ export const TrucksTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
             <Skeleton className="h-6 w-24 rounded-full bg-gray-50" />
           </TableCell>
           <TableCell>
+            <Skeleton className="h-6 w-24 rounded-full bg-gray-50" />
+          </TableCell>
+          <TableCell>
             <Skeleton className="h-4 w-24 bg-gray-50" />
           </TableCell>
           <TableCell>

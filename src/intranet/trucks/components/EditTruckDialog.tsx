@@ -12,18 +12,38 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { trucksBaseApi } from "../api/trucks.base.api";
-import type { Truck } from "../interfaces/truck.interface";
+import type { Truck, TruckEstado } from "../interfaces/truck.interface";
+import {
+  normalizeTruckEstado,
+  TRUCK_ESTADO_OPTIONS,
+} from "../lib/trucks-table.utils";
 
 type EditTruckFormState = {
   Placa: string;
   nombre: string;
+  ano_fabricacion: string;
   modelo: string;
   color: string;
+  Estado: TruckEstado | "";
+  caracteristicas: string;
+  revision_tecnica: string;
+  fecha_prox_revision: string;
+  ID_Fabricante: string;
+  tarjeta_propiedad: string;
+  vencimiento_tarjeta: string;
   soat_n_poliza: string;
   soat_empresa: string;
   soat_precio: string;
@@ -46,14 +66,31 @@ const hasValidNumber = (value: string, min = 0) => {
   return Number.isFinite(parsed) && parsed >= min;
 };
 
-const toStringValue = (value: number | null | undefined) =>
-  typeof value === "number" && Number.isFinite(value) ? String(value) : "";
+const toStringValue = (value: number | string | null | undefined) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  return "";
+};
 
 const mapTruckToForm = (camion: Truck): EditTruckFormState => ({
   Placa: camion.Placa ?? "",
   nombre: camion.nombre ?? "",
+  ano_fabricacion: toStringValue(camion.ano_fabricacion),
   modelo: camion.modelo ?? "",
   color: camion.color ?? "",
+  Estado: normalizeTruckEstado(camion.Estado) ?? "",
+  caracteristicas: camion.caracteristicas ?? "",
+  revision_tecnica: camion.revision_tecnica ?? "",
+  fecha_prox_revision: camion.fecha_prox_revision ?? "",
+  ID_Fabricante: toStringValue(camion.ID_Fabricante),
+  tarjeta_propiedad: camion.tarjeta_propiedad ?? "",
+  vencimiento_tarjeta: camion.vencimiento_tarjeta ?? "",
   soat_n_poliza: camion.soat_n_poliza ?? "",
   soat_empresa: camion.soat_empresa ?? "",
   soat_precio: toStringValue(camion.soat_precio),
@@ -74,18 +111,29 @@ export const EditTruckDialog = ({
 
   const isFormValid = useMemo(() => {
     const requiredText = [
+      form.Placa,
       form.nombre,
       form.modelo,
       form.color,
+      form.Estado,
+      form.caracteristicas,
+      form.revision_tecnica,
+      form.tarjeta_propiedad,
       form.soat_n_poliza,
       form.soat_empresa,
     ];
 
-    const requiredDates = [form.soat_dia_pago];
+    const requiredDates = [
+      form.fecha_prox_revision,
+      form.vencimiento_tarjeta,
+      form.soat_dia_pago,
+    ];
 
     return (
       requiredText.every(hasText) &&
       requiredDates.every(hasText) &&
+      hasValidNumber(form.ano_fabricacion, 1) &&
+      hasValidNumber(form.ID_Fabricante, 1) &&
       hasValidNumber(form.soat_precio, 0)
     );
   }, [form]);
@@ -110,12 +158,18 @@ export const EditTruckDialog = ({
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      const { Fabricante_Nombre: _, ...baseFields } = camion;
       const payload = {
-        ...baseFields,
         nombre: form.nombre.trim(),
+        ano_fabricacion: Number(form.ano_fabricacion),
         modelo: form.modelo.trim(),
         color: form.color.trim(),
+        caracteristicas: form.caracteristicas.trim(),
+        revision_tecnica: form.revision_tecnica.trim(),
+        fecha_prox_revision: form.fecha_prox_revision,
+        ID_Fabricante: Number(form.ID_Fabricante),
+        tarjeta_propiedad: form.tarjeta_propiedad.trim(),
+        vencimiento_tarjeta: form.vencimiento_tarjeta,
+        Estado: form.Estado as TruckEstado,
         soat_n_poliza: form.soat_n_poliza.trim(),
         soat_empresa: form.soat_empresa.trim(),
         soat_precio: Number(form.soat_precio),
@@ -125,22 +179,14 @@ export const EditTruckDialog = ({
       await trucksBaseApi.updateTruck(camion.Placa, payload);
     } catch (error: unknown) {
       const err = error as any;
-      const serverError = err?.response?.data?.error ?? "";
-      const isKnownBackendBug =
-        err?.response?.status === 500 &&
-        typeof serverError === "string" &&
-        serverError.includes("is not iterable");
-
-      if (!isKnownBackendBug) {
-        const rawMessage =
-          err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? "No se pudo actualizar el camion.";
-        const apiMessage =
-          typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
-        setErrorMessage(apiMessage);
-        toast.error(apiMessage);
-        setIsSubmitting(false);
-        return;
-      }
+      const rawMessage =
+        err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? "No se pudo actualizar el camion.";
+      const apiMessage =
+        typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
+      setErrorMessage(apiMessage);
+      toast.error(apiMessage);
+      setIsSubmitting(false);
+      return;
     }
 
     toast.success("Camion actualizado correctamente.");
@@ -209,6 +255,27 @@ export const EditTruckDialog = ({
                   onChange={(event) =>
                     setForm((current) => ({ ...current, nombre: event.target.value }))
                   }
+                  placeholder="Camion principal"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-ano">Ano de fabricacion</Label>
+                <Input
+                  id="edit-truck-ano"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={form.ano_fabricacion}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      ano_fabricacion: event.target.value,
+                    }))
+                  }
+                  placeholder="2022"
                   required
                   disabled={isSubmitting}
                 />
@@ -222,6 +289,7 @@ export const EditTruckDialog = ({
                   onChange={(event) =>
                     setForm((current) => ({ ...current, modelo: event.target.value }))
                   }
+                  placeholder="FH16"
                   required
                   disabled={isSubmitting}
                 />
@@ -234,6 +302,103 @@ export const EditTruckDialog = ({
                   value={form.color}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, color: event.target.value }))
+                  }
+                  placeholder="Blanco"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-estado">Estado</Label>
+                <Select
+                  value={form.Estado}
+                  onValueChange={(value) =>
+                    setForm((current) => ({
+                      ...current,
+                      Estado: value as TruckEstado,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="edit-truck-estado" className="w-full">
+                    <SelectValue placeholder="Selecciona estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRUCK_ESTADO_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-fecha-revision">Fecha prox. revision</Label>
+                <Input
+                  id="edit-truck-fecha-revision"
+                  type="date"
+                  value={form.fecha_prox_revision}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      fecha_prox_revision: event.target.value,
+                    }))
+                  }
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-id-fabricante">ID fabricante</Label>
+                <Input
+                  id="edit-truck-id-fabricante"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={form.ID_Fabricante}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      ID_Fabricante: event.target.value,
+                    }))
+                  }
+                  placeholder="12"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-tarjeta">Tarjeta de propiedad</Label>
+                <Input
+                  id="edit-truck-tarjeta"
+                  value={form.tarjeta_propiedad}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      tarjeta_propiedad: event.target.value,
+                    }))
+                  }
+                  placeholder="Codigo o referencia"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-truck-vencimiento">Vencimiento tarjeta</Label>
+                <Input
+                  id="edit-truck-vencimiento"
+                  type="date"
+                  value={form.vencimiento_tarjeta}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      vencimiento_tarjeta: event.target.value,
+                    }))
                   }
                   required
                   disabled={isSubmitting}
@@ -251,6 +416,7 @@ export const EditTruckDialog = ({
                       soat_n_poliza: event.target.value,
                     }))
                   }
+                  placeholder="SOAT-12345"
                   required
                   disabled={isSubmitting}
                 />
@@ -267,6 +433,7 @@ export const EditTruckDialog = ({
                       soat_empresa: event.target.value,
                     }))
                   }
+                  placeholder="Rimac"
                   required
                   disabled={isSubmitting}
                 />
@@ -286,6 +453,7 @@ export const EditTruckDialog = ({
                       soat_precio: event.target.value,
                     }))
                   }
+                  placeholder="350.00"
                   required
                   disabled={isSubmitting}
                 />
@@ -303,6 +471,40 @@ export const EditTruckDialog = ({
                       soat_dia_pago: event.target.value,
                     }))
                   }
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="edit-truck-caracteristicas">Caracteristicas</Label>
+                <Textarea
+                  id="edit-truck-caracteristicas"
+                  value={form.caracteristicas}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      caracteristicas: event.target.value,
+                    }))
+                  }
+                  placeholder="Detalle de caracteristicas"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="edit-truck-revision">Revision tecnica</Label>
+                <Textarea
+                  id="edit-truck-revision"
+                  value={form.revision_tecnica}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      revision_tecnica: event.target.value,
+                    }))
+                  }
+                  placeholder="Detalle de revision tecnica"
                   required
                   disabled={isSubmitting}
                 />

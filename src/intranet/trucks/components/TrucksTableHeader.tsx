@@ -9,6 +9,7 @@ export const TrucksTableHeader: FC = () => {
         <TableHead className="text-gray-500 font-medium">Nombre</TableHead>
         <TableHead className="text-gray-500 font-medium">Año fab.</TableHead>
         <TableHead className="text-gray-500 font-medium">Modelo</TableHead>
+        <TableHead className="text-center text-gray-500 font-medium">Estado</TableHead>
         <TableHead className="text-center text-gray-500 font-medium">Estado SOAT</TableHead>
         <TableHead className="text-gray-500 font-medium">Próx. revisión</TableHead>
         <TableHead className="text-gray-500 font-medium">Fabricante</TableHead>

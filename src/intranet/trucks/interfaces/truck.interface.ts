@@ -1,9 +1,17 @@
+export type TruckEstado =
+  | "Operacional"
+  | "Ocupado"
+  | "En mantenimiento"
+  | "inoperativo"
+  | "descalificado";
+
 export interface Truck {
   Placa: string;
   nombre: string;
   ano_fabricacion: number;
   modelo: string;
   color: string;
+  Estado: TruckEstado;
   caracteristicas: string;
   revision_tecnica: string;
   fecha_prox_revision: string;
@@ -26,6 +34,7 @@ export type UpdateTruckPayload = Pick<
   | "nombre"
   | "modelo"
   | "color"
+  | "Estado"
   | "soat_n_poliza"
   | "soat_empresa"
   | "soat_precio"

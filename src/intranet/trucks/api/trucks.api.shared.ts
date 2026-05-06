@@ -102,7 +102,7 @@ export const normalizeTruck = (truck: RawTruck): Truck => ({
   ID_Fabricante: toNullableNumber(truck.ID_Fabricante),
   Fabricante_Nombre: toNullableTrimmedString(truck.Fabricante_Nombre),
   ano_fabricacion: toNumber(truck.ano_fabricacion),
-  revision_tecnica: toIsoDateOrEmpty(truck.revision_tecnica),
+  revision_tecnica: toNullableTrimmedString(truck.revision_tecnica) ?? "",
   fecha_prox_revision: toIsoDateOrEmpty(truck.fecha_prox_revision),
   vencimiento_tarjeta: toIsoDateOrEmpty(truck.vencimiento_tarjeta),
   soat_dia_pago: toIsoDateOrEmpty(truck.soat_dia_pago),
