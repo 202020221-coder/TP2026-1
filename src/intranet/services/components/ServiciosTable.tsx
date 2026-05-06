@@ -6,21 +6,27 @@ import { useServicios } from "../hooks/useServicios";
 import { ServiciosTableHeader } from "./ServiciosTableHeader";
 import { ServicioTableRow } from "./ServiciosTableRow";
 import { ServicioFormModal } from "./ServicioFormModal";
+import { ServiciosEliminadosModal } from "./ServiciosEliminadosModal";
 
 export const ServiciosTable: FC = () => {
   const { result, queryParams } = useServicios();
-  // isPending = primera carga sin datos; isFetching = refetch en background (ya hay datos)
   const { isPending, isError, error, data } = result;
   const [addOpen, setAddOpen] = useState(false);
+  const [eliminadosOpen, setEliminadosOpen] = useState(false);
+
+  // Solo mostrar servicios activos en la tabla principal
+  const serviciosActivos = data?.data.filter((s) => s.activo) ?? [];
 
   return (
     <>
-      <ServiciosTableControls onAddClick={() => setAddOpen(true)}>
+      <ServiciosTableControls
+        onAddClick={() => setAddOpen(true)}
+        onEliminadosClick={() => setEliminadosOpen(true)}
+      >
         <Table containerClassname="flex-1 overflow-auto flex-col">
           <ServiciosTableHeader />
           <TableBody>
             {isPending ? (
-              // Solo mostrar skeleton en la primera carga, NO en cada refetch
               <ServiciosTablePlaceholder rows={queryParams.limit ?? 10} />
             ) : isError ? (
               <TableRow>
@@ -28,14 +34,14 @@ export const ServiciosTable: FC = () => {
                   {error.message}
                 </TableCell>
               </TableRow>
-            ) : data && data.data.length === 0 ? (
+            ) : serviciosActivos.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-gray-400 py-10">
-                  No se encontraron servicios.
+                  No se encontraron servicios activos.
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data.map((servicio) => (
+              serviciosActivos.map((servicio) => (
                 <ServicioTableRow servicio={servicio} key={servicio.id} />
               ))
             )}
@@ -45,6 +51,10 @@ export const ServiciosTable: FC = () => {
 
       {addOpen && (
         <ServicioFormModal mode="create" onClose={() => setAddOpen(false)} />
+      )}
+
+      {eliminadosOpen && (
+        <ServiciosEliminadosModal onClose={() => setEliminadosOpen(false)} />
       )}
     </>
   );

@@ -1,23 +1,23 @@
 import { useEffect, useState, type FC, type ReactNode } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { ArrowLeft, ArrowRight, Plus, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Label } from "@/shared/components/ui/label";
 import { useServicios } from "../hooks/useServicios";
 import { useDebounced } from "@/shared/hooks/useDebounced";
 
-interface Props { children: ReactNode; onAddClick: () => void; }
+interface Props { children: ReactNode; onAddClick: () => void; onEliminadosClick: () => void; }
 
-export const ServiciosTableControls: FC<Props> = ({ children, onAddClick }) => (
+export const ServiciosTableControls: FC<Props> = ({ children, onAddClick, onEliminadosClick }) => (
   <div className="flex flex-1 flex-col space-y-3">
-    <TopControls onAddClick={onAddClick} />
+    <TopControls onAddClick={onAddClick} onEliminadosClick={onEliminadosClick} />
     {children}
     <BottomControls />
   </div>
 );
 
-const TopControls: FC<{ onAddClick: () => void }> = ({ onAddClick }) => {
+const TopControls: FC<{ onAddClick: () => void; onEliminadosClick: () => void }> = ({ onAddClick, onEliminadosClick }) => {
   const { query, queryParams, result } = useServicios();
   const [searchValue, setSearchValue] = useState(queryParams.search ?? "");
 
@@ -37,7 +37,14 @@ const TopControls: FC<{ onAddClick: () => void }> = ({ onAddClick }) => {
           value={searchValue} onChange={handleSearchChange} disabled={result.isFetching} />
         <Search className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400" size={16} />
       </div>
-      <div className="col-span-1 md:col-span-4 flex justify-end">
+      <div className="col-span-1 md:col-span-4 flex justify-end gap-2">
+        <Button
+          onClick={onEliminadosClick}
+          variant="outline"
+          className="gap-2 border-gray-300 text-gray-600 hover:bg-gray-50"
+        >
+          <Trash2 className="w-4 h-4" /> Eliminados
+        </Button>
         <Button onClick={onAddClick} className="gap-2 bg-red-500 hover:bg-red-600 text-white">
           <Plus className="w-4 h-4" /> Agregar Servicio
         </Button>

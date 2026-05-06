@@ -21,7 +21,8 @@ interface ServicioRaw {
   precio_regular: number;
   condicional_precio: string;
   observaciones: string;
-  activo?: boolean;
+  Estado?: "Activo" | "Desactivado"; // campo real del backend
+  activo?: boolean;                   // por compatibilidad defensiva
 }
 
 // Extrae el objeto ServicioRaw de cualquier forma que devuelva el backend:
@@ -57,7 +58,7 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   precio_regular: Number(raw.precio_regular ?? 0),
   condicional_precio: raw.condicional_precio ?? "",
   observaciones: raw.observaciones ?? "",
-  activo: raw.activo ?? true,
+  activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -99,8 +100,15 @@ export const updateServicio = async (
   return toServicio(raw);
 };
 
-export const toggleServicioActivo = async (_id: number): Promise<Servicio> => {
-  throw new Error("PENDING_BACKEND");
+export const toggleServicioActivo = async (id: number, currentActivo: boolean): Promise<Servicio> => {
+  const nuevoEstado = currentActivo ? "Desactivado" : "Activo";
+  const response = await axiosInstance.put(`/servicios/${id}`, { Estado: nuevoEstado });
+  const raw = extractRaw(response.data);
+  // Si el backend no devuelve el objeto actualizado, construirlo manualmente
+  if (!raw.ID_Servicio && !raw.id) {
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", activo: !currentActivo };
+  }
+  return toServicio(raw);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -157,17 +165,18 @@ export const createPersonal = async (
 };
 
 export const updatePersonal = async (
+  servicioId: number,
   id: number,
   dto: UpdatePersonalRequeridoDTO,
 ): Promise<PersonalRequerido> => {
-  const response = await axiosInstance.put(`/personal/${id}`, dto);
+  const response = await axiosInstance.put(`/servicios/${servicioId}/personal/${id}`, dto);
   const raw = extractRaw(response.data) as PersonalRaw;
   if (!raw.id && !raw.ID_Personal) {
-    return { id, ID_Servicio: 0, ...dto } as PersonalRequerido;
+    return { id, ID_Servicio: servicioId, ...dto } as PersonalRequerido;
   }
   return toPersonal(raw);
 };
 
-export const deletePersonal = async (id: number): Promise<void> => {
-  await axiosInstance.delete(`/personal/${id}`);
+export const deletePersonal = async (servicioId: number, id: number): Promise<void> => {
+  await axiosInstance.delete(`/servicios/${servicioId}/personal/${id}`);
 };

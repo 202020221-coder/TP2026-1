@@ -10,8 +10,8 @@ interface ListServiciosContextValue {
   query: (params: GetServiciosQP) => void;
   createMutation: UseMutationResult<Servicio, Error, CreateServicioDTO>;
   updateMutation: UseMutationResult<Servicio, Error, { id: number; dto: UpdateServicioDTO }>;
-  toggleActivoMutation: UseMutationResult<Servicio, Error, number>;
-  toggleActivoLocal: (id: number) => void;
+  toggleActivoMutation: UseMutationResult<Servicio, Error, { id: number; currentActivo: boolean }>;
+  toggleActivoLocal: (id: number, currentActivo: boolean) => void;
 }
 
 export const ListServiciosContext = createContext<ListServiciosContextValue | null>(null);

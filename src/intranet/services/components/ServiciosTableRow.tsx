@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Pencil, Trash2, UserCheck } from "lucide-react";
+import { Pencil, Trash2, UserCheck, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import type { Servicio } from "../interfaces/service";
 import { useServicios } from "../hooks/useServicios";
@@ -14,8 +14,12 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
   const [editOpen, setEditOpen]         = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
 
+  const { toggleActivoMutation } = useServicios();
+  const isTogglingThis = toggleActivoMutation.isPending &&
+    (toggleActivoMutation.variables as { id: number; currentActivo: boolean })?.id === servicio.id;
+
   const handleToggleActivo = () => {
-    toggleActivoLocal(servicio.id);
+    toggleActivoLocal(servicio.id, servicio.activo);
   };
 
   return (
@@ -85,13 +89,17 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
                   variant="ghost"
                   size="icon"
                   onClick={handleToggleActivo}
+                  disabled={isTogglingThis}
                   className={`h-full aspect-square transition-colors ${
                     servicio.activo
                       ? "text-red-500 hover:border hover:border-red-500 hover:text-red-600 hover:bg-red-50"
                       : "text-green-500 hover:border hover:border-green-500 hover:text-green-600 hover:bg-green-50"
                   }`}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isTogglingThis
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Trash2 className="w-4 h-4" />
+                  }
                 </Button>
               </TooltipTrigger>
               <TooltipContent

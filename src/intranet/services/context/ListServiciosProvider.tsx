@@ -5,6 +5,7 @@ import {
   getServicios,
   createServicio,
   updateServicio,
+  toggleServicioActivo,
 } from "../api/service.api";
 import { ListServiciosContext } from "./ListServiciosContext";
 import type { CreateServicioDTO, UpdateServicioDTO, Servicio } from "../interfaces/service";
@@ -72,15 +73,14 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
     onError: () => toast.error("Error al actualizar el servicio"),
   });
 
-  // ── TOGGLE ACTIVO LOCAL (sin backend) ────────────────────────────────────
-  // Stub requerido por el contexto — el toggle real ocurre en toggleActivoLocal
+  // ── TOGGLE ACTIVO ─────────────────────────────────────────────────────────
   const toggleActivoMutation = useMutation({
-    mutationFn: async (_id: number) => { throw new Error("PENDING_BACKEND"); },
-    onError: () => {},
-  });
-
-  const toggleActivoLocal = useCallback(
-    (id: number) => {
+    mutationFn: ({ id, currentActivo }: { id: number; currentActivo: boolean }) =>
+      toggleServicioActivo(id, currentActivo),
+    // Optimistic update: cambia el estado en UI antes de recibir respuesta
+    onMutate: async ({ id }: { id: number; currentActivo: boolean }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<GetServiciosResponse>(queryKey);
       queryClient.setQueryData<GetServiciosResponse>(queryKey, (old) => {
         if (!old) return old;
         return {
@@ -90,9 +90,44 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
           ),
         };
       });
+      return { previous };
+    },
+    onSuccess: async (updatedServicio, id) => {
+      // Sincroniza con el valor real devuelto por el backend
+      // Si el backend no devuelve el objeto completo, el optimistic update (onMutate) ya aplicó el cambio
+      if (updatedServicio?.id) {
+        queryClient.setQueryData<GetServiciosResponse>(queryKey, (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: old.data.map((s: Servicio) =>
+              s.id === updatedServicio.id ? { ...s, ...updatedServicio } : s
+            ),
+          };
+        });
+      }
+      // Determinar el estado actual en caché para el mensaje
+      const cached = queryClient.getQueryData<GetServiciosResponse>(queryKey);
+      const servicio = cached?.data.find((s: Servicio) => s.id === (updatedServicio?.id ?? id));
+      const accion = servicio?.activo ? "activado" : "desactivado";
+      toast.success(`Servicio ${accion} correctamente`);
+      await softRefetch();
+    },
+    onError: (_err, _id, context) => {
+      // Rollback al estado anterior si falla
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+      toast.error("Error al cambiar el estado del servicio");
+    },
+  });
+
+  const toggleActivoLocal = useCallback(
+    (id: number, currentActivo: boolean) => {
+      toggleActivoMutation.mutate({ id, currentActivo });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queryClient, JSON.stringify(queryParams)]
+    [toggleActivoMutation]
   );
 
   return (

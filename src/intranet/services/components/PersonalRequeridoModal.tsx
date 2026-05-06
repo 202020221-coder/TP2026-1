@@ -57,7 +57,7 @@ export const PersonalRequeridoModal: FC<Props> = ({ servicio, onClose }) => {
 
   const updateMut = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: Partial<CreatePersonalRequeridoDTO> }) =>
-      updatePersonal(id, dto),
+      updatePersonal(servicio.id, id, dto),
     onSuccess: async (updated) => {
       // Actualizar optimistamente en caché
       qc.setQueryData<PersonalRequerido[]>(key, (old = []) =>
@@ -70,7 +70,7 @@ export const PersonalRequeridoModal: FC<Props> = ({ servicio, onClose }) => {
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: number) => deletePersonal(id),
+    mutationFn: (id: number) => deletePersonal(servicio.id, id),
     onMutate: async (id) => {
       // Cancelar queries en vuelo para evitar race conditions
       await qc.cancelQueries({ queryKey: key });
