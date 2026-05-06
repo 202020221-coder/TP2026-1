@@ -11,13 +11,6 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import {
   Tooltip,
@@ -26,10 +19,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { trucksBaseApi } from "../api/trucks.base.api";
 import type { Truck, TruckEstado } from "../interfaces/truck.interface";
-import {
-  normalizeTruckEstado,
-  TRUCK_ESTADO_OPTIONS,
-} from "../lib/trucks-table.utils";
+import { normalizeTruckEstado } from "../lib/trucks-table.utils";
 
 type EditTruckFormState = {
   Placa: string;
@@ -311,27 +301,11 @@ export const EditTruckDialog = ({
 
               <div className="space-y-1.5">
                 <Label htmlFor="edit-truck-estado">Estado</Label>
-                <Select
+                <Input
+                  id="edit-truck-estado"
                   value={form.Estado}
-                  onValueChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      Estado: value as TruckEstado,
-                    }))
-                  }
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id="edit-truck-estado" className="w-full">
-                    <SelectValue placeholder="Selecciona estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRUCK_ESTADO_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  disabled
+                />
               </div>
 
               <div className="space-y-1.5">

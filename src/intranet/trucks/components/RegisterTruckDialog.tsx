@@ -12,17 +12,9 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { trucksBaseApi } from "../api/trucks.base.api";
 import type { RegisterTruckPayload, TruckEstado } from "../interfaces/truck.interface";
-import { TRUCK_ESTADO_OPTIONS } from "../lib/trucks-table.utils";
 
 type RegisterTruckFormState = {
   Placa: string;
@@ -30,7 +22,6 @@ type RegisterTruckFormState = {
   ano_fabricacion: string;
   modelo: string;
   color: string;
-  Estado: TruckEstado | "";
   caracteristicas: string;
   revision_tecnica: string;
   fecha_prox_revision: string;
@@ -49,7 +40,6 @@ const INITIAL_FORM: RegisterTruckFormState = {
   ano_fabricacion: "",
   modelo: "",
   color: "",
-  Estado: "",
   caracteristicas: "",
   revision_tecnica: "",
   fecha_prox_revision: "",
@@ -86,7 +76,6 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
       form.nombre,
       form.modelo,
       form.color,
-      form.Estado,
       form.caracteristicas,
       form.revision_tecnica,
       form.tarjeta_propiedad,
@@ -138,7 +127,7 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
       ano_fabricacion: Number(form.ano_fabricacion),
       modelo: form.modelo.trim(),
       color: form.color.trim(),
-      Estado: form.Estado as TruckEstado,
+      Estado: "Operacional" as TruckEstado,
       caracteristicas: form.caracteristicas.trim(),
       revision_tecnica: form.revision_tecnica.trim(),
       fecha_prox_revision: form.fecha_prox_revision,
@@ -262,31 +251,6 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
                 required
                 disabled={isSubmitting}
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="truck-estado">Estado</Label>
-              <Select
-                value={form.Estado}
-                onValueChange={(value) =>
-                  setForm((current) => ({
-                    ...current,
-                    Estado: value as TruckEstado,
-                  }))
-                }
-                disabled={isSubmitting}
-              >
-                <SelectTrigger id="truck-estado" className="w-full">
-                  <SelectValue placeholder="Selecciona estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRUCK_ESTADO_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-1.5">
