@@ -27,6 +27,7 @@ import {
   FileText,
   LayoutDashboard,
   Receipt,
+  Truck,
 } from "lucide-react";
 import type { UserRole } from "@/security/session/interfaces/roles";
 
@@ -35,6 +36,7 @@ const lucideIconMap: Record<string, LucideIcon> = {
   ClipboardList,
   Receipt,
   BriefcaseBusiness,
+  Truck,
 };
 
 export function NavMain({ userRole }: { userRole: UserRole }) {
