@@ -26,3 +26,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.playwright-mcp
+step1-loaded.png
+step2-after-fix.png
+step2-after-token.png
+step3-after-date-click.png
+step4-after-day-click.png

@@ -51,4 +51,10 @@ export const sidebarLinks: IMenu[] = [
     url: "/intranet/solicitudes/mis-solicitudes",
     icon: "Receipt",
   },
+  {
+    title: "Organizar Personal",
+    roles: ["ADMIN"],
+    url: "/intranet/organizar-personal",
+    icon: "CalendarDays",
+  },
 ];
