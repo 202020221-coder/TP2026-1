@@ -40,7 +40,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
         {/* Nombre */}
         <TableCell className="font-medium py-3">
-          {project.descripcion_servicio}
+          {project.Cotizacion_Nombre}
         </TableCell>
 
         {/* Fecha inicio */}

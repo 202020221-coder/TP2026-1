@@ -1,6 +1,6 @@
 export const ProjectStatesRecord = {
   pending: "Pendiente",
-  inExecution: "En ejecución",
+  inExecution: "En Ejecución",
   completed: "Completado",
   legalProcess: "En proceso legal",
   cancelled: "Cancelado",
