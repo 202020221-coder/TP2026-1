@@ -29,12 +29,7 @@ const defaultState = () => ({
 export const createConditionsStore = (initialData?: ConditionState) =>
   createStore<ConditionsStore>((set) => ({
     ...defaultState(),
-    ...(initialData
-      ? {
-          emissionDate: fromISOToDate(initialData.emissionDate),
-          expirationDate: fromISOToDate(initialData.expirationDate),
-        }
-      : {}),
+    ...initialData,
     initialized: false,
     update: (field, value) =>
       set(() => ({
@@ -43,7 +38,3 @@ export const createConditionsStore = (initialData?: ConditionState) =>
     initialize: (data) => set((s) => ({ ...s, ...data, initialized: true })),
     reset: () => set(defaultState),
   }));
-
-// 🔹 helpers
-const fromISOToDate = (iso: string) => iso.slice(0, 10);
-// const toISODateTime = (date: string) => `${date}T00:00:00.000Z`;

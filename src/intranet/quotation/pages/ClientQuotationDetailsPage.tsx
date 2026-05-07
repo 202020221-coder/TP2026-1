@@ -8,7 +8,7 @@ import type { FC } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 
-export function QuotationDetailsClientPage() {
+export function ClientQuotationDetailsPage() {
   const navigate = useNavigate();
   const params = useParams();
   const quotationId = Number(params["quotationId"]);

@@ -6,36 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { useEffect, useMemo, useState, type FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
-import type { Order } from "@/intranet/orders/interfaces/order";
-import { useQuery } from "@tanstack/react-query";
-import { getOrderProducts } from "@/intranet/orders/api/order.api";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddProductsDialog } from "./AddProductsDialog";
 import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-inventory-intention";
-export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
-  orderId,
-}) => {
+export const CreateQuotationProductsSection: FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { data, isError, isPending } = useQuery({
-    queryKey: ["products", "order", orderId], //clave identificadora de la consulta
-    queryFn: () => getOrderProducts(orderId),
-    staleTime: Infinity,
-  });
   const items = useQuotationProductStore((s) => s.items);
-  const initialized = useQuotationProductStore((s) => s.initialized);
   const deleteItem = useQuotationProductStore((s) => s.removeItem);
   const updateItem = useQuotationProductStore((s) => s.updateItem);
-  const initialize = useQuotationProductStore((s) => s.initialize);
   const addItems = useQuotationProductStore((s) => s.addItems);
-  useEffect(() => {
-    if (data && !initialized) {
-      initialize(data);
-    }
-  }, [initialize, data]);
-
   const products = useMemo(() => {
     return Object.values(items);
   }, [items]);
@@ -60,7 +42,7 @@ export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
         >
           <Plus /> Agregar Productos
         </Button>
-        <AddProductsDialog
+        {/* <AddProductsDialog
           addHandler={(items) =>
             addItems(
               items.map((i) => ({
@@ -74,10 +56,10 @@ export const CreateQuotationProductsSection: FC<{ orderId: Order["ID"] }> = ({
           }
           onOpenChange={setIsDialogOpen}
           open={isDialogOpen}
-        />
+        /> */}
         <QuotationProductsTable
-          isPending={isPending}
-          isError={isError}
+          isPending={false}
+          isError={false}
           items={products}
           onDelete={deleteItem}
           onUpdateQuantity={(id, quantity) =>

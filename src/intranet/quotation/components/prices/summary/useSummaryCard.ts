@@ -24,7 +24,7 @@ export const useSummaryCard = (rateQueryFn?: () => Promise<ExchangeRate>) => {
     if (rateQuery.data && !rateInitialized) {
       initializeRate(rateQuery.data);
     }
-  }, [rateQuery.data]);
+  }, [rateQuery.data, rateInitialized]);
 
   const subtotal = useMemo(() => {
     return Object.values(products).reduce(

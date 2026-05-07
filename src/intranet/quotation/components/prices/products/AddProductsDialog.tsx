@@ -23,6 +23,7 @@ import { type SelectInventoryFormType } from "@/intranet/quotation/schemas/addIn
 import type { InventoryItem } from "@/intranet/quotation/interfaces/create/order-inventory";
 import {
   Controller,
+  useWatch,
   type Control,
   type FieldArrayWithId,
 } from "react-hook-form";
@@ -63,7 +64,6 @@ export const AddProductsDialog: FC<AddProductsDialogProps> = ({
   } = useAddProductsDialog(open, onOpenChange, addHandler);
 
   const { isPending, isError, data } = queryInventory;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] min-w-11/12 max-w-5xl flex-col gap-5 p-0">
@@ -277,6 +277,8 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
   onRemoveItem,
   control,
 }) => {
+
+  // const watch = useWatch({control, name:`items.${index}.intencion`})
   if (selectedItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">

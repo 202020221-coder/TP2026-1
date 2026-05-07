@@ -2,6 +2,7 @@ import sleep from "@/shared/lib/sleep";
 import type { Quotation, QuotationProduct } from "../interfaces/quotation";
 import axiosInstance from "@/shared/api/axios.config";
 import type {
+  CreateQuotationBody,
   GetQuotationResponse,
   GetQuotationsResponse,
 } from "../interfaces/responses.dto";
@@ -46,6 +47,10 @@ export const getQuotationProducts = async (
 ): Promise<QuotationProduct[]> => {
   await sleep(4000);
   return productosMock;
+};
+
+export const createQuotation = async (data: CreateQuotationBody) => {
+  await axiosInstance.post("/cotizaciones", data);
 };
 
 const productosMock: QuotationProduct[] = [
