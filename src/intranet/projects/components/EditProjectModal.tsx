@@ -82,9 +82,9 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
           <div className="flex flex-col gap-1">
             <Label>Nombre del servicio</Label>
             <Input
-              value={form.descripcion_servicio ?? ""}
+              value={form.Cotizacion_Nombre ?? ""}
               onChange={(e) =>
-                setForm({ ...form, descripcion_servicio: e.target.value })
+                setForm({ ...form, Cotizacion_Nombre: e.target.value })
               }
             />
           </div>
@@ -106,7 +106,13 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
           {/* Descripción del servicio */}
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Descripción del servicio</Label>
-            <Textarea rows={3} />
+            <Textarea
+              rows={3}
+              value={form.descripcion_servicio ?? ""}
+              onChange={(e) =>
+                setForm({ ...form, descripcion_servicio: e.target.value })
+              }
+            />
           </div>
 
           {/* Ubicación */}

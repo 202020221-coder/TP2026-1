@@ -10,62 +10,24 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import type { Project } from "../interfaces/project";
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  type ProjectState,
-  ProjectStatesRecord,
-} from "../enum/project-state.record";
-import { updateProjectState } from "../api/project.api";
+import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: updateProjectState,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
-    },
-  });
-
   const [modalOpen, setModalOpen] = useState(false);
 
   const statusStyles = new Map<ProjectState, string>([
-    [
-      ProjectStatesRecord.pending,
-      "bg-yellow-100 text-yellow-700 border-yellow-300",
-    ],
-    [
-      ProjectStatesRecord.inExecution,
-      "bg-blue-100 text-blue-700 border-blue-300",
-    ],
-    [
-      ProjectStatesRecord.completed,
-      "bg-green-100 text-green-700 border-green-300",
-    ],
-    [
-      ProjectStatesRecord.legalProcess,
-      "bg-red-100 text-red-700 border-red-300",
-    ],
-    [
-      ProjectStatesRecord.cancelled,
-      "bg-gray-100 text-gray-600 border-gray-300",
-    ],
+    [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
+    [ProjectStatesRecord.inExecution, "bg-blue-100 text-blue-700 border-blue-300"],
+    [ProjectStatesRecord.completed, "bg-green-100 text-green-700 border-green-300"],
+    [ProjectStatesRecord.legalProcess, "bg-red-100 text-red-700 border-red-300"],
+    [ProjectStatesRecord.cancelled, "bg-gray-100 text-gray-600 border-gray-300"],
   ]);
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+  const formatDate = (dateStr: string) => {
+    const [datePart] = dateStr.split("T");
+    const [year, month, day] = datePart.split("-");
+    return `${day}/${month}/${year}`;
+  };
 
   return (
     <>
@@ -96,28 +58,11 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
 
         {/* Estado */}
         <TableCell>
-          <Select
-            defaultValue={project.estado}
-            onValueChange={(value) => {
-              mutation.mutate({
-                id: project.id_Proyecto,
-                newState: value as ProjectState,
-              });
-            }}
+          <span
+            className={`block mx-auto w-fit rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(project.estado) ?? ""}`}
           >
-            <SelectTrigger
-              className={`w-fit rounded-full px-3 py--1 text-[13px] font-medium border mx-auto ${statusStyles.get(project.estado) ?? ""}`}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(ProjectStatesRecord).map((estado) => (
-                <SelectItem key={estado} value={estado}>
-                  {estado}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {project.estado}
+          </span>
         </TableCell>
 
         {/* Trabajadores */}
