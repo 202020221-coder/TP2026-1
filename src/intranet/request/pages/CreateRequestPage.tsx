@@ -2,100 +2,44 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { z } from 'zod';
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Textarea } from "@/shared/components/ui/textarea";
-import { Truck, ShoppingCart, Trash2, Plus, Minus, Calendar } from "lucide-react";
 import { useDataFetching } from '../hooks/useDataFetching';
-import type { PostClientContactDTO, PostClientDTO, PostClientPerfilDTO, PostRequestDTO, PostRequestInventoryDTO, PostRequestServiceDTO, UpdateRequestDTO } from '../interfaces';
-import { CreateClient, CreateClientContact, CreateClientPerfil, CreateRequest, CreateRequestInventory, CreateRequestService, UpdateRequest } from '../api';
 import {
-    clientTypeSchema,
-    preferencesDataSchema,
-    selectedProductsSchema,
-    selectedTrucksSchema,
-} from '../schemas/create-request.schema';
-
-const dniRegex = /^\d{8}$/;
-const rucRegex = /^\d{11}$/;
-const phoneRegex = /^\d{9}$/;
-
-const clientStepSchema = z.object({
-    DNI_O_RUC: z
-        .string()
-        .trim()
-        .refine((value) => dniRegex.test(value) || rucRegex.test(value), {
-            message: 'El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC).',
-        }),
-    nombre_comercial: z
-        .string()
-        .trim()
-        .min(2, 'Nombre comercial debe tener al menos 2 caracteres')
-        .max(100, 'Máximo 100 caracteres permitidos'),
-    razon_social: z
-        .string()
-        .trim()
-        .min(2, 'Razón social debe tener al menos 2 caracteres')
-        .max(100, 'Máximo 100 caracteres permitidos'),
-    rubro: z
-        .string()
-        .trim()
-        .min(2, 'Rubro debe tener al menos 2 caracteres')
-        .max(100, 'Máximo 100 caracteres permitidos'),
-    ubicacion_facturacion: z
-        .string()
-        .trim()
-        .min(5, 'Ubicación de facturación debe tener al menos 5 caracteres')
-        .max(250, 'Máximo 250 caracteres permitidos'),
-    observacion: z
-        .string()
-        .trim()
-        .max(500, 'Máximo 500 caracteres permitidos')
-        .optional()
-        .or(z.literal('')),
-});
-
-const requesterStepSchema = z.object({
-    DNI: z.string().trim().regex(dniRegex, 'DNI debe tener 8 dígitos'),
-    Nombre: z
-        .string()
-        .trim()
-        .min(2, 'Nombre debe tener al menos 2 caracteres')
-        .max(50, 'Máximo 50 caracteres permitidos'),
-    Apellido: z
-        .string()
-        .trim()
-        .min(2, 'Apellido debe tener al menos 2 caracteres')
-        .max(50, 'Máximo 50 caracteres permitidos'),
-    correo_contacto: z.string().trim().email('Correo electrónico inválido'),
-    telefono_contacto: z.string().trim().regex(phoneRegex, 'Teléfono debe tener 9 dígitos'),
-    cargo_en_empresa: z
-        .string()
-        .trim()
-        .max(50, 'Máximo 50 caracteres permitidos')
-        .optional()
-        .or(z.literal('')),
-    lugar_trabajo: z
-        .string()
-        .trim()
-        .max(250, 'Máximo 250 caracteres permitidos')
-        .optional()
-        .or(z.literal('')),
-});
-
-const serviceStepSchema = z.object({
-    descripcion: z
-        .string()
-        .trim()
-        .min(20, 'Describa con más detalle (mínimo 20 caracteres)')
-        .max(1000, 'Máximo 1000 caracteres permitidos'),
-    ubicacion: z
-        .string()
-        .trim()
-        .min(10, 'Mínimo 10 caracteres requeridos')
-        .max(250, 'Máximo 250 caracteres permitidos'),
-});
+    CreateClient,
+    CreateClientContact,
+    CreateClientPerfil,
+    CreateRequest,
+    CreateRequestInventory,
+    CreateRequestService,
+    UpdateRequest,
+} from '../api';
+import {
+    StepCatalogSelection,
+    StepClientData,
+    StepClientType,
+    StepPreferences,
+    StepRequesterData,
+    StepServiceData,
+    StepTruckSelection,
+} from '../components/create';
+import type {
+    PostClientContactDTO,
+    PostClientDTO,
+    PostClientPerfilDTO,
+    PostRequestDTO,
+    PostRequestInventoryDTO,
+    PostRequestServiceDTO,
+    UpdateRequestDTO,
+    ClientFormData,
+    ClientOption,
+    ContactFormData,
+    PerfilFormData,
+    PreferencesData,
+    SelectedProduct,
+    SelectedTruck,
+    ServiceFormData,
+    TruckOption,
+} from '../interfaces';
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
@@ -104,7 +48,6 @@ export function CreateRequestPage() {
     const [createdClientId, setCreatedClientId] = useState<number | null>(null);
     const [createdRequestId, setCreatedRequestId] = useState<number | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [perfilPayload, setPerfilPayload] = useState<PostClientPerfilDTO | null>(null);
 
 
@@ -179,7 +122,13 @@ export function CreateRequestPage() {
             }
 
             console.log("Solicitud creada:", requestResponse);
-            return requestResponse.id;
+
+            const requestId = requestResponse.ID ?? requestResponse.id ?? null;
+            if (requestId) {
+                setCreatedRequestId(requestId);
+            }
+
+            return requestId;
         } catch (error) {
             console.error("Error inesperado al crear solicitud:", error);
             return null;
@@ -238,7 +187,7 @@ export function CreateRequestPage() {
             console.error("Error inesperado:", error);
         }
     };
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ClientFormData>({
         DNI_O_RUC: '',
         nombre_comercial: '',
         razon_social: '',
@@ -246,7 +195,7 @@ export function CreateRequestPage() {
         ubicacion_facturacion: '',
         observacion: '',
     });
-    const [perfilData, setPerfilData] = useState({
+    const [perfilData, setPerfilData] = useState<PerfilFormData>({
         DNI: '',
         Nombre: '',
         Apellido: '',
@@ -254,12 +203,12 @@ export function CreateRequestPage() {
         correo_contacto: '',
         telefono_contacto: '',
     });
-    const [contactData, setContactData] = useState({
+    const [contactData, setContactData] = useState<ContactFormData>({
         DNI_perfil: '',
         cargo_en_empresa: '',
         lugar_trabajo: '',
     });
-    const [serviceData, setServiceData] = useState({
+    const [serviceData, setServiceData] = useState<ServiceFormData>({
         Id_Cliente: '',
         descripcion: '',
         ubicacion: '',
@@ -270,36 +219,16 @@ export function CreateRequestPage() {
         estado: '',
         Respuesta: '',
     });
-    interface SelectedProduct {
-        id: string; // Unique ID for cart item
-        productId: string;
-        name: string;
-        category?: string;
-        intent: 'alquilar' | 'comprar';
-        days?: number;
-        quantity: number;
-    }
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
 
-    // Nueva pestaña 6: Selección de Camiones
-    interface SelectedTruck {
-        id: string; // Unique ID for cart item
-        truckId?: string;
-        name: string;
-        description?: string;
-        intent: 'alquilar' | 'comprar';
-        quantity: number;
-        days?: number;
-        price?: number | string;
-    }
     const [selectedTrucks, setSelectedTrucks] = useState<SelectedTruck[]>([]);
 
-    const [preferencesData, setPreferencesData] = useState({
+    const [preferencesData, setPreferencesData] = useState<PreferencesData>({
         generalObservations: '',
         selectionObservations: '',
     });
 
-    const clientOptions = [
+    const clientOptions: ClientOption[] = [
         {
             id: 'jurídica',
             label: 'Jurídica',
@@ -359,7 +288,7 @@ export function CreateRequestPage() {
         setSelectedProducts((prev) => prev.filter(prod => prod.id !== id));
     };
 
-    const truckOptions = (services ?? []).map((s) => {
+    const truckOptions: TruckOption[] = (services ?? []).map((s) => {
         const rawId = (s as any).ID_Servicio ?? (s as any).Id_Objeto ?? (s as any).id ?? Date.now();
         const name = (s as any).nombre ?? (s as any).nombre_objeto ?? (s as any).Fabricante_Nombre ?? `Servicio ${rawId}`;
         const description = (s as any).descripcion ?? (s as any).observaciones ?? '';
@@ -421,48 +350,29 @@ export function CreateRequestPage() {
         setSelectedTrucks((prev) => prev.filter(truck => truck.id !== id));
     };
 
-    const validateCurrentStep = () => {
-        if (currentStep === 1) {
-            const result = clientTypeSchema.safeParse(clientType);
-            return result.success ? null : result.error.issues[0]?.message ?? 'Seleccione un tipo de cliente.';
-        }
+    const handleFormDataChange = (field: keyof ClientFormData, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+    };
 
-        if (currentStep === 2) {
-            const result = clientStepSchema.safeParse(formData);
-            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del cliente.';
-        }
+    const handlePerfilDataChange = (field: keyof PerfilFormData, value: string) => {
+        setPerfilData((prev) => ({ ...prev, [field]: value }));
+    };
 
-        if (currentStep === 3) {
-            const result = requesterStepSchema.safeParse({
-                DNI: perfilData.DNI,
-                Nombre: perfilData.Nombre,
-                Apellido: perfilData.Apellido,
-                correo_contacto: perfilData.correo_contacto,
-                telefono_contacto: perfilData.telefono_contacto,
-                cargo_en_empresa: contactData.cargo_en_empresa,
-                lugar_trabajo: contactData.lugar_trabajo,
-            });
+    const handleContactDataChange = (field: keyof ContactFormData, value: string) => {
+        setContactData((prev) => ({ ...prev, [field]: value }));
+    };
 
-            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del solicitante.';
-        }
+    const handleServiceDataChange = (field: keyof ServiceFormData, value: string) => {
+        setServiceData((prev) => ({ ...prev, [field]: value }));
+    };
 
-        if (currentStep === 4) {
-            const result = serviceStepSchema.safeParse(serviceData);
-            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del servicio.';
-        }
+    const handlePreferencesDataChange = (field: keyof PreferencesData, value: string) => {
+        setPreferencesData((prev) => ({ ...prev, [field]: value }));
+    };
 
-        if (currentStep === 5) {
-            const result = selectedProductsSchema.safeParse(selectedProducts);
-            return result.success ? null : result.error.issues[0]?.message ?? 'Revise la selección de productos.';
-        }
-
-        if (currentStep === 6) {
-            const result = selectedTrucksSchema.safeParse(selectedTrucks);
-            return result.success ? null : result.error.issues[0]?.message ?? 'Revise la selección de camiones.';
-        }
-
-        const result = preferencesDataSchema.safeParse(preferencesData);
-        return result.success ? null : result.error.issues[0]?.message ?? 'Revise las preferencias.';
+    const handleDniChange = (dni: string) => {
+        setPerfilData((prev) => ({ ...prev, DNI: dni }));
+        setContactData((prev) => ({ ...prev, DNI_perfil: dni }));
     };
 
     return (
@@ -530,553 +440,66 @@ export function CreateRequestPage() {
                     </div>
                 )}
 
-                {validationMessage && (
-                    <div className="mb-6 rounded border border-amber-200 bg-amber-50 p-4">
-                        <p className="text-sm text-amber-800">{validationMessage}</p>
-                    </div>
-                )}
-
-                Client Type Selection
                 {currentStep === 1 && (
-                    <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center">Selecciona el Tipo de Cliente</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                            {clientOptions.map((option) => (
-                                <label
-                                    key={option.id}
-                                    className={`relative flex items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 ${clientType === option.id
-                                        ? 'border-blue-500 bg-blue-50 shadow-md transform scale-[1.02]'
-                                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
-                                        }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="clientType"
-                                        value={option.id}
-                                        checked={clientType === option.id}
-                                        onChange={(e) => setClientType(e.target.value as 'jurídica' | 'física')}
-                                        className="w-5 h-5 text-blue-500 cursor-pointer accent-blue-500"
-                                    />
-                                    <div className="ml-4 flex-1">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-3xl">{option.icon}</span>
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{option.label}</p>
-                                                <p className="text-sm text-gray-500">{option.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                    <StepClientType
+                        clientType={clientType}
+                        clientOptions={clientOptions}
+                        onClientTypeChange={setClientType}
+                    />
                 )}
 
                 {currentStep === 2 && clientType && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                            Datos de la {clientType === 'jurídica' ? 'Empresa' : 'Empresa'}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Completa la informacion requerida para continuar.
-                        </p>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    {clientType === 'jurídica' ? 'RUC' : 'RUC'}
-                                </label>
-                                <Input
-                                    value={formData.DNI_O_RUC}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, DNI_O_RUC: e.target.value }))}
-                                    placeholder={clientType === 'jurídica' ? 'Ej: 20512345678' : 'Ej: 74157562'}
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Nombre Comercial
-                                </label>
-                                <Input
-                                    value={formData.nombre_comercial}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, nombre_comercial: e.target.value }))}
-                                    placeholder="Ej: Transportes del Norte"
-                                    disabled={clientType === 'jurídica'}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Razon Social
-                                </label>
-                                <Input
-                                    value={formData.razon_social}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, razon_social: e.target.value }))}
-                                    placeholder={clientType === 'jurídica' ? 'Ej: 20123456789' : 'Ej: 12345678'}
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Rubro
-                                </label>
-                                <Input
-                                    value={formData.rubro}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, rubro: e.target.value }))}
-                                    placeholder="Ej: Transporte de carga"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Ubicación de Facturación
-                                </label>
-                                <Input
-                                    value={formData.ubicacion_facturacion}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, ubicacion_facturacion: e.target.value }))}
-                                    placeholder="Ej: Surco, Lima"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Observación
-                                </label>
-                                <Textarea
-                                    value={formData.observacion}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, observacion: e.target.value }))}
-                                    placeholder="Observaciones adicionales sobre el cliente (opcional)"
-                                    className="min-h-9"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <StepClientData
+                        clientType={clientType}
+                        formData={formData}
+                        onFormDataChange={handleFormDataChange}
+                    />
                 )}
 
                 {currentStep === 3 && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                            Datos del Solicitante del Servicio
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Ingresa la informacion de la persona que solicita el servicio.
-                        </p>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Nombre
-                                </label>
-                                <Input
-                                    value={perfilData.Nombre}
-                                    onChange={(e) => setPerfilData((prev) => ({ ...prev, Nombre: e.target.value }))}
-                                    placeholder="Ej: Maria"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Apellido
-                                </label>
-                                <Input
-                                    value={perfilData.Apellido}
-                                    onChange={(e) => setPerfilData((prev) => ({ ...prev, Apellido: e.target.value }))}
-                                    placeholder="Ej: Gomez"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    DNI
-                                </label>
-                                <Input
-                                    value={perfilData.DNI}
-                                    onChange={(e) => {
-                                        const dni = e.target.value;
-                                        setPerfilData((prev) => ({ ...prev, DNI: dni }));
-                                        setContactData((prev) => ({ ...prev, DNI_perfil: dni }));
-                                    }}
-                                    placeholder="Ej: 12345678"
-                                    maxLength={8}
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Email
-                                </label>
-                                <Input
-                                    type="email"
-                                    value={perfilData.correo_contacto}
-                                    onChange={(e) => setPerfilData((prev) => ({ ...prev, correo_contacto: e.target.value }))}
-                                    placeholder="correo@dominio.com"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Celular
-                                </label>
-                                <Input
-                                    value={perfilData.telefono_contacto}
-                                    onChange={(e) => setPerfilData((prev) => ({ ...prev, telefono_contacto: e.target.value }))}
-                                    placeholder="Ej: 987654321"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Cargo
-                                </label>
-                                <Input
-                                    value={contactData.cargo_en_empresa}
-                                    onChange={(e) => setContactData((prev) => ({ ...prev, cargo_en_empresa: e.target.value }))}
-                                    placeholder="Ej: Jefe de Operaciones"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Direccion de Trabajo
-                            </label>
-                            <Textarea
-                                value={contactData.lugar_trabajo}
-                                onChange={(e) => setContactData((prev) => ({ ...prev, lugar_trabajo: e.target.value }))}
-                                placeholder="Calle, numero, distrito"
-                                className="min-h-20"
-                            />
-                        </div>
-                    </div>
+                    <StepRequesterData
+                        perfilData={perfilData}
+                        contactData={contactData}
+                        onPerfilDataChange={handlePerfilDataChange}
+                        onContactDataChange={handleContactDataChange}
+                        onDniChange={handleDniChange}
+                    />
                 )}
 
                 {currentStep === 4 && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                            Datos del Servicio
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Ingresa la informacion del servicio solicitado.
-                        </p>
-
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Descripcion del servicio a detalle
-                            </label>
-                            <Textarea
-                                value={serviceData.descripcion}
-                                onChange={(e) => setServiceData((prev) => ({ ...prev, descripcion: e.target.value }))}
-                                placeholder="Describe el servicio requerido (minimo 20 caracteres)"
-                                className="min-h-24"
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Direccion del lugar
-                            </label>
-                            <Textarea
-                                value={serviceData.ubicacion}
-                                onChange={(e) => setServiceData((prev) => ({ ...prev, ubicacion: e.target.value }))}
-                                placeholder="Calle, numero, distrito"
-                                className="min-h-20"
-                            />
-                        </div>
-                    </div>
+                    <StepServiceData
+                        serviceData={serviceData}
+                        onServiceDataChange={handleServiceDataChange}
+                    />
                 )}
 
                 {currentStep === 5 && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                            {/* Panel Izquierdo: Catálogo de Productos */}
-                            <div className="lg:col-span-7">
-                                <h3 className="text-xl font-semibold text-gray-800 mb-2">Selección de Catálogo</h3>
-                                <p className="text-sm text-gray-500 mb-6">Busca y selecciona los productos que deseas alquilar o comprar.</p>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                    {catalogOptions.map(product => (
-                                        <div key={product.id} className="border border-gray-200 rounded-xl bg-white p-4 flex flex-col items-center shadow-sm hover:shadow-md transition-all">
-                                            <div className="flex items-center justify-center w-24 h-24 mb-4 text-blue-500">
-                                                {/* Placeholder for real product image */}
-                                                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-[10px] text-center font-semibold uppercase p-2 border-2 border-blue-100">
-                                                    {product.category || 'Catálogo'}
-                                                </div>
-                                            </div>
-                                            <h4 className="font-semibold text-gray-800 text-center mb-1 min-h-10 text-sm">{product.name}</h4>
-                                            <p className="text-[10px] text-gray-400 text-center mb-4 min-h-[30px]">Garantía: {product.garantia}</p>
-                                            <h4 className="font-semibold text-gray-800 text-center mb-1 min-h-10 text-sm">{product.precio_comercial}</h4>
-                                            <div className="flex w-full gap-2 mt-auto">
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 text-xs px-2"
-                                                    onClick={() => addProductToCart(product.id, product.name, 'alquilar', product.category)}
-                                                >
-                                                    Alquilar
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 text-xs px-2"
-                                                    onClick={() => addProductToCart(product.id, product.name, 'comprar', product.category)}
-                                                >
-                                                    Comprar
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Panel Derecho: Carrito de Selección */}
-                            <div className="lg:col-span-5 flex flex-col h-full border-l border-gray-200 lg:pl-8 mt-8 lg:mt-0">
-                                <div className="flex items-center gap-2 mb-6">
-                                    <ShoppingCart className="text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-800">Selección del catálogo</h3>
-                                    <span className="ml-auto bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                                        {selectedProducts.length}
-                                    </span>
-                                </div>
-
-                                {selectedProducts.length === 0 ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 min-h-[300px]">
-                                        <ShoppingCart size={48} className="mb-4 opacity-20" />
-                                        <p>No hay productos seleccionados</p>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {selectedProducts.map(item => (
-                                            <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative animate-in fade-in">
-                                                <button
-                                                    onClick={() => removeProduct(item.id)}
-                                                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-
-                                                <h4 className="font-bold text-gray-800 text-xs w-10/12 uppercase">{item.name}</h4>
-                                                <p className="text-[10px] text-gray-500 mb-2">{item.category}</p>
-
-                                                <div className="mt-2 space-y-2 text-sm">
-                                                    <div className="flex items-center text-gray-600">
-                                                        <span className="w-16 font-medium">Intención:</span>
-                                                        <span className="capitalize bg-white px-2 py-0.5 rounded text-xs border border-gray-200">
-                                                            {item.intent}
-                                                        </span>
-                                                    </div>
-
-                                                    {item.intent === 'alquilar' && (
-                                                        <div className="flex items-center text-gray-600">
-                                                            <span className="w-16 font-medium">Días:</span>
-                                                            <div className="relative">
-                                                                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                                                                <Input
-                                                                    type="number"
-                                                                    min={1}
-                                                                    value={item.days}
-                                                                    onChange={(e) => updateProductDays(item.id, e.target.value)}
-                                                                    className="h-7 w-20 text-center text-xs pl-8 bg-white"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex items-center text-gray-600">
-                                                        <span className="w-16 font-medium">Cantidad:</span>
-                                                        <div className="flex items-center bg-white rounded border border-gray-200">
-                                                            <button
-                                                                className="px-2 py-1 hover:bg-gray-100 rounded-l transition-colors"
-                                                                onClick={() => updateProductQuantity(item.id, -1)}
-                                                            >
-                                                                <Minus size={14} />
-                                                            </button>
-                                                            <span className="px-2 font-semibold text-xs w-8 text-center bg-gray-50 border-x border-gray-100">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                className="px-2 py-1 hover:bg-gray-100 rounded-r transition-colors"
-                                                                onClick={() => updateProductQuantity(item.id, 1)}
-                                                            >
-                                                                <Plus size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    <StepCatalogSelection
+                        catalogOptions={catalogOptions}
+                        selectedProducts={selectedProducts}
+                        onAddProduct={addProductToCart}
+                        onUpdateProductDays={updateProductDays}
+                        onUpdateProductQuantity={updateProductQuantity}
+                        onRemoveProduct={removeProduct}
+                    />
                 )}
 
-                {/* NUEVO PASO: Selección de Camiones */}
                 {currentStep === 6 && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                            {/* Panel Izquierdo: Catálogo de Camiones */}
-                            <div className="lg:col-span-7">
-                                <h3 className="text-xl font-semibold text-gray-800 mb-2">Selección de Camiones</h3>
-                                <p className="text-sm text-gray-500 mb-6">Busca y selecciona los camiones que deseas alquilar o comprar.</p>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                    {truckOptions.map(truck => (
-                                        <div
-                                            key={truck.id}
-                                            className="group relative overflow-hidden border border-gray-200 rounded-2xl bg-white p-5 flex flex-col items-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
-                                        >
-                                            <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-sky-400 to-cyan-300 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                                            <div className="flex items-center justify-center w-24 h-24 bg-linear-to-br from-slate-50 to-blue-50 rounded-full mb-4 text-blue-600 ring-1 ring-blue-100">
-                                                <Truck size={40} className="transition-transform duration-300 group-hover:scale-110" />
-                                            </div>
-                                            <h4 className="mb-2 min-h-12 text-center text-sm font-bold leading-snug text-gray-900">
-                                                {truck.name}
-                                            </h4>
-                                            <p className="mb-4 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
-                                                {truck.description || 'Descripción no disponible por ahora.'}
-                                            </p>
-                                            <div className="mb-5 inline-flex items-center rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-gray-800">
-                                                {truck.price || 'Precio por definir'}
-                                            </div>
-                                            <div className="flex w-full gap-2 mt-auto">
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 text-xs px-2"
-                                                    onClick={() => addTruckToCart(truck.id, truck.name, 'alquilar', truck.price, truck.description)}
-                                                >
-                                                    Alquilar
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 text-xs px-2"
-                                                    onClick={() => addTruckToCart(truck.id, truck.name, 'comprar', truck.price, truck.description)}
-                                                >
-                                                    Comprar
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Panel Derecho: Carrito de Selección */}
-                            <div className="lg:col-span-5 flex flex-col h-full border-l border-gray-200 lg:pl-8 mt-8 lg:mt-0">
-                                <div className="flex items-center gap-2 mb-6">
-                                    <ShoppingCart className="text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-800">Selección del catálogo</h3>
-                                    <span className="ml-auto bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                                        {selectedTrucks.length}
-                                    </span>
-                                </div>
-
-                                {selectedTrucks.length === 0 ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 min-h-[300px]">
-                                        <Truck size={48} className="mb-4 opacity-20" />
-                                        <p>No hay camiones seleccionados</p>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                        {selectedTrucks.map(item => (
-                                            <div key={item.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative animate-in fade-in">
-                                                <button
-                                                    onClick={() => removeTruck(item.id)}
-                                                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-
-                                                <h4 className="font-bold text-gray-800 text-sm w-10/12 uppercase">{item.name}</h4>
-
-                                                <div className="mt-2 space-y-2 text-sm">
-                                                    <div className="flex items-center text-gray-600">
-                                                        <span className="w-20 font-medium">Intención:</span>
-                                                        <span className="capitalize bg-white px-2 py-0.5 rounded text-xs border border-gray-200">
-                                                            {item.intent}
-                                                        </span>
-                                                    </div>
-
-                                                    {item.intent === 'alquilar' && (
-                                                        <div className="flex items-center text-gray-600">
-                                                            <span className="w-20 font-medium">Días:</span>
-                                                            <div className="relative">
-                                                                <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                                                                <Input
-                                                                    type="number"
-                                                                    min={1}
-                                                                    value={item.days}
-                                                                    onChange={(e) => updateTruckDays(item.id, e.target.value)}
-                                                                    className="h-7 w-24 text-center text-xs pl-8 bg-white"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex items-center text-gray-600">
-                                                        <span className="w-20 font-medium">Cantidad:</span>
-                                                        <div className="flex items-center bg-white rounded border border-gray-200">
-                                                            <button
-                                                                className="px-2 py-1 hover:bg-gray-100 rounded-l transition-colors"
-                                                                onClick={() => updateTruckQuantity(item.id, -1)}
-                                                            >
-                                                                <Minus size={14} />
-                                                            </button>
-                                                            <span className="px-3 font-semibold text-sm w-8 text-center bg-gray-50 border-x border-gray-100">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                className="px-2 py-1 hover:bg-gray-100 rounded-r transition-colors"
-                                                                onClick={() => updateTruckQuantity(item.id, 1)}
-                                                            >
-                                                                <Plus size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    <StepTruckSelection
+                        truckOptions={truckOptions}
+                        selectedTrucks={selectedTrucks}
+                        onAddTruck={addTruckToCart}
+                        onUpdateTruckDays={updateTruckDays}
+                        onUpdateTruckQuantity={updateTruckQuantity}
+                        onRemoveTruck={removeTruck}
+                    />
                 )}
 
                 {currentStep === 7 && (
-                    <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-1">
-                            Preferencias Finales
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Completa las observaciones para finalizar la solicitud.
-                        </p>
-
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Observaciones generales
-                            </label>
-                            <Textarea
-                                value={preferencesData.generalObservations}
-                                onChange={(e) => setPreferencesData((prev) => ({ ...prev, generalObservations: e.target.value }))}
-                                placeholder="Escribe cualquier comentario general"
-                                className="min-h-24"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Observaciones de su elección
-                            </label>
-                            <Textarea
-                                value={preferencesData.selectionObservations}
-                                onChange={(e) => setPreferencesData((prev) => ({ ...prev, selectionObservations: e.target.value }))}
-                                placeholder="Detalles sobre servicios o camiones seleccionados"
-                                className="min-h-24"
-                            />
-                        </div>
-                    </div>
+                    <StepPreferences
+                        preferencesData={preferencesData}
+                        onPreferencesChange={handlePreferencesDataChange}
+                    />
                 )}
 
                 {/* Action Button */}
@@ -1085,7 +508,6 @@ export function CreateRequestPage() {
                         variant="outline"
                         className="px-6 py-2 rounded-lg"
                         onClick={() => {
-                            setValidationMessage(null);
                             if (currentStep > 1) {
                                 setCurrentStep((prev) => (prev - 1) as typeof currentStep);
                             }
@@ -1100,16 +522,8 @@ export function CreateRequestPage() {
                             if (isProcessing) return;
                             setIsProcessing(true);
                             try {
-                                const stepValidationMessage = validateCurrentStep();
-                                if (stepValidationMessage) {
-                                    setValidationMessage(stepValidationMessage);
-                                    return;
-                                }
-
-                                setValidationMessage(null);
-
                                 // Step 1 -> just advance when clientType selected
-                                if (currentStep === 1 && clientType) { setCurrentStep(2); return; }
+                                if (currentStep === 1 && clientType) { setCurrentStep(2); setIsProcessing(false); return; }
 
                                 // Step 2 -> crear cliente (perfil se guardará y se creará en el paso de contacto)
                                 if (currentStep === 2) {
@@ -1117,6 +531,7 @@ export function CreateRequestPage() {
                                     const newClientId = await handleSubmitClient(clientData);
                                     if (newClientId || formData.DNI_O_RUC) { setCurrentStep(3); }
                                     else { alert('Error creando cliente'); }
+                                    setIsProcessing(false);
                                     return;
                                 }
 
@@ -1155,6 +570,7 @@ export function CreateRequestPage() {
                                     setPerfilPayload(perfilDataPayload);
                                     await handleSubmitClientContact(clientIdentifier, contactDataPayload, perfilDataPayload);
                                     setCurrentStep(4);
+                                    setIsProcessing(false);
                                     return;
                                 }
 
@@ -1169,27 +585,39 @@ export function CreateRequestPage() {
 
                                 // Step 5 -> crear inventario asociado a la solicitud
                                 if (currentStep === 5) {
-                                    // if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    const requestId = createdRequestId;
                                     const inventoryData = {} as PostRequestInventoryDTO;
-                                    await handleSubmitRequestInventory(createdRequestId, inventoryData);
+                                    await handleSubmitRequestInventory(requestId, inventoryData);
                                     setCurrentStep(6);
                                     return;
                                 }
 
                                 // Step 6 -> crear servicios (camiones u otros)
                                 if (currentStep === 6) {
-                                    // if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
+                                    const requestId = createdRequestId;
                                     const svcData = (serviceData as unknown) as PostRequestServiceDTO;
-                                    await handleCreateRequestService(createdRequestId, svcData);
+                                    await handleCreateRequestService(requestId, svcData);
                                     setCurrentStep(7);
+                                    setIsProcessing(false);
                                     return;
                                 }
 
                                 // Step 7 -> actualizar solicitud final
                                 if (currentStep === 7) {
                                     if (!createdRequestId) { alert('Request ID no disponible.'); setIsProcessing(false); return; }
-                                    const updateData = (preferencesData as unknown) as UpdateRequestDTO;
-                                    await handleUpdateRequest(createdRequestId, updateData);
+                                    const requestId = createdRequestId;
+                                    const updateData: UpdateRequestDTO = {
+                                        Id_Cliente: serviceData.Id_Cliente,
+                                        descripcion: serviceData.descripcion,
+                                        ubicacion: serviceData.ubicacion,
+                                        productoenvio: serviceData.productoenvio,
+                                        camionesenvio: serviceData.camionesenvio,
+                                        obsgenerales: preferencesData.generalObservations,
+                                        obseleccion: preferencesData.selectionObservations,
+                                    };
+                                    await handleUpdateRequest(requestId, updateData);
                                     navigate('/intranet/solicitudes/mis-solicitudes', { replace: true });
                                 }
                             } catch (err) {

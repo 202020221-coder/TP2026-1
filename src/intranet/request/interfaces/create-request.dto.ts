@@ -66,6 +66,7 @@ export interface PostRequestDTO {
   obseleccion: string | null;
 }
 export interface PostRequestResponseDTO {
-  id: number;
+  ID?: number;
+  id?: number;
   message: string;
 }
