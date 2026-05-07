@@ -18,12 +18,15 @@ type Actions = {
 export type PickupState = Omit<State, "initialized">;
 export type PickupStore = State & Actions;
 
+const defaultState = (): PickupState => ({
+  pickupCost: 0,
+  pickupDate: format(new Date(), "yyyy-MM-dd"),
+});
+
 export const createPickupStore = (initialData?: PickupState) =>
   createStore<PickupStore>((set) => ({
-    pickupCost: initialData?.pickupCost ?? 0,
-    pickupDate: initialData
-      ? fromISOToDate(initialData.pickupDate)
-      : format(new Date(), "yyyy-MM-dd"),
+    ...defaultState(),
+    ...initialData,
     initialized: false,
     initialize: (data) => {
       set({ ...data, initialized: true });
@@ -33,6 +36,3 @@ export const createPickupStore = (initialData?: PickupState) =>
         [field]: value,
       })),
   }));
-
-// 🔹 helpers
-const fromISOToDate = (iso: string) => iso.slice(0, 10);

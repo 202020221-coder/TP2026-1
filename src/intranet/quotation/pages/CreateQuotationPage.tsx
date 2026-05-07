@@ -32,6 +32,8 @@ import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQ
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
 import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQuotationVisualizeSection";
+import { useQuery } from "@tanstack/react-query";
+import { getOrder } from "@/intranet/orders/api/order.api";
 
 export function CreateQuotationPage() {
   const [searchParams] = useSearchParams();
@@ -41,9 +43,29 @@ export function CreateQuotationPage() {
     throw new Error("Id de la solicitud no especificada");
   }
 
+  const {
+    data: orderData,
+    isPending,
+    isError,
+  } = useQuery({
+    queryFn: () => getOrder(Number(orderId)),
+    queryKey: ["order", orderId],
+    staleTime: Infinity,
+  });
+
   const baseTriggerClass =
     "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
 
+  if (isPending) {
+    return <p>cargando...</p>;
+  }
+
+  if (isError) {
+    return <p>error</p>;
+  }
+
+  console.log(orderData);
+  
   return (
     <div className="flex h-full flex-col bg-background px-6 py-4">
       <h1 className="mb-4 text-2xl font-semibold text-foreground">
@@ -54,62 +76,59 @@ export function CreateQuotationPage() {
         <QuotationConditionStoreProvider>
           <QuotationExchangeRateProvider>
             <QuotationTruckStoreProvider>
-              <QuotationProductStoreProvider>
-                <TabsList
-                  className="
-            grid w-full grid-cols-4
-            border
-            bg-background
-            rounded-lg
-            overflow-hidden
-            min-h-12
-            gap-x-2
-          "
-                >
-                  <TabsTrigger value="reference" className={baseTriggerClass}>
-                    <FileText className="w-4 h-4" />
-                    Datos de Referencia
-                  </TabsTrigger>
-                  <TabsTrigger value="prices" className={baseTriggerClass}>
-                    <DollarSign className="w-4 h-4" />
-                    Precios
-                  </TabsTrigger>
-                  <TabsTrigger value="conditions" className={baseTriggerClass}>
-                    <ClipboardList className="w-4 h-4" />
-                    Condiciones
-                  </TabsTrigger>
-                  <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
-                    <Eye className="w-4 h-4" />
-                    Visualización
-                  </VisualizeTrigger>
-                </TabsList>
-                <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
-                  <TabsContent value="reference">
-                    <ClientCard
-                      client={{
-                        DNI_O_RUC: "12345678",
-                        nombre_comercial: "Edison",
-                        razon_social: "Edisonso SAC",
-                      }}
-                    />
-                  </TabsContent>
-                  <QuotationPickupStoreProvider>
-                    <TabsContent value="prices" className="space-y-6 pt-1">
-                      <CreateQuotationProductsSection
-                        orderId={Number(orderId)}
+              <QuotationProductStoreProvider
+                initialProducts={orderData.inventario}
+              >
+                <QuotationPickupStoreProvider>
+                  <TabsList className="grid w-full grid-cols-4 border bg-background rounded-lg overflow-hidden min-h-12 gap-x-2">
+                    <TabsTrigger value="reference" className={baseTriggerClass}>
+                      <FileText className="w-4 h-4" />
+                      Datos de Referencia
+                    </TabsTrigger>
+                    <TabsTrigger value="prices" className={baseTriggerClass}>
+                      <DollarSign className="w-4 h-4" />
+                      Precios
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="conditions"
+                      className={baseTriggerClass}
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                      Condiciones
+                    </TabsTrigger>
+                    <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                      <Eye className="w-4 h-4" />
+                      Visualización
+                    </VisualizeTrigger>
+                  </TabsList>
+                  <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
+                    <TabsContent value="reference">
+                      <ClientCard
+                        client={{
+                          DNI_O_RUC: orderData.Id_Cliente,
+                          nombre_comercial: orderData.Cliente_Nombre,
+                          razon_social: orderData.Razon_Social,
+                        }}
                       />
+                    </TabsContent>
+                    <TabsContent value="prices" className="space-y-6 pt-1">
+                      <CreateQuotationProductsSection />
                       <CreateQuotationTruckSelector />
-                      <CreateQuotationPickupSection orderId={Number(orderId)} />
+                      <CreateQuotationPickupSection
+                        address={orderData.ubicacion}
+                      />
                       <CreateQuotationSummaryCard />
                     </TabsContent>
                     <TabsContent value="conditions">
                       <CreateQuotationConditionCard />
                     </TabsContent>
                     <TabsContent value="visualize">
-                      <CreateQuotationVisualizeSection />
+                      <CreateQuotationVisualizeSection
+                        detailedOrder={orderData}
+                      />
                     </TabsContent>
-                  </QuotationPickupStoreProvider>
-                </ScrollArea>
+                  </ScrollArea>
+                </QuotationPickupStoreProvider>
               </QuotationProductStoreProvider>
             </QuotationTruckStoreProvider>
           </QuotationExchangeRateProvider>

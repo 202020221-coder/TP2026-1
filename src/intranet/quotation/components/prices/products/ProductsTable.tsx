@@ -71,6 +71,7 @@ export const QuotationProductsTable: FC<QuotationTableProps> = memo(
                 Nombre
               </TableHead>
               <TableHead>Intención</TableHead>
+              <TableHead className="text-center">Días Alquilados</TableHead>
               <TableHead className="text-center">Cantidad</TableHead>
               <TableHead className="text-center">P.Unit</TableHead>
               <TableHead className="text-right">Subtotal {"($)"}</TableHead>
@@ -156,6 +157,34 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
             </SelectContent>
           </Select>
         </TableCell>
+
+{/* <TableCell className="text-center">
+          
+          <Select
+            defaultValue={product.intencion}
+            onValueChange={(value: QuotationProductIntention) =>
+              onUpdateIntention?.(product.id, value)
+            }
+            disabled={readOnly}
+          >
+            <SelectTrigger className="h-8 border-border bg-background text-xs min-w-32">
+              <SelectValue placeholder="Seleccione la intención" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(QuotationProductIntentionsRecord).map(
+                (value, i) => (
+                  <SelectItem key={`${i}-${value}`} value={value}>
+                    {value}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </TableCell> */}
+
+        <TableCell>-</TableCell>
+
+
         <TableCell className="text-center max-w-14">
           <Input
             type="number"

@@ -6,17 +6,14 @@ import {
   CardDescription,
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
-import type { Order } from "@/intranet/orders/interfaces/order";
 import { format } from "date-fns";
 import { Package } from "lucide-react";
 import { memo, type FC } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getOrder } from "@/intranet/orders/api/order.api";
 
 type PickupCardViewProps = {
-  orderId: Order["ID"];
   pickupDate: string;
   pickupCost: number;
+  address: string;
 } & (
   | {
       readOnly?: true;
@@ -32,17 +29,13 @@ type PickupCardViewProps = {
 
 export const PickupCardView: FC<PickupCardViewProps> = memo(
   ({
-    orderId,
+    address,
     pickupCost,
     pickupDate,
     onPickupCostChange,
     onPickupDateChange,
     readOnly = false,
   }) => {
-    const { isPending, error, data } = useQuery({
-      queryKey: ["order"],
-      queryFn: () => getOrder(orderId),
-    });
     return (
       <Card className="sm:col-span-2 flex flex-col border shadow-none">
         <CardHeader>
@@ -92,17 +85,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
               Dirección de Entrega:
             </p>
             <p className="flex flex-1 items-center text-muted-foreground">
-              {isPending ? (
-                <span className="italic text-muted-foreground">
-                  Cargando dirección...
-                </span>
-              ) : error ? (
-                <span className="font-medium text-destructive">
-                  Error al cargar dirección
-                </span>
-              ) : (
-                <span className="text-foreground">{data.ubicacion}</span>
-              )}
+              <span className="text-foreground">{address}</span>
             </p>
           </div>
         </CardContent>

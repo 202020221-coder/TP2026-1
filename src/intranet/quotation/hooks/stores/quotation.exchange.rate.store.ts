@@ -18,6 +18,6 @@ export const createExchangeRateStore = (initialData?: ExchangeRateState) =>
     rate: initialData?.rate,
     initialized: false,
     initialize: (data) => {
-      set({ ...data, initialized: true });
+      set({ rate:data, initialized: true });
     },
   }));

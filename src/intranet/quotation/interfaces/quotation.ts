@@ -24,26 +24,34 @@ export interface DetailedQuotation extends Omit<Quotation, "nombreCliente"> {
   idSolicitud: Order["ID"];
 }
 
-export interface QuotationProduct {
+export type QuotationProduct = {
   id: string;
   nombre: string;
-  intencion: QuotationProductIntention;
   cantidad: number;
   precio_unitario: number;
-}
+} & (
+  | {
+      intencion: Extract<QuotationProductIntention, "comprar">;
+      dias_alquilados:null;
+    }
+  | {
+      intencion: Extract<QuotationProductIntention, "alquilar">;
+      dias_alquilados: number;
+    }
+);
 
-interface QuotationPickUpCosts {
+export interface QuotationPickUpCosts {
   costo: number;
   fechaRecojo: string;
   direccionRecojo: string;
 }
 
-interface QuotationExchangeRate {
+export interface QuotationExchangeRate {
   tasaCompra: number;
   tasaVenta: number;
 }
 
-interface QuotationConditions {
+export interface QuotationConditions {
   fechaEmision: string;
   fechaVigencia: string;
   condiciones: string;
