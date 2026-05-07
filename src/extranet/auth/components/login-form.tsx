@@ -9,8 +9,16 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { useLoginForm } from "../hooks/useLoginForm";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/shared/components/ui/input-group";
+import { Eye, EyeClosed } from "lucide-react";
+import { useState } from "react";
 export function LoginForm() {
   const { form, isLoading, onSubmit } = useLoginForm();
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4">
@@ -40,12 +48,24 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Contraseña</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="••••••••"
-                  type="password"
-                  disabled={isLoading}
-                  {...field}
-                />
+                <InputGroup>
+                  <InputGroupInput
+                    placeholder="••••••••"
+                    type={showPassword ? "text" : "password"}
+                    disabled={isLoading}
+                    {...field}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      className="cursor-pointer bg-transparent hover:bg-transparent text-neutral-400"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeClosed /> : <Eye />}
+                    </Button>
+                  </InputGroupAddon>
+                </InputGroup>
               </FormControl>
               <FormMessage />
             </FormItem>
