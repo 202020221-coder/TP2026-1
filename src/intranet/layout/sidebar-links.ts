@@ -49,12 +49,6 @@ export const sidebarLinks: IMenu[] = [
     icon: "BriefcaseBusiness",
   },
   {
-    title: "Mis Solicitudes",
-    roles: ["ADMIN"],
-    url: "/intranet/solicitudes/mis-solicitudes",
-    icon: "Receipt",
-  },
-  {
     title: "Organizar Personal",
     roles: ["ADMIN"],
     url: "/intranet/organizar-personal",
