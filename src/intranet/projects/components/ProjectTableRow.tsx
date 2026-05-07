@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
@@ -26,13 +28,14 @@ import { updateProjectState } from "../api/project.api";
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const queryClient = useQueryClient();
-  //Crear un objeto mutation
   const mutation = useMutation({
     mutationFn: updateProjectState,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   const statusStyles = new Map<ProjectState, string>([
     [
@@ -56,6 +59,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
       "bg-gray-100 text-gray-600 border-gray-300",
     ],
   ]);
+
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -64,155 +68,164 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
     });
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-      {/* Nombre */}
-      <TableCell className="font-medium py-3">
-        {project.descripcion_servicio}
-      </TableCell>
+    <>
+      <EditProjectModal
+        project={project}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
 
-      {/* Fecha inicio */}
-      <TableCell className="text-gray-700">
-        {project.fecha_inicio ? formatDate(project.fecha_inicio) : "-"}
-      </TableCell>
+      <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        {/* Nombre */}
+        <TableCell className="font-medium py-3">
+          {project.descripcion_servicio}
+        </TableCell>
 
-      {/* Fecha finalización */}
-      <TableCell className="text-gray-700">
-        {project.fecha_fin ? formatDate(project.fecha_fin) : "-"}
-      </TableCell>
+        {/* Fecha inicio */}
+        <TableCell className="text-gray-700">
+          {project.fecha_inicio ? formatDate(project.fecha_inicio) : "-"}
+        </TableCell>
 
-      {/* Cliente */}
-      <TableCell className="text-gray-700">{project.Cliente_Nombre}</TableCell>
+        {/* Fecha finalización */}
+        <TableCell className="text-gray-700">
+          {project.fecha_fin ? formatDate(project.fecha_fin) : "-"}
+        </TableCell>
 
-      {/* Estado */}
-      <TableCell>
-        <Select
-          defaultValue={project.estado}
-          onValueChange={(value) => {
-            mutation.mutate({
-              id: project.id_Proyecto,
-              newState: value as ProjectState,
-            });
-          }}
-        >
-          <SelectTrigger
-            className={`w-fit rounded-full px-3 py--1 text-[13px] font-medium border mx-auto ${statusStyles.get(project.estado) ?? ""}`}
+        {/* Cliente */}
+        <TableCell className="text-gray-700">{project.Cliente_Nombre}</TableCell>
+
+        {/* Estado */}
+        <TableCell>
+          <Select
+            defaultValue={project.estado}
+            onValueChange={(value) => {
+              mutation.mutate({
+                id: project.id_Proyecto,
+                newState: value as ProjectState,
+              });
+            }}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(ProjectStatesRecord).map((estado) => (
-              <SelectItem key={estado} value={estado}>
-                {estado}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TableCell>
-
-      {/* Trabajadores */}
-      <TableCell className="text-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-blue-600 border-blue-300 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 transition-colors"
+            <SelectTrigger
+              className={`w-fit rounded-full px-3 py--1 text-[13px] font-medium border mx-auto ${statusStyles.get(project.estado) ?? ""}`}
             >
-              <Users className="w-3.5 h-3.5 mr-1 text-blue-600" />
-              Ver
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-white border border-blue-400 text-blue-600">
-            Ver / Asignar trabajadores
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(ProjectStatesRecord).map((estado) => (
+                <SelectItem key={estado} value={estado}>
+                  {estado}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </TableCell>
 
-      {/* Orden de servicio */}
-      <TableCell className="text-center">
-        {project.orden_servicio ? (
-          <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
-            {project.orden_servicio}
-          </span>
-        ) : (
-          <span className="text-gray-400 text-sm italic">—</span>
-        )}
-      </TableCell>
-
-      {/* Informe */}
-      <TableCell className="text-center">
-        {project.informe_final ? (
+        {/* Trabajadores */}
+        <TableCell className="text-center">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                className="h-8 px-3 text-blue-600 border-blue-300 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 transition-colors"
               >
-                <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />
+                <Users className="w-3.5 h-3.5 mr-1 text-blue-600" />
                 Ver
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white border border-green-400 text-green-600">
-              Ver informe: {project.informe_final}
+            <TooltipContent className="bg-white border border-blue-400 text-blue-600">
+              Ver / Asignar trabajadores
             </TooltipContent>
           </Tooltip>
-        ) : (
+        </TableCell>
+
+        {/* Orden de servicio */}
+        <TableCell className="text-center">
+          {project.orden_servicio ? (
+            <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
+              {project.orden_servicio}
+            </span>
+          ) : (
+            <span className="text-gray-400 text-sm italic">—</span>
+          )}
+        </TableCell>
+
+        {/* Informe */}
+        <TableCell className="text-center">
+          {project.informe_final ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />
+                  Ver
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border border-green-400 text-green-600">
+                Ver informe: {project.informe_final}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />
+                  Agregar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border border-orange-400 text-orange-500">
+                Agregar / Editar informe
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </TableCell>
+
+        {/* Incidencias */}
+        <TableCell className="text-center">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
+                className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
               >
-                <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />
-                Agregar
+                <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                -
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white border border-orange-400 text-orange-500">
-              Agregar / Editar informe
+            <TooltipContent className="bg-white border border-amber-400 text-amber-600">
+              Ver incidencias del proyecto
             </TooltipContent>
           </Tooltip>
-        )}
-      </TableCell>
+        </TableCell>
 
-      {/* Incidencias */}
-      <TableCell className="text-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
-              {/* {project.incidencias_count ?? 0} */}-
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-white border border-amber-400 text-amber-600">
-            Ver incidencias del proyecto
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
-
-      {/* Editar proyecto */}
-      <TableCell className="text-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-gray-600 border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-600 hover:border-gray-500 transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5 mr-1 text-gray-600" />
-              Edit
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-white border border-gray-400 text-gray-600">
-            Editar proyecto
-          </TooltipContent>
-        </Tooltip>
-      </TableCell>
-    </TableRow>
+        {/* Editar proyecto */}
+        <TableCell className="text-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-gray-600 border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-600 hover:border-gray-500 transition-colors"
+                onClick={() => setModalOpen(true)}
+              >
+                <Pencil className="w-3.5 h-3.5 mr-1 text-gray-600" />
+                Edit
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white border border-gray-400 text-gray-600">
+              Editar proyecto
+            </TooltipContent>
+          </Tooltip>
+        </TableCell>
+      </TableRow>
+    </>
   );
 };
