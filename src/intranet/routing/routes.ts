@@ -15,8 +15,8 @@ const InventoryNavigation = lazy(
 );
 // const OrdersNavigation = lazy(() => import("@/intranet/orders/routing/Navigation"));
 
-const RequestNavigation = lazy(
-  () => import("@/intranet/request/routing/Navigation"),
+const OrdersNavigation = lazy(
+  () => import("@/intranet/orders/routing/Navigation"),
 );
 const QuotationNavigation = lazy(
   () => import("@/intranet/quotation/routing/Navigation"),
@@ -57,7 +57,7 @@ export const routes: IRoute[] = [
   },
   {
     path: "/solicitudes/*",
-    Component: RequestNavigation,
+    Component: OrdersNavigation,
     isPrivate: true,
   },
   {

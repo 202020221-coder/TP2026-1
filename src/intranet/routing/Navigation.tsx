@@ -1,11 +1,11 @@
 import { Route, Routes } from "react-router";
 import { PrivateRoute } from "@/security/routing/PrivateRoute";
 import { NotFoundPage } from "@/shared/pages";
-import { CreateRequestPage } from "../request/pages/CreateRequestPage";
 
 import { routes } from "./routes";
 import { IntranetLayout } from "../layout/IntranetLayout";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { CreateRequestPage } from "../orders/pages/CreateRequestPage";
 export const IntranetNavigation = () => {
   return (
     <Routes>
