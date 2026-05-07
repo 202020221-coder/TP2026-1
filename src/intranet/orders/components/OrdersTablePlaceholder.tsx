@@ -5,7 +5,6 @@ import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 export const OrdersTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
   const user = useSession((state) => state.loggedUser);
-
   return (
     <>
       {Array.from({ length: rows }).map((_, idx) => (
@@ -13,19 +12,25 @@ export const OrdersTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
           key={idx}
           className="border-b border-gray-100 hover:bg-transparent"
         >
-          <TableCell className="py-3">
-            <Skeleton className="h-4 w-16 mb-2 bg-gray-50" />
+          <TableCell className="py-4.5">
+            <Skeleton className="aspect-square w-6 mb-2 rounded-full bg-gray-50" />
           </TableCell>
           {user?.rol === RolesRecord.projectAdmin && (
             <TableCell>
-              <Skeleton className="h-4 w-24 bg-gray-50" />
+              <div className="flex flex-col gap-y-2">
+                <Skeleton className="h-4 w-50 bg-gray-50" />
+                <Skeleton className="h-3 w-20 bg-gray-50" />
+              </div>
             </TableCell>
           )}
           <TableCell>
-            <Skeleton className="h-4 w-52 bg-gray-50" />
+            <Skeleton className="h-4 w-65 bg-gray-50" />
           </TableCell>
           <TableCell>
-            <Skeleton className="h-4 w-52 bg-gray-50" />
+            <Skeleton className="h-4 w-76 bg-gray-50" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-8 w-30 mx-auto rounded-full bg-gray-50" />
           </TableCell>
           <TableCell className="text-center">
             <div className="flex justify-center gap-2">

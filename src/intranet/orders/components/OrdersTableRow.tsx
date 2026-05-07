@@ -5,7 +5,9 @@ import { Button } from "@/shared/components/ui/button";
 import {
   Eye,
   FileArchive,
+  FileText,
   Mail,
+  MapPin,
   Trash2 /*FolderOpen, Send */,
 } from "lucide-react";
 import { OrderStatesRecord, type OrderState } from "../enum/order-state.record";
@@ -42,16 +44,36 @@ export const OrderTableRow: FC<{
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <TableCell className="font-medium py-3">{order.ID}</TableCell>
       {user?.rol === RolesRecord.projectAdmin && (
-        <TableCell className="text-gray-700">{order.Cliente_Nombre}</TableCell>
+        <TableCell className="text-gray-700">
+          <div className="space-y-1">
+            <div className="font-medium text-gray-900">
+              {order.Cliente_Nombre}
+            </div>
+            <div className="text-xs text-gray-500">ID: {order.Id_Cliente}</div>
+          </div>
+        </TableCell>
       )}
-      <TableCell className="text-gray-700">{order.ubicacion}</TableCell>
-      <TableCell className="">
+      <TableCell className="text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <FileText className="mt-0.5 aspect-square w-5 shrink-0 text-gray-400" />
+          <span className="block max-w-[220px] text-sm text-gray-600 line-clamp-2 wrap-break-word overflow-x-auto py-4">
+            {order.descripcion}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell className="text-gray-700">
+        <div className="flex items-start gap-2">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+          <span className="line-clamp-2">{order.ubicacion}</span>
+        </div>
+      </TableCell>
+      <TableCell>
         <Badge
           className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
             order.estado,
           )}`}
         >
-          {order.estado}
+          {order.estado.charAt(0).toUpperCase() + order.estado.slice(1)}
         </Badge>
       </TableCell>
       <TableCell>

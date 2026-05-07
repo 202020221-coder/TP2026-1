@@ -3,6 +3,7 @@ import { type OrderState } from "../enum/order-state.record";
 
 export interface Order {
   ID: number;
+  Id_Cliente:string;
   Cliente_Nombre?: string; //Only visible if the user is an Administrator
   descripcion: string;
   ubicacion: string;

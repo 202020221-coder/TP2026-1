@@ -9,10 +9,9 @@ export const OrdersTableHeader: FC = () => {
       <TableRow className="hover:bg-white">
         <TableHead className="text-gray-500 font-medium">ID</TableHead>
         {user?.rol === RolesRecord.projectAdmin && (
-          <TableHead className="text-gray-500 font-medium">
-            {user?.rol === RolesRecord.projectAdmin && `Nombre del cliente`}
-          </TableHead>
+          <TableHead className="text-gray-500 font-medium">Cliente</TableHead>
         )}
+        <TableHead className="min-w-[220px]">Descripción</TableHead>
         <TableHead className="text-gray-500 font-medium">Ubicación</TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
           Estado
