@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const peruPhoneRegex = /^\d{7,9}$/;
 const dniRegex = /^\d{8}$/;
 const rucRegex = /^\d{11}$/;
