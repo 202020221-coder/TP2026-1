@@ -35,7 +35,7 @@ export const getAllQuotations = async (
 };
 
 export const getQuotation = async (
-  id: Quotation["ID"],
+  _id: Quotation["ID"],
 ): Promise<GetQuotationResponse> => {
   await sleep(4000);
   return detailedQuotationMock;
