@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 
 export function ProjectAssistantQuotationDetailsPage() {

@@ -59,6 +59,7 @@ const productosMock: QuotationProduct[] = [
     nombre: "Laptop X",
     intencion: "alquilar",
     cantidad: 2,
+    dias_alquilados: 1,
     precio_unitario: 1500,
   },
   {
@@ -66,6 +67,7 @@ const productosMock: QuotationProduct[] = [
     nombre: "Mouse inalámbrico",
     intencion: "alquilar",
     cantidad: 5,
+    dias_alquilados: 1,
     precio_unitario: 25,
   },
   {
@@ -73,6 +75,7 @@ const productosMock: QuotationProduct[] = [
     nombre: "Teclado mecánico",
     intencion: "comprar",
     cantidad: 3,
+    dias_alquilados: null,
     precio_unitario: 80,
   },
   {
@@ -80,6 +83,7 @@ const productosMock: QuotationProduct[] = [
     nombre: "Monitor 24''",
     intencion: "alquilar",
     cantidad: 4,
+    dias_alquilados: 1,
     precio_unitario: 200,
   },
   {
@@ -87,6 +91,7 @@ const productosMock: QuotationProduct[] = [
     nombre: "Auriculares",
     intencion: "alquilar",
     cantidad: 6,
+    dias_alquilados: 1,
     precio_unitario: 60,
   },
 ];
@@ -131,6 +136,7 @@ const detailedQuotationMock: GetQuotationResponse = {
       cantidad: 20,
       id: "2",
       intencion: "alquilar",
+      dias_alquilados: 1,
       nombre: "item de cotizacion",
       precio_unitario: 24.0,
     },

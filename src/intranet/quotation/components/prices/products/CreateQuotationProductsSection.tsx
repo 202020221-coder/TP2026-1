@@ -10,14 +10,14 @@ import { useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { Button } from "@/shared/components/ui/button";
-import { AddProductsDialog } from "./AddProductsDialog";
-import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-inventory-intention";
+// import { AddProductsDialog } from "./AddProductsDialog";
+// import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-inventory-intention";
 export const CreateQuotationProductsSection: FC = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [_isDialogOpen, setIsDialogOpen] = useState(false);
   const items = useQuotationProductStore((s) => s.items);
   const deleteItem = useQuotationProductStore((s) => s.removeItem);
   const updateItem = useQuotationProductStore((s) => s.updateItem);
-  const addItems = useQuotationProductStore((s) => s.addItems);
+  // const addItems = useQuotationProductStore((s) => s.addItems);
   const products = useMemo(() => {
     return Object.values(items);
   }, [items]);
