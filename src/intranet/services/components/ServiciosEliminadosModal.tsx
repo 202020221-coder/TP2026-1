@@ -64,7 +64,7 @@ export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
                 {serviciosDesactivados.map((servicio) => {
                   const isTogglingThis =
                     toggleActivoMutation.isPending &&
-                    (toggleActivoMutation.variables as number) === servicio.id;
+                    (toggleActivoMutation.variables as { id: number }).id === servicio.id;
 
                   return (
                     <TableRow key={servicio.id} className="border-b border-gray-100 hover:bg-gray-50 opacity-70">

@@ -156,7 +156,7 @@ export default function Services({ onAddToCart }: Props) {
                       className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onAddToCart({ name: service.name, price: 0, image: service.image || "" })
+                        onAddToCart({ name: service.name, price: 0, image: service.image || "", type: "service"})
                       }}
                     >
                       Solicitar

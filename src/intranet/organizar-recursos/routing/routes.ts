@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import type { IRoute } from "@/shared/interfaces/route";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 
 const OrganizarRecursosPage = lazy(
   () =>
@@ -13,6 +14,6 @@ export const routes: IRoute[] = [
     path: "/",
     Component: OrganizarRecursosPage,
     isPrivate: true,
-    roles: ["gerente", "administrador"],
+    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
   },
 ];

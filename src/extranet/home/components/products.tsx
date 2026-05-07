@@ -92,7 +92,8 @@ export default function Products({ onAddToCart }: Props) {
                     onClick={() => onAddToCart({
                       name: product.name,
                       price: product.price,
-                      type: 'product'
+                      type: 'product',
+                      image: ''
                     })}
                   >
                     Agregar
