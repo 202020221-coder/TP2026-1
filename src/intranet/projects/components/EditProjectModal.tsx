@@ -21,6 +21,8 @@ import {
   ProjectStatesRecord,
   type ProjectState,
 } from "../enum/project-state.record";
+import { updateProject } from "../api/project.api";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditProjectModalProps {
   project: Project;
@@ -28,12 +30,42 @@ interface EditProjectModalProps {
   onClose: () => void;
 }
 
+const toDateInput = (dateStr?: string) => {
+  if (!dateStr) return "";
+  return dateStr.split("T")[0];
+};
+
 export const EditProjectModal: FC<EditProjectModalProps> = ({
   project,
   open,
   onClose,
 }) => {
-  const [form, setForm] = useState<Project>({ ...project });
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Project>({
+    ...project,
+    fecha_inicio: toDateInput(project.fecha_inicio),
+    fecha_fin: toDateInput(project.fecha_fin),
+  });
+
+  const handleGuardar = async () => {
+    setSaving(true);
+    try {
+      await updateProject({
+        id: project.id_Proyecto,
+        descripcion_servicio: form.descripcion_servicio,
+        ubicacion: form.ubicacion,
+        estado: form.estado,
+        fecha_inicio: form.fecha_inicio,
+        fecha_fin: form.fecha_fin,
+        observaciones: form.observaciones,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -64,9 +96,10 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             </Button>
             <Button
               className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={onClose}
+              onClick={handleGuardar}
+              disabled={saving}
             >
-              Guardar
+              {saving ? "Guardando..." : "Guardar"}
             </Button>
           </div>
 
@@ -79,7 +112,10 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
           {/* Ubicación */}
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Ubicación</Label>
-            <Input value={form.ubicacion ?? ""} onChange={(e) => setForm({ ...form, ubicacion: e.target.value })} />
+            <Input
+              value={form.ubicacion ?? ""}
+              onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
+            />
           </div>
 
           {/* ID Cotización */}
@@ -139,7 +175,13 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
           {/* Observaciones */}
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Observaciones</Label>
-            <Textarea rows={3} />
+            <Textarea
+              rows={3}
+              value={form.observaciones ?? ""}
+              onChange={(e) =>
+                setForm({ ...form, observaciones: e.target.value })
+              }
+            />
           </div>
 
         </div>
