@@ -1,7 +1,7 @@
-export const OrderInventoryIntentionsRecord = {
+export const QuotationProductIntentionsRecord = {
   buy: "comprar",
   rent: "alquilar",
 } as const;
 
-export type OrderInventoryItemIntention =
-  (typeof OrderInventoryIntentionsRecord)[keyof typeof OrderInventoryIntentionsRecord];
+export type QuotationProductIntention =
+  (typeof QuotationProductIntentionsRecord)[keyof typeof QuotationProductIntentionsRecord];

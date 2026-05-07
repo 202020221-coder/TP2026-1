@@ -1,20 +1,51 @@
+import type { Order } from "@/intranet/orders/interfaces/order";
+import type { QuotationProductIntention } from "../enum/order-inventory-intention";
 import type { QuotationMessagesState } from "../enum/quotation-message-state.record";
 import { type QuotationState } from "../enum/quotation-state.record";
+import type { Truck } from "./create/order-trucks";
 
 export interface Quotation {
   ID: number;
-  version: number;
   nombre: string;
-  id_solicitud: number;
-  fecha_inicio: string;
-  DNI_O_RUC: string;
-  precio_total: string;
+  precioTotal: string;
+  condiciones: QuotationConditions;
   estado: QuotationState;
-  comentario_cliente?: string;
-  fecha_emision: string | null;
-  fecha_vigencia: string | null;
-  observacion: string | null;
-  Tasa_Cambio?: number;
-  condiciones?: string;
+  tasaCambio: QuotationExchangeRate;
   mensajes: QuotationMessagesState;
+  version: number;
+  /**solo visibles por el administrador */
+  nombreCliente?: string;
+}
+
+export interface DetailedQuotation extends Omit<Quotation, "nombreCliente"> {
+  productos: QuotationProduct[];
+  camionEspecificado: Truck;
+  costoRecojo: QuotationPickUpCosts;
+  idSolicitud: Order["ID"];
+}
+
+export interface QuotationProduct {
+  id: string;
+  nombre: string;
+  intencion: QuotationProductIntention;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+interface QuotationPickUpCosts {
+  costo: number;
+  fechaRecojo: string;
+  direccionRecojo: string;
+}
+
+interface QuotationExchangeRate {
+  tasaCompra: number;
+  tasaVenta: number;
+}
+
+interface QuotationConditions {
+  fechaEmision: string;
+  fechaVigencia: string;
+  condiciones: string;
+  observaciones: string;
 }

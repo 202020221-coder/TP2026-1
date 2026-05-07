@@ -12,9 +12,14 @@ import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
-import type { QuotationState } from "../../enum/quotation-state.record";
+import {
+  QuotationStatesRecord,
+  type QuotationState,
+} from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { formatPEDate } from "@/shared/lib/format-date";
+import { formatCurrency } from "@/shared/lib/format-currency";
 
 export const QuotationTableRow: FC<{
   quotation: Quotation;
@@ -27,23 +32,31 @@ export const QuotationTableRow: FC<{
     quotation.nombre.split(" - ").slice(1).join(" - ") || quotation.nombre;
 
   const statusStyles = new Map<QuotationState, string>([
-    ["aprobado", "bg-green-200 text-green-600 border-green-400"],
-    ["rechazado", "bg-red-200 text-red-600 border-red-400"],
-    ["pendiente", "bg-yellow-200 text-yellow-600 border-yellow-400"],
+    [
+      QuotationStatesRecord.approved,
+      "bg-green-200 text-green-600 border-green-400",
+    ],
+    [QuotationStatesRecord.rejected, "bg-red-200 text-red-600 border-red-400"],
+    [
+      QuotationStatesRecord.pending,
+      "bg-yellow-200 text-yellow-600 border-yellow-400",
+    ],
   ]);
 
+  const handleNavigateDetails = () => {
+    Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
+  };
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
       <TableCell className="text-gray-700">
-        {quotation.fecha_emision ? new Date(quotation.fecha_emision).toLocaleDateString("es-ES", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }) : "-"}
+        {formatPEDate(quotation.condiciones.fechaEmision)}
+      </TableCell>
+      <TableCell className="text-gray-700">
+        {formatPEDate(quotation.condiciones.fechaVigencia)}
       </TableCell>
       <TableCell className="font-medium py-3">
-        s/. {quotation.precio_total}
+        {formatCurrency(quotation.precioTotal, "PEN", 2)}
       </TableCell>
       <TableCell className="">
         <Badge
@@ -63,11 +76,7 @@ export const QuotationTableRow: FC<{
                 variant="ghost"
                 size="icon"
                 className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
-                onClick={() =>
-                  Navigate(
-                    `/intranet/cotizaciones/detalle?${toSearchParams({ quotationId: quotation.ID })}`,
-                  )
-                }
+                onClick={() => handleNavigateDetails()}
               >
                 <Eye className="w-4 h-4" />
               </Button>
@@ -104,7 +113,8 @@ export const QuotationTableRow: FC<{
       </TableCell>
 
       <TableCell className="text-center">
-        {user?.rol === RolesRecord.projectAdmin && quotation.estado === "pendiente" ? (
+        {user?.rol === RolesRecord.projectAdmin &&
+        quotation.estado === "pendiente" ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -127,7 +137,8 @@ export const QuotationTableRow: FC<{
               Registrar Comentario
             </TooltipContent>
           </Tooltip>
-        ) : user?.rol === RolesRecord.client && quotation.estado === "rechazado" ? (
+        ) : user?.rol === RolesRecord.client &&
+          quotation.estado === QuotationStatesRecord.rejected ? (
           <>
             <Tooltip>
               <TooltipTrigger asChild>

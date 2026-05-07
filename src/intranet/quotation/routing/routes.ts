@@ -1,6 +1,6 @@
 import type { IRoute } from "@/shared/interfaces/route";
-import { ListQuotationPage } from "../pages/ViewQuotationClienPage";
-import QuotationDetailPage from "../pages/QuotationDetailPage";
+import { ListQuotationsPage } from "../pages/ListQuotationsPage";
+import { QuotationDetailsPage } from "../pages/QuotationDetailPage";
 import CreateQuotationPage from "../pages/CreateQuotationPage";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 
@@ -8,13 +8,13 @@ import { RolesRecord } from "@/security/session/enum/roles.enum";
 export const routes: IRoute[] = [
   {
     path: "/",
-    Component: ListQuotationPage,
+    Component: ListQuotationsPage,
     isPrivate: true,
     roles: [RolesRecord.projectAdmin, RolesRecord.client],
   },
   {
-    path: "/detalle",
-    Component: QuotationDetailPage,
+    path: "/detalles/:quotationId",
+    Component: QuotationDetailsPage,
     isPrivate: true,
     roles: [RolesRecord.projectAdmin, RolesRecord.client],
   },

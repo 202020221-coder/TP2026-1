@@ -5,7 +5,12 @@ export const QuotationTableHeader: FC = () => {
     <TableHeader className="[&_tr]:border-b border-gray-200">
       <TableRow className="hover:bg-white">
         <TableHead className="text-gray-500 font-medium">Nombre</TableHead>
-        <TableHead className="text-gray-500 font-medium">Fecha</TableHead>
+        <TableHead className="text-gray-500 font-medium">
+          Fecha de Emisión
+        </TableHead>
+        <TableHead className="text-gray-500 font-medium">
+          Fecha de Expiración
+        </TableHead>
         <TableHead className="text-gray-500 font-medium">
           Precio SubTotal
         </TableHead>
@@ -15,7 +20,7 @@ export const QuotationTableHeader: FC = () => {
         <TableHead className="text-center text-gray-500 font-medium">
           Acciones
         </TableHead>
-                <TableHead className="text-center text-gray-500 font-medium">
+        <TableHead className="text-center text-gray-500 font-medium">
           Mensajes
         </TableHead>
       </TableRow>

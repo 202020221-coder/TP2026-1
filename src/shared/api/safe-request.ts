@@ -6,8 +6,6 @@ export async function safeRequest<T>(
   config: AxiosRequestConfig,
 ): Promise<APIResponse<T>> {
   const response = await axiosInstance.request<APIResponse<T>>(config);
-  console.log(response);
-  
   const data = response.data;
   return data;
 }
