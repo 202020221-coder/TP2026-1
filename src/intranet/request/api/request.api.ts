@@ -6,6 +6,10 @@ import type {
   GetProductDTO,
   GetServiceDTO
 } from "../interfaces";
+import { toSearchParams } from "@/shared/lib/to-search-params";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import type { GetRequestsQP, GetRequestsResponse } from "../interfaces";
 
 
 export const UpdateRequest = async (id: number, data: UpdateRequestDTO) =>
@@ -21,11 +25,25 @@ export const DeleteRequest = async (id: number) =>
     method: "DELETE",
   });
 
-export const GetAllRequest = async () =>
-  safePagination<ResponseRequestDTO[]>({
-    url: "/solicitudes",
+export const GetAllRequest = async (
+  params: GetRequestsQP,
+): Promise<GetRequestsResponse> => {
+  const sessionState = useSession.getState();
+
+  if (sessionState.loggedUser?.rol === RolesRecord.client) {
+    return safePagination<ResponseRequestDTO[]>({
+      url: `/perfiles/${sessionState.loggedUser.dni_perfil}/solicitudes?${toSearchParams(
+        params as Record<string, any>,
+      )}`,
+      method: "GET",
+    });
+  }
+
+  return safePagination<ResponseRequestDTO[]>({
+    url: `/solicitudes?${toSearchParams(params as Record<string, any>)}`,
     method: "GET",
   });
+};
 
   //------------------------------------------------
 export const GetAllProducts = async (page:number, limit:number) =>

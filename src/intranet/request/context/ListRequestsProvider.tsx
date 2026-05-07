@@ -9,14 +9,18 @@ export const ListRequestsProvider: FC<{ children: ReactNode }> = ({
 }) => {
     const [queryParams, setQueryParams] = useState<GetRequestsQP>({
         page: 1,
+        per_page: 10,
     });
     const result = useQuery({
         queryKey: ["requests", queryParams],
-        queryFn: () => GetAllRequest(),
+        queryFn: () => GetAllRequest(queryParams),
     });
-    const query = (qp: GetRequestsQP) => {
-        setQueryParams(qp);
-    };
+
+    const query = (queryParams: GetRequestsQP) => {
+        setQueryParams(queryParams);
+      };
+    
+    console.log(result.data);
 
     return (
         <ListRequestContext.Provider value={{ result, query, queryParams }}>
