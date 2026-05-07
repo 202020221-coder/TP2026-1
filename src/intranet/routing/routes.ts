@@ -1,6 +1,5 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import { lazy } from "react";
-import RequestNavigation from "../request/routing/Navigation";
 
 const DashboardNavigation = lazy(
   () => import("@/intranet/dashboard/routing/Navigation"),

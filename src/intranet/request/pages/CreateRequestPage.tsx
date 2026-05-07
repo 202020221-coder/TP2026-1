@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { z } from 'zod';
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -9,6 +10,92 @@ import { Truck, ShoppingCart, Trash2, Plus, Minus, Calendar } from "lucide-react
 import { useDataFetching } from '../hooks/useDataFetching';
 import type { PostClientContactDTO, PostClientDTO, PostClientPerfilDTO, PostRequestDTO, PostRequestInventoryDTO, PostRequestServiceDTO, UpdateRequestDTO } from '../interfaces';
 import { CreateClient, CreateClientContact, CreateClientPerfil, CreateRequest, CreateRequestInventory, CreateRequestService, UpdateRequest } from '../api';
+import {
+    clientTypeSchema,
+    preferencesDataSchema,
+    selectedProductsSchema,
+    selectedTrucksSchema,
+} from '../schemas/create-request.schema';
+
+const dniRegex = /^\d{8}$/;
+const rucRegex = /^\d{11}$/;
+const phoneRegex = /^\d{9}$/;
+
+const clientStepSchema = z.object({
+    DNI_O_RUC: z
+        .string()
+        .trim()
+        .refine((value) => dniRegex.test(value) || rucRegex.test(value), {
+            message: 'El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC).',
+        }),
+    nombre_comercial: z
+        .string()
+        .trim()
+        .min(2, 'Nombre comercial debe tener al menos 2 caracteres')
+        .max(100, 'Máximo 100 caracteres permitidos'),
+    razon_social: z
+        .string()
+        .trim()
+        .min(2, 'Razón social debe tener al menos 2 caracteres')
+        .max(100, 'Máximo 100 caracteres permitidos'),
+    rubro: z
+        .string()
+        .trim()
+        .min(2, 'Rubro debe tener al menos 2 caracteres')
+        .max(100, 'Máximo 100 caracteres permitidos'),
+    ubicacion_facturacion: z
+        .string()
+        .trim()
+        .min(5, 'Ubicación de facturación debe tener al menos 5 caracteres')
+        .max(250, 'Máximo 250 caracteres permitidos'),
+    observacion: z
+        .string()
+        .trim()
+        .max(500, 'Máximo 500 caracteres permitidos')
+        .optional()
+        .or(z.literal('')),
+});
+
+const requesterStepSchema = z.object({
+    DNI: z.string().trim().regex(dniRegex, 'DNI debe tener 8 dígitos'),
+    Nombre: z
+        .string()
+        .trim()
+        .min(2, 'Nombre debe tener al menos 2 caracteres')
+        .max(50, 'Máximo 50 caracteres permitidos'),
+    Apellido: z
+        .string()
+        .trim()
+        .min(2, 'Apellido debe tener al menos 2 caracteres')
+        .max(50, 'Máximo 50 caracteres permitidos'),
+    correo_contacto: z.string().trim().email('Correo electrónico inválido'),
+    telefono_contacto: z.string().trim().regex(phoneRegex, 'Teléfono debe tener 9 dígitos'),
+    cargo_en_empresa: z
+        .string()
+        .trim()
+        .max(50, 'Máximo 50 caracteres permitidos')
+        .optional()
+        .or(z.literal('')),
+    lugar_trabajo: z
+        .string()
+        .trim()
+        .max(250, 'Máximo 250 caracteres permitidos')
+        .optional()
+        .or(z.literal('')),
+});
+
+const serviceStepSchema = z.object({
+    descripcion: z
+        .string()
+        .trim()
+        .min(20, 'Describa con más detalle (mínimo 20 caracteres)')
+        .max(1000, 'Máximo 1000 caracteres permitidos'),
+    ubicacion: z
+        .string()
+        .trim()
+        .min(10, 'Mínimo 10 caracteres requeridos')
+        .max(250, 'Máximo 250 caracteres permitidos'),
+});
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
@@ -17,6 +104,7 @@ export function CreateRequestPage() {
     const [createdClientId, setCreatedClientId] = useState<number | null>(null);
     const [createdRequestId, setCreatedRequestId] = useState<number | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [validationMessage, setValidationMessage] = useState<string | null>(null);
     const [perfilPayload, setPerfilPayload] = useState<PostClientPerfilDTO | null>(null);
 
 
@@ -333,6 +421,50 @@ export function CreateRequestPage() {
         setSelectedTrucks((prev) => prev.filter(truck => truck.id !== id));
     };
 
+    const validateCurrentStep = () => {
+        if (currentStep === 1) {
+            const result = clientTypeSchema.safeParse(clientType);
+            return result.success ? null : result.error.issues[0]?.message ?? 'Seleccione un tipo de cliente.';
+        }
+
+        if (currentStep === 2) {
+            const result = clientStepSchema.safeParse(formData);
+            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del cliente.';
+        }
+
+        if (currentStep === 3) {
+            const result = requesterStepSchema.safeParse({
+                DNI: perfilData.DNI,
+                Nombre: perfilData.Nombre,
+                Apellido: perfilData.Apellido,
+                correo_contacto: perfilData.correo_contacto,
+                telefono_contacto: perfilData.telefono_contacto,
+                cargo_en_empresa: contactData.cargo_en_empresa,
+                lugar_trabajo: contactData.lugar_trabajo,
+            });
+
+            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del solicitante.';
+        }
+
+        if (currentStep === 4) {
+            const result = serviceStepSchema.safeParse(serviceData);
+            return result.success ? null : result.error.issues[0]?.message ?? 'Revise los datos del servicio.';
+        }
+
+        if (currentStep === 5) {
+            const result = selectedProductsSchema.safeParse(selectedProducts);
+            return result.success ? null : result.error.issues[0]?.message ?? 'Revise la selección de productos.';
+        }
+
+        if (currentStep === 6) {
+            const result = selectedTrucksSchema.safeParse(selectedTrucks);
+            return result.success ? null : result.error.issues[0]?.message ?? 'Revise la selección de camiones.';
+        }
+
+        const result = preferencesDataSchema.safeParse(preferencesData);
+        return result.success ? null : result.error.issues[0]?.message ?? 'Revise las preferencias.';
+    };
+
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-8">
             <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
@@ -395,6 +527,12 @@ export function CreateRequestPage() {
                         <div className="mt-2">
                             <Button onClick={() => window.location.reload()}>Reintentar</Button>
                         </div>
+                    </div>
+                )}
+
+                {validationMessage && (
+                    <div className="mb-6 rounded border border-amber-200 bg-amber-50 p-4">
+                        <p className="text-sm text-amber-800">{validationMessage}</p>
                     </div>
                 )}
 
@@ -947,6 +1085,7 @@ export function CreateRequestPage() {
                         variant="outline"
                         className="px-6 py-2 rounded-lg"
                         onClick={() => {
+                            setValidationMessage(null);
                             if (currentStep > 1) {
                                 setCurrentStep((prev) => (prev - 1) as typeof currentStep);
                             }
@@ -961,8 +1100,16 @@ export function CreateRequestPage() {
                             if (isProcessing) return;
                             setIsProcessing(true);
                             try {
+                                const stepValidationMessage = validateCurrentStep();
+                                if (stepValidationMessage) {
+                                    setValidationMessage(stepValidationMessage);
+                                    return;
+                                }
+
+                                setValidationMessage(null);
+
                                 // Step 1 -> just advance when clientType selected
-                                if (currentStep === 1 && clientType) { setCurrentStep(2); setIsProcessing(false); return; }
+                                if (currentStep === 1 && clientType) { setCurrentStep(2); return; }
 
                                 // Step 2 -> crear cliente (perfil se guardará y se creará en el paso de contacto)
                                 if (currentStep === 2) {
@@ -970,7 +1117,6 @@ export function CreateRequestPage() {
                                     const newClientId = await handleSubmitClient(clientData);
                                     if (newClientId || formData.DNI_O_RUC) { setCurrentStep(3); }
                                     else { alert('Error creando cliente'); }
-                                    setIsProcessing(false);
                                     return;
                                 }
 
@@ -1009,7 +1155,6 @@ export function CreateRequestPage() {
                                     setPerfilPayload(perfilDataPayload);
                                     await handleSubmitClientContact(clientIdentifier, contactDataPayload, perfilDataPayload);
                                     setCurrentStep(4);
-                                    setIsProcessing(false);
                                     return;
                                 }
 
@@ -1037,7 +1182,6 @@ export function CreateRequestPage() {
                                     const svcData = (serviceData as unknown) as PostRequestServiceDTO;
                                     await handleCreateRequestService(createdRequestId, svcData);
                                     setCurrentStep(7);
-                                    setIsProcessing(false);
                                     return;
                                 }
 

@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema, type RegisterFormData } from "../schemas/register.schema";
-import { createSession } from "@/security/session/hooks/stores/useSession.store";
+import {
+  registerSchema,
+  type RegisterFormData,
+} from "../schemas/register.schema";
 import { toast } from "sonner";
 
 export function useRegisterForm() {
@@ -27,9 +29,6 @@ export function useRegisterForm() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       console.log("Registration attempt with:", data);
-
-      // Create session as a client
-      createSession(data.email);
 
       toast.success("Cuenta creada exitosamente. Redirigiendo...");
 
