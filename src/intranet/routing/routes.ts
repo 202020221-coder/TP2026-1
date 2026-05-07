@@ -77,7 +77,7 @@ export const routes: IRoute[] = [
   },
 
   {
-    path: "/servicio/*",
+    path: "/servicios/*",
     Component: ServicesNavigation,
     isPrivate: true,
   },

@@ -8,9 +8,8 @@ export const RequestTableHeader: React.FC = () => {
                 <TableHead className="min-w-[220px]">Descripción</TableHead>
                 <TableHead className="min-w-[220px]">Ubicación</TableHead>
                 <TableHead className="min-w-[140px]">Estado</TableHead>
-                <TableHead className="min-w-40">Creación</TableHead>
-                <TableHead className="min-w-40">Productos</TableHead>
-                <TableHead className="min-w-40">Camiones</TableHead>
+                <TableHead className="min-w-3">Creación</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
             </TableRow>
         </TableHeader>
     );
