@@ -2,6 +2,7 @@
 
 import { Menu, X, LogIn } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router'
 
 interface Props {
   onLogin?: () => void;
@@ -30,14 +31,18 @@ export default function Header({ onLogin }: Props) {
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center space-x-3 group cursor-pointer">
+            <Link
+              to="/"
+              className="flex items-center space-x-3 group cursor-pointer"
+              title="Ir a la página principal"
+            >
               <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
                 <span className="text-white font-black text-lg tracking-tighter">EF</span>
               </div>
               <span className={`text-xl font-bold hidden sm:inline tracking-tight transition-colors duration-300 ${scrolled ? 'text-foreground' : 'text-white'}`}>
                 ENGINEER <span className="text-gradient">FIRE</span>
               </span>
-            </div>
+            </Link>
 
             {/* Navigation Desktop */}
             <nav className="hidden md:flex items-center space-x-8">

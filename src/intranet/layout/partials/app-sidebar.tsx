@@ -10,6 +10,7 @@ import {
   SidebarRail,
 } from "@/shared/components/ui/sidebar";
 import { Flame } from "lucide-react";
+import { NavLink } from "react-router";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useSession((s) => s.loggedUser);
@@ -27,10 +28,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           asChild
           className="data-[slot=sidebar-menu-button]:p-1.5!"
         >
-          <a href="#">
+          <NavLink to="/" title="Ir a la página principal">
             <Flame className="size-6! text-red-500" />
             <span className="text-base font-semibold">ENGINEER FIRE </span>
-          </a>
+          </NavLink>
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
