@@ -1,9 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil } from "lucide-react";
+import { Pencil, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +21,7 @@ import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.re
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const statusStyles = new Map<ProjectState, string>([
     [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
@@ -65,23 +73,38 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
           </span>
         </TableCell>
 
-        {/* Trabajadores */}
+        {/* Acciones */}
         <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
                 className="h-8 px-3 text-blue-600 border-blue-300 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 transition-colors"
               >
-                <Users className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                Ver
+                Acciones
+                <ChevronDown className="w-3.5 h-3.5 ml-1 text-blue-600" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-blue-400 text-blue-600">
-              Ver / Asignar trabajadores
-            </TooltipContent>
-          </Tooltip>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem disabled>
+                Ver detalle-proyecto
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/organizar-personal")}
+              >
+                Organizar personal
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/organizar-recursos")}
+              >
+                Organizar recursos
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                Gestionar Presupuesto
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TableCell>
 
         {/* Orden de servicio */}
@@ -93,62 +116,6 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
           ) : (
             <span className="text-gray-400 text-sm italic">—</span>
           )}
-        </TableCell>
-
-        {/* Informe */}
-        <TableCell className="text-center">
-          {project.informe_final ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />
-                  Ver
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-white border border-green-400 text-green-600">
-                Ver informe: {project.informe_final}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />
-                  Agregar
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-white border border-orange-400 text-orange-500">
-                Agregar / Editar informe
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </TableCell>
-
-        {/* Incidencias */}
-        <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
-              >
-                <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                -
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-amber-400 text-amber-600">
-              Ver incidencias del proyecto
-            </TooltipContent>
-          </Tooltip>
         </TableCell>
 
         {/* Editar proyecto */}
