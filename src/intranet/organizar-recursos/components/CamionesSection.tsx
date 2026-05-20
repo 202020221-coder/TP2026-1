@@ -117,7 +117,7 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
               Agregar Camión
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
             <DialogHeader>
               <DialogTitle>Agregar Camión al Proyecto</DialogTitle>
             </DialogHeader>
@@ -257,16 +257,14 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ORGANIZAR_RECURSOS_DEFAULTS.ESTADOS_OBJETO.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="aceptable">
+                      {ORGANIZAR_RECURSOS_DEFAULTS.ESTADOS_OBJETO[0].label}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <Button type="submit" disabled={isAddingCamion} className="w-full">
+              <Button type="submit" disabled={isAddingCamion || !watch("placa")} className="w-full">
                 {isAddingCamion ? "Agregando..." : "Agregar Camión"}
               </Button>
             </form>
