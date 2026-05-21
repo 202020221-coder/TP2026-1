@@ -1,7 +1,39 @@
 import axiosInstance from "@/shared/api/axios.config";
 
+export type UploadPurchaseOrderResponse = {
+  message: string;
+  ruta: string;
+};
+
+const getPurchaseOrderStorageKey = (id: number | string) =>
+  `purchase-order-filename:${id}`;
+
+export const parsePurchaseOrderFileName = (pathOrUrl: string) => {
+  const normalized = pathOrUrl.trim();
+  if (!normalized) {
+    return "orden-compra.pdf";
+  }
+
+  const lastSegment = normalized.split("/").pop() ?? normalized;
+  const baseName = lastSegment.split("?")[0] ?? lastSegment;
+  return baseName || "orden-compra.pdf";
+};
+
+export const storePurchaseOrderFileName = (
+  id: number | string,
+  fileName: string,
+) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(getPurchaseOrderStorageKey(id), fileName);
+};
+
+const getStoredPurchaseOrderFileName = (id: number | string) => {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(getPurchaseOrderStorageKey(id));
+};
+
 const getFileNameFromContentDisposition = (header?: string) => {
-  if (!header) return "orden-compra.pdf";
+  if (!header) return undefined;
   try {
     const match = /filename\*?=(?:UTF-8''|\")?([^;\"']+)/i.exec(header);
     if (match && match[1]) {
@@ -10,7 +42,7 @@ const getFileNameFromContentDisposition = (header?: string) => {
   } catch {
     // fallthrough
   }
-  return "orden-compra.pdf";
+  return undefined;
 };
 
 export const downloadPurchaseOrder = async (
@@ -23,11 +55,12 @@ export const downloadPurchaseOrder = async (
     },
   } as any);
 
-  const contentType = response.headers["content-type"] ?? "application/pdf";
+  const contentType = String(response.headers["content-type"] ?? "application/pdf");
   const blob = new Blob([response.data], { type: contentType });
-  const filename = getFileNameFromContentDisposition(
-    response.headers["content-disposition"],
-  );
+  const filename =
+    getFileNameFromContentDisposition(response.headers["content-disposition"]) ||
+    getStoredPurchaseOrderFileName(id) ||
+    "orden-compra.pdf";
   const objUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = objUrl;
@@ -42,10 +75,15 @@ export const downloadPurchaseOrder = async (
 export const uploadPurchaseOrder = async (
   id: number | string,
   file: File,
-): Promise<void> => {
+): Promise<UploadPurchaseOrderResponse> => {
   const form = new FormData();
   // The API spec names the binary field `orden_compra`
   form.append("orden_compra", file);
 
-  await axiosInstance.post(`/cotizaciones/${id}/orden-compra`, form);
+  const response = await axiosInstance.post<UploadPurchaseOrderResponse>(
+    `/cotizaciones/${id}/orden-compra`,
+    form,
+  );
+
+  return response.data;
 };

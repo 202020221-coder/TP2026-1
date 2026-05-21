@@ -1,7 +1,11 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { toast } from "sonner";
-import { uploadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import {
+    parsePurchaseOrderFileName,
+    storePurchaseOrderFileName,
+    uploadPurchaseOrder,
+} from "@/intranet/quotation/api/purchase_order.api";
 import {
     Dialog,
     DialogContent,
@@ -68,16 +72,24 @@ export default function QuotationOrderPurchaseDialog({
         }
 
         setIsUploading(true);
-        toast.promise(
-            async () => {
-                await uploadPurchaseOrder(quotationId, orderPurchaseFile);
-            },
-            {
-                loading: "Subiendo orden de compra...",
-                success: "Orden de compra subida correctamente.",
-                error: "Error al subir la orden de compra.",
-            },
-        ).finally(() => {
+        const uploadPromise = (async () => {
+            const response = await uploadPurchaseOrder(quotationId, orderPurchaseFile);
+
+            if (response?.ruta) {
+                storePurchaseOrderFileName(
+                    quotationId,
+                    parsePurchaseOrderFileName(response.ruta),
+                );
+            }
+        })();
+
+        toast.promise(uploadPromise, {
+            loading: "Subiendo orden de compra...",
+            success: "Orden de compra subida correctamente.",
+            error: "Error al subir la orden de compra.",
+        });
+
+        uploadPromise.finally(() => {
             setIsUploading(false);
             handleOpenChange(false);
         });
