@@ -11,6 +11,8 @@ import {
 } from "@/shared/components/ui/tooltip";
 import type { Project } from "../interfaces/project";
 import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
+import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import { toast } from "sonner";
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -30,7 +32,16 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   };
 
   const handleModalSend = () => {
-    alert(`Aquí se mostraría la orden de compra para el proyecto: ${project.Cotizacion_Nombre}`);
+    if (!project.id_cotizacion) {
+      toast.error("El proyecto no tiene una cotización asociada.");
+      return;
+    }
+
+    toast.promise(downloadPurchaseOrder(project.id_cotizacion), {
+      loading: "Descargando orden de compra...",
+      success: "Descarga iniciada.",
+      error: "No se pudo descargar la orden de compra.",
+    });
   };
 
   return (
@@ -45,6 +56,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         {/* Nombre */}
         <TableCell className="font-medium py-3">
           {project.Cotizacion_Nombre}
+          {project.id_cotizacion}
         </TableCell>
 
         {/* Fecha inicio */}
@@ -102,24 +114,24 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         <TableCell className="text-center">
           {project.orden_servicio ? (
             <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
-                onClick={() => handleModalSend()}
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
+                  onClick={() => handleModalSend()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
               >
-                <Send className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-              align="center"
-            >
-              Ver Orden de Compra
-            </TooltipContent>
-          </Tooltip>
-            
+                Ver Orden de Compra
+              </TooltipContent>
+            </Tooltip>
+
           ) : (
             <span className="text-gray-400 text-sm italic">—</span>
           )}
