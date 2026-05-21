@@ -27,6 +27,9 @@ export const ProjectsTableHeader: FC = () => {
           Orden de servicio
         </TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
+          Orden de compra
+        </TableHead>
+        <TableHead className="text-center text-gray-500 font-medium">
           Informe
         </TableHead>
         <TableHead className="text-center text-gray-500 font-medium">

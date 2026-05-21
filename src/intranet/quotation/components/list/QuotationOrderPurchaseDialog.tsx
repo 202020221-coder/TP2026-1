@@ -1,5 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/shared/components/ui/button";
+import { toast } from "sonner";
+import { uploadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
 import {
     Dialog,
     DialogContent,
@@ -20,6 +22,7 @@ export default function QuotationOrderPurchaseDialog({
     onOpenChange,
 }: QuotationOrderPurchaseDialogProps) {
     const [orderPurchaseFile, setOrderPurchaseFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleOpenChange = (nextOpen: boolean) => {
@@ -58,7 +61,26 @@ export default function QuotationOrderPurchaseDialog({
             return;
         }
 
-        handleOpenChange(false);
+        // Only accept PDF files
+        if (!/\.pdf$/i.test(orderPurchaseFile.name) && orderPurchaseFile.type !== "application/pdf") {
+            toast.error("Solo se permiten archivos PDF.");
+            return;
+        }
+
+        setIsUploading(true);
+        toast.promise(
+            async () => {
+                await uploadPurchaseOrder(quotationId, orderPurchaseFile);
+            },
+            {
+                loading: "Subiendo orden de compra...",
+                success: "Orden de compra subida correctamente.",
+                error: "Error al subir la orden de compra.",
+            },
+        ).finally(() => {
+            setIsUploading(false);
+            handleOpenChange(false);
+        });
     };
 
     return (
@@ -121,8 +143,8 @@ export default function QuotationOrderPurchaseDialog({
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={!orderPurchaseFile}>
-                            Enviar
+                        <Button type="submit" disabled={!orderPurchaseFile || isUploading}>
+                            {isUploading ? "Enviando..." : "Enviar"}
                         </Button>
                     </div>
                 </form>

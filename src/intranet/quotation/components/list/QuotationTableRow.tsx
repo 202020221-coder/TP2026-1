@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, MessageCircle, Trash2, Send } from "lucide-react";
+import { Eye, Mail, MessageCircle, Trash2, Send, DownloadCloud } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +18,8 @@ import {
 } from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
+import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import { toast } from "sonner";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
@@ -51,150 +53,127 @@ export const QuotationTableRow: FC<{
   const handleModalSend = () => {
     setOrderPurchaseModalOpen(true);
   };
+
+  const handleDownloadOrder = async () => {
+    try {
+      await toast.promise(
+        async () => downloadPurchaseOrder(quotation.ID),
+        {
+          loading: "Descargando orden de compra...",
+          success: "Descarga iniciada.",
+          error: "No se pudo descargar la orden de compra.",
+        },
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-      <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
-      <TableCell className="text-gray-700">
-        {formatPEDate(quotation.condiciones.fechaEmision)}
-      </TableCell>
-      <TableCell className="text-gray-700">
-        {formatPEDate(quotation.condiciones.fechaVigencia)}
-      </TableCell>
-      <TableCell className="font-medium py-3">
-        {formatCurrency(quotation.precioTotal, "PEN", 2)}
-      </TableCell>
-      <TableCell className="">
-        <Badge
-          className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
-            quotation.estado,
-          )}`}
-        >
-          {quotation.estado}
-        </Badge>
-      </TableCell>
+        <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
+        <TableCell className="text-gray-700">
+          {formatPEDate(quotation.condiciones.fechaEmision)}
+        </TableCell>
+        <TableCell className="text-gray-700">
+          {formatPEDate(quotation.condiciones.fechaVigencia)}
+        </TableCell>
+        <TableCell className="font-medium py-3">
+          {formatCurrency(quotation.precioTotal, "PEN", 2)}
+        </TableCell>
+        <TableCell className="">
+          <Badge
+            className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
+              quotation.estado,
+            )}`}
+          >
+            {quotation.estado}
+          </Badge>
+        </TableCell>
 
-      <TableCell>
-        <div className="flex justify-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
-                onClick={() => handleNavigateDetails()}
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-              align="center"
-            >
-              Ver Cotizacion
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
-                onClick={() => handleModalSend()}
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-              align="center"
-            >
-              Enviar Orden de Compra
-            </TooltipContent>
-          </Tooltip>
-
-          {user?.rol === RolesRecord.projectAdmin &&
-            quotation.estado === "pendiente" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                  align="center"
-                >
-                  Rechazar Cotizacion
-                </TooltipContent>
-              </Tooltip>
-            )}
-        </div>
-      </TableCell>
-
-      <TableCell className="text-center">
-        {user?.rol === RolesRecord.projectAdmin &&
-        quotation.estado === "pendiente" ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                onClick={() =>
-                  Navigate(
-                    `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
-                  )
-                }
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
-              align="center"
-            >
-              Registrar Comentario
-            </TooltipContent>
-          </Tooltip>
-        ) : user?.rol === RolesRecord.client &&
-          quotation.estado === QuotationStatesRecord.rejected ? (
-          <>
+        <TableCell>
+          <div className="flex justify-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                  onClick={() => setRejectionMsgModalOpen(true)}
+                  className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
+                  onClick={() => handleNavigateDetails()}
                 >
-                  <Mail className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent
-                className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
                 align="center"
               >
-                Ver Mensaje de Declinación
+                Ver Cotizacion
               </TooltipContent>
             </Tooltip>
-            <QuotationRejectionMessageDialog
-              open={rejectionMsgModalOpen}
-              onOpenChange={(open) => setRejectionMsgModalOpen(open)}
-              quotationId={quotation.ID}
-            />
-          </>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )}
-      </TableCell>
-      <TableCell>
-        <div className="flex justify-center gap-2">
-          {quotation.mensajes === "Enviado" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
+                  onClick={() => handleModalSend()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
+              >
+                Enviar Orden de Compra
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-sky-500 hover:border hover:border-sky-500 hover:text-sky-600 transition-colors hover:bg-sky-50"
+                  onClick={handleDownloadOrder}
+                >
+                  <DownloadCloud className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
+              >
+                Descargar Orden de Compra
+              </TooltipContent>
+            </Tooltip>
+
+            {user?.rol === RolesRecord.projectAdmin &&
+              quotation.estado === "pendiente" && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                    align="center"
+                  >
+                    Rechazar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
+              )}
+          </div>
+        </TableCell>
+
+        <TableCell className="text-center">
+          {user?.rol === RolesRecord.projectAdmin &&
+            quotation.estado === "pendiente" ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -203,63 +182,119 @@ export const QuotationTableRow: FC<{
                   className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
                   onClick={() =>
                     Navigate(
-                      `/intranet/cotizaciones/enviado?${toSearchParams({ quotationId: quotation.ID })}`,
+                      `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
                     )
                   }
                 >
-                  <Mail className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent
                 className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
                 align="center"
               >
-                Mensajes Enviados
+                Registrar Comentario
               </TooltipContent>
             </Tooltip>
-          )}
-
-          {quotation.mensajes === "Pendiente" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+          ) : user?.rol === RolesRecord.client &&
+            quotation.estado === QuotationStatesRecord.rejected ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                    onClick={() => setRejectionMsgModalOpen(true)}
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                  align="center"
                 >
-                  <Mail className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                align="center"
-              >
-                Ver Mensajes Pendientes
-              </TooltipContent>
-            </Tooltip>
+                  Ver Mensaje de Declinación
+                </TooltipContent>
+              </Tooltip>
+              <QuotationRejectionMessageDialog
+                open={rejectionMsgModalOpen}
+                onOpenChange={(open) => setRejectionMsgModalOpen(open)}
+                quotationId={quotation.ID}
+              />
+            </>
+          ) : (
+            <span className="text-gray-400">-</span>
           )}
-
-          {quotation.mensajes === "No Iniciado" && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-yellow-500 hover:border hover:border-yellow-500 hover:text-yellow-600 transition-colors hover:bg-red-50"
+        </TableCell>
+        <TableCell>
+          <div className="flex justify-center gap-2">
+            {quotation.mensajes === "Enviado" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
+                    onClick={() =>
+                      Navigate(
+                        `/intranet/cotizaciones/enviado?${toSearchParams({ quotationId: quotation.ID })}`,
+                      )
+                    }
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
+                  align="center"
                 >
-                  <Mail className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                align="center"
-              >
-                Ver Mensajes Pendientes
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </TableCell>
+                  Mensajes Enviados
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {quotation.mensajes === "Pendiente" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                  align="center"
+                >
+                  Ver Mensajes Pendientes
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {quotation.mensajes === "No Iniciado" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-yellow-500 hover:border hover:border-yellow-500 hover:text-yellow-600 transition-colors hover:bg-red-50"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                  align="center"
+                >
+                  Ver Mensajes Pendientes
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TableCell>
       </TableRow>
       <QuotationOrderPurchaseDialog
         quotationId={quotation.ID}
