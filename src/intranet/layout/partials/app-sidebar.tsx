@@ -17,9 +17,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   if (!user) throw new Error("Usuario no logeado");
 
-  const { correo: email, rol: role } = user;
-  const names = "Jhon";
-  const lastnames = "Doe";
+  const { correo: email, rol: role, nombres, apellidos } = user;
+  const names = nombres;
+  const lastnames = apellidos;
 
   return (
     <Sidebar collapsible="icon" {...props}>

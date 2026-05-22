@@ -6,8 +6,13 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { cn } from "@/shared/lib/utils";
-import type { NegotiationAuthorRole, NegotiationMessage } from "../../interfaces/negotiation-message";
+import type {
+  NegotiationAuthorRole,
+} from "../../interfaces/negotiation-message";
 import { useNegotiationChat } from "../../hooks/useNegotiationChat";
+import type { ChatMessage } from "../../api/negotiation-chat.api";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 
 type NegotiationChatPanelProps = {
   quotationId: number;
@@ -19,15 +24,16 @@ type NegotiationChatPanelProps = {
 
 export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
   quotationId,
-  currentUserRole,
-  currentUserName,
   counterpartyName,
   onClose,
 }) => {
   const [draft, setDraft] = useState("");
+  const user = useSession((s) => s.loggedUser);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const { messages, isLoadingMessages, sendMessage, isSending } =
+  const { messages, initialMessagesQuery, isSending, enviarMensaje } =
     useNegotiationChat(quotationId);
+
+  const { isPending } = initialMessagesQuery;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,11 +44,12 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
     const trimmed = draft.trim();
     if (!trimmed || isSending) return;
 
-    await sendMessage({
-      authorRole: currentUserRole,
-      authorName: currentUserName,
-      content: trimmed,
-    });
+    // await sendMessage({
+    //   authorRole: currentUserRole,
+    //   authorName: currentUserName,
+    //   content: trimmed,
+    // });
+    enviarMensaje(trimmed)
     setDraft("");
   };
 
@@ -80,7 +87,7 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
       </header>
 
       <ScrollArea className="min-h-0 flex-1 bg-gray-50 px-4 py-4">
-        {isLoadingMessages ? (
+        {isPending ? (
           <div className="space-y-3">
             <Skeleton className="h-14 w-3/4 rounded-2xl" />
             <Skeleton className="ml-auto h-14 w-2/3 rounded-2xl" />
@@ -90,9 +97,14 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
           <div className="flex flex-col gap-3">
             {messages.map((message) => (
               <MessageBubble
-                key={message.id}
+                key={message.id_mensaje}
                 message={message}
-                isOwn={message.authorRole === currentUserRole}
+                isOwn={
+                  (message.tipo_remitente === "cliente" &&
+                    user?.rol === RolesRecord.client) ||
+                  (message.tipo_remitente === "empleado" &&
+                    user?.rol !== RolesRecord.client)
+                }
               />
             ))}
             <div ref={bottomRef} />
@@ -132,10 +144,10 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
 };
 
 const MessageBubble: FC<{
-  message: NegotiationMessage;
+  message: ChatMessage;
   isOwn: boolean;
 }> = ({ message, isOwn }) => {
-  const time = new Date(message.createdAt).toLocaleTimeString("es-PE", {
+  const time = new Date(message.fecha_hora).toLocaleTimeString("es-PE", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -145,7 +157,7 @@ const MessageBubble: FC<{
       className={cn("flex flex-col gap-1", isOwn ? "items-end" : "items-start")}
     >
       <span className="px-1 text-[11px] font-medium text-gray-500">
-        {message.authorName}
+        {message.nombre_remitente}
       </span>
       <div
         className={cn(
@@ -155,7 +167,7 @@ const MessageBubble: FC<{
             : "rounded-bl-md border border-gray-200 bg-white text-gray-800",
         )}
       >
-        {message.content}
+        {message.mensaje}
       </div>
       <span className="px-1 text-[10px] text-gray-400">{time}</span>
     </div>
