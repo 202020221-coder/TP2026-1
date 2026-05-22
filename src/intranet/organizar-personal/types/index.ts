@@ -7,6 +7,7 @@ export interface Proyecto {
   estado: string;
   Cliente_Nombre: string | null;
   ID_Trabajo: number | null;
+  id_cotizacion?: number | null;
 }
 
 export interface PaginatedResponse<T> {

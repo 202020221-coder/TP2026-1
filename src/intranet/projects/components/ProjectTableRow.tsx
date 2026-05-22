@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
@@ -14,6 +15,10 @@ import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.re
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const openOrganizarPersonal = () =>
+    navigate(`/intranet/organizar-personal/${project.id_Proyecto}`);
 
   const statusStyles = new Map<ProjectState, string>([
     [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
@@ -72,6 +77,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={openOrganizarPersonal}
                 className="h-8 px-3 text-blue-600 border-blue-300 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 transition-colors"
               >
                 <Users className="w-3.5 h-3.5 mr-1 text-blue-600" />
@@ -79,7 +85,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white border border-blue-400 text-blue-600">
-              Ver / Asignar trabajadores
+              Organizar personal del proyecto
             </TooltipContent>
           </Tooltip>
         </TableCell>

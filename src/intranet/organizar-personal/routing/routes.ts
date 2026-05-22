@@ -7,7 +7,7 @@ const OrganizarPersonalPage = lazy(
 
 export const routes: IRoute[] = [
   {
-    path: "/",
+    path: "/:idProyecto",
     Component: OrganizarPersonalPage,
     isPrivate: true,
   },
