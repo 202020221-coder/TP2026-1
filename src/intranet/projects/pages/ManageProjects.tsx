@@ -14,7 +14,7 @@ export function ProjectsManagementPage() {
         <h1 className="text-2xl font-bold text-gray-800">Gestionar Proyectos</h1>
         {!showActive && (
           <Button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full px-5"
+            className= "font-semibold rounded-full px-5"
             onClick={() => setShowActive(true)}
           >
             <PlayCircle className="w-4 h-4 mr-1" />
