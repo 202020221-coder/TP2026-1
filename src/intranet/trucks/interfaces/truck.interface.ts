@@ -5,6 +5,11 @@ export type TruckEstado =
   | "inoperativo"
   | "descalificado";
 
+export interface TruckProgramacion {
+  fecha_hora_entrada: string;
+  fecha_hora_salida: string;
+}
+
 export interface Truck {
   Placa: string;
   nombre: string;
@@ -12,6 +17,8 @@ export interface Truck {
   modelo: string;
   color: string;
   Estado: TruckEstado;
+  proyecto_actual?: string | null;
+  programacion_futura?: TruckProgramacion[];
   caracteristicas: string;
   revision_tecnica: string;
   fecha_prox_revision: string;
@@ -21,7 +28,7 @@ export interface Truck {
   vencimiento_tarjeta: string;
   soat_n_poliza: string;
   soat_empresa: string;
-  soat_precio: number;
+  soat_precio: number | string;
   soat_dia_pago: string;
 }
 

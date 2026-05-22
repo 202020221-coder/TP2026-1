@@ -106,6 +106,9 @@ export const normalizeTruck = (truck: RawTruck): Truck => ({
   fecha_prox_revision: toIsoDateOrEmpty(truck.fecha_prox_revision),
   vencimiento_tarjeta: toIsoDateOrEmpty(truck.vencimiento_tarjeta),
   soat_dia_pago: toIsoDateOrEmpty(truck.soat_dia_pago),
+  programacion_futura: Array.isArray(truck.programacion_futura)
+    ? truck.programacion_futura
+    : [],
 });
 
 export const normalizeTruckMaintenance = (

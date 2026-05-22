@@ -1,4 +1,4 @@
-import type { TruckEstado } from "../interfaces/truck.interface";
+import type { TruckEstado, TruckProgramacion } from "../interfaces/truck.interface";
 
 export type SoatBadge = {
   label: string;
@@ -54,6 +54,33 @@ export const formatTruckTableDate = (value: string) => {
   if (Number.isNaN(date.getTime())) return "-";
 
   return date.toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+export const getNextTruckOccupancyDate = (
+  programacionFutura?: TruckProgramacion[] | null,
+): string => {
+  if (!Array.isArray(programacionFutura) || programacionFutura.length === 0) {
+    return "Sin programación";
+  }
+
+  const now = new Date();
+  const fechasFuturas = programacionFutura
+    .map((item) => {
+      const date = new Date(item.fecha_hora_entrada);
+      return { date, isValid: !Number.isNaN(date.getTime()) };
+    })
+    .filter(({ date, isValid }) => isValid && date.getTime() > now.getTime())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  if (fechasFuturas.length === 0) {
+    return "Sin programación";
+  }
+
+  return fechasFuturas[0].date.toLocaleDateString("es-PE", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
