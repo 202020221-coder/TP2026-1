@@ -56,7 +56,6 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         {/* Nombre */}
         <TableCell className="font-medium py-3">
           {project.Cotizacion_Nombre}
-          {project.id_cotizacion}
         </TableCell>
 
         {/* Fecha inicio */}

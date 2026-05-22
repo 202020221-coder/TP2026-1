@@ -129,24 +129,6 @@ export const QuotationTableRow: FC<{
                 Enviar Orden de Compra
               </TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-sky-500 hover:border hover:border-sky-500 hover:text-sky-600 transition-colors hover:bg-sky-50"
-                  onClick={handleDownloadOrder}
-                >
-                  <DownloadCloud className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-                align="center"
-              >
-                Descargar Orden de Compra
-              </TooltipContent>
-            </Tooltip>
 
             {user?.rol === RolesRecord.projectAdmin &&
               quotation.estado === "pendiente" && (
