@@ -1,16 +1,13 @@
-import { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
-import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { getQuotation } from "../api/quotation.api";
 import { QuotationDetailSidePanel } from "../components/negotiation/QuotationDetailSidePanel";
 import { NegotiationChatPanel } from "../components/negotiation/NegotiationChatPanel";
 import { QuotationDetailState } from "../components/list/QuotationDetailState";
-import type { NegotiationAuthorRole } from "../interfaces/negotiation-message";
 import { canNegotiateQuotation } from "../lib/can-negotiate-quotation";
 
 export function QuotationNegotiationChatPage() {
@@ -20,24 +17,6 @@ export function QuotationNegotiationChatPage() {
   const quotationId = Number(searchParams.get("quotationId"));
 
   const goBack = () => navigate("/intranet/cotizaciones");
-
-  const roleContext = useMemo(() => {
-    if (user?.rol === RolesRecord.client) {
-      return {
-        currentUserRole: RolesRecord.client as NegotiationAuthorRole,
-        currentUserName: user.correo ?? "Cliente",
-        counterpartyName: "Asistente de Proyectos",
-      };
-    }
-    if (user?.rol === RolesRecord.projectAdmin) {
-      return {
-        currentUserRole: RolesRecord.projectAdmin as NegotiationAuthorRole,
-        currentUserName: "Asistente de Proyectos",
-        counterpartyName: "Cliente",
-      };
-    }
-    return null;
-  }, [user]);
 
   const quotationQuery = useQuery({
     queryKey: ["quotation", "negotiation", quotationId],
@@ -49,15 +28,6 @@ export function QuotationNegotiationChatPage() {
     return (
       <QuotationDetailState
         message="No se encontró la cotización indicada."
-        onBack={goBack}
-      />
-    );
-  }
-
-  if (!roleContext) {
-    return (
-      <QuotationDetailState
-        message="Su rol no tiene acceso al chat de negociación."
         onBack={goBack}
       />
     );
@@ -93,8 +63,7 @@ export function QuotationNegotiationChatPage() {
             Chat de negociación
           </h1>
           <p className="text-sm text-gray-500">
-            Intercambie observaciones sobre la cotización con{" "}
-            {roleContext.counterpartyName.toLowerCase()}.
+            Intercambie observaciones sobre la cotización con el cliente.
           </p>
         </div>
         <Button variant="outline" onClick={goBack}>
@@ -107,9 +76,6 @@ export function QuotationNegotiationChatPage() {
         <QuotationDetailSidePanel quotation={quotationQuery.data} />
         <NegotiationChatPanel
           quotationId={quotationId}
-          currentUserRole={roleContext.currentUserRole}
-          currentUserName={roleContext.currentUserName}
-          counterpartyName={roleContext.counterpartyName}
           onClose={goBack}
         />
       </div>
