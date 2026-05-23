@@ -28,14 +28,14 @@ export const ChatHeader: FC<ChatHeaderProps> = ({
       throw new Error("Error: Usuario no permitido ingreso al chat");
   }
   return (
-    <header className="flex shrink-0 items-center gap-3 border-b border-sky-100 bg-sky-50 px-4 py-3">
-      <Avatar size="lg" className="border border-sky-200 bg-white">
+    <header className="flex shrink-0 items-center gap-3 border-b border-primary/10 bg-primary/5 px-4 py-3">
+      <Avatar size="lg" className="border border-primary/20 bg-white">
         <AvatarImage
           src="https://github.com/shadcn.png"
           alt="@shadcn"
           className="grayscale"
         />
-        <AvatarFallback className="bg-sky-100 text-sky-800 text-xs font-semibold">
+        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
           {contactName}
         </AvatarFallback>
       </Avatar>

@@ -26,14 +26,14 @@ export const QuotationDetailSidePanel: FC<QuotationDetailSidePanelProps> = ({
     quotation.nombre.split(" - ").slice(1).join(" - ") || quotation.nombre;
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-blue-100 bg-white">
-      <div className="rounded-t-2xl border-b border-blue-100 bg-blue-50 px-5 py-4">
-        <p className="text-center text-sm font-bold tracking-wide text-blue-900">
+    <div className="flex h-full min-h-0 flex-col rounded-2xl border border-primary/10 bg-white">
+      <div className="rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4">
+        <p className="text-center text-sm font-bold tracking-wide text-primary">
           {displayName.toUpperCase()}
         </p>
       </div>
-      <div className="border-b border-blue-50 px-5 py-3">
-        <h2 className="text-sm font-semibold text-blue-900">
+      <div className="border-b border-primary/5 px-5 py-3">
+        <h2 className="text-sm font-semibold text-primary">
           Detalle de la Cotización
         </h2>
       </div>

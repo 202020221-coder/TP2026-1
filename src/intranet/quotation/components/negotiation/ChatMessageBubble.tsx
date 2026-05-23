@@ -18,7 +18,7 @@ export const MessageBubble: FC<{
         className={cn(
           "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
           isOwn
-            ? "rounded-br-md bg-sky-600 text-white"
+            ? "rounded-br-md bg-primary text-primary-foreground"
             : "rounded-bl-md border border-gray-200 bg-white text-gray-800",
         )}
       >

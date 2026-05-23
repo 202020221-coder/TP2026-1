@@ -27,7 +27,7 @@ export const ChatMessageField: FC<ChatMessageFieldProps> = ({ onSubmit }) => {
         onChange={(e) => setDraft(e.target.value)}
         placeholder="Redacta tus observaciones"
         rows={2}
-        className="min-h-[52px] resize-none rounded-xl border-gray-200 bg-gray-50 focus-visible:ring-sky-400"
+        className="min-h-[52px] resize-none rounded-xl border-gray-200 bg-gray-50 focus-visible:ring-primary"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
