@@ -22,7 +22,7 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-1 flex-col space-y-3">
+    <div className="flex flex-1 flex-col space-y-3 min-h-0">
       <TopControls />
       {children}
       <BottomControls />

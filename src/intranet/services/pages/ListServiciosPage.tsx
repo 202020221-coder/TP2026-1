@@ -8,7 +8,7 @@ export function ListServiciosPage() {
         Gestionar Servicios
       </h1>
       <ListServiciosProvider>
-        <div className="bg-white p-6 rounded-xl shadow-none border flex flex-col flex-1">
+        <div className="bg-white p-6 rounded-xl shadow-none border flex flex-col flex-1 min-h-0">
           <ServiciosTable />
         </div>
       </ListServiciosProvider>

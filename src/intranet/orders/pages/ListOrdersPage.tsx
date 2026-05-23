@@ -7,7 +7,7 @@ export function ListOrdersPage() {
         Listado de Solicitudes
       </h1>
       <ListOrdersProvider>
-        <div className="bg-white p-6 rounded-xl shadow-none border flex flex-col flex-1">
+        <div className="bg-white p-6 rounded-xl shadow-none border flex flex-col flex-1 min-h-0">
           <OrdersTable />
         </div>
       </ListOrdersProvider>
