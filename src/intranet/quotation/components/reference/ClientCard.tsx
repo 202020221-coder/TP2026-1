@@ -18,15 +18,14 @@ export const ClientCard: FC<{ client: Client }> = ({ client }) => {
 
   return (
     <Card className="border shadow-none">
-      {/* Header */}
-      <CardHeader className="space-y-2">
+      <CardHeader>
         <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
           <Building className="text-primary" />
           <span className="pb-0.5 font-[375] text-[18px]">
             Datos del Cliente
           </span>
         </CardTitle>
-        <CardDescription className="flex justify-between items-center">
+        <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left flex justify-between items-center">
           <span>
             Visualiza la información del cliente obtenida durante la elaboración
             de su solicitud.

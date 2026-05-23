@@ -3,10 +3,12 @@ import {
   Card,
   CardHeader,
   CardTitle,
+  CardDescription,
   CardContent,
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { ClipboardList } from "lucide-react";
 type ConditionCardProps = {
   emissionDate: string;
   expirationDate: string;
@@ -39,7 +41,15 @@ export const ConditionCard: FC<ConditionCardProps> = ({
     <section className="h-full flex flex-col justify-between">
       <Card className="flex h-full shadow-none">
         <CardHeader>
-          <CardTitle>Condiciones Adicionales</CardTitle>
+          <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+            <ClipboardList className="text-primary" />
+            <span className="pb-0.5 font-[375] text-[18px]">
+              Condiciones Adicionales
+            </span>
+          </CardTitle>
+          <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+            Configura los plazos y condiciones generales para la cotización.
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -67,12 +67,15 @@ export function CreateQuotationPage() {
   console.log(orderData);
   
   return (
-    <div className="flex h-full flex-col bg-background px-6 py-4">
-      <h1 className="mb-4 text-2xl font-semibold text-foreground">
-        Elaborar Cotización - Solicitud #{orderId}
-      </h1>
+    <div className="flex h-full flex-col p-6 min-h-0">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-7 w-1 rounded-full bg-primary" />
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Elaborar Cotización - Solicitud #{orderId}
+        </h1>
+      </div>
 
-      <Tabs defaultValue="reference" className="w-full">
+      <Tabs defaultValue="reference" className="w-full flex flex-col flex-1 min-h-0">
         <QuotationConditionStoreProvider>
           <QuotationExchangeRateProvider>
             <QuotationTruckStoreProvider>
@@ -80,7 +83,7 @@ export function CreateQuotationPage() {
                 initialProducts={orderData.inventario}
               >
                 <QuotationPickupStoreProvider>
-                  <TabsList className="grid w-full grid-cols-4 border bg-background rounded-lg overflow-hidden min-h-12 gap-x-2">
+                  <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
                     <TabsTrigger value="reference" className={baseTriggerClass}>
                       <FileText className="w-4 h-4" />
                       Datos de Referencia
@@ -101,32 +104,34 @@ export function CreateQuotationPage() {
                       Visualización
                     </VisualizeTrigger>
                   </TabsList>
-                  <ScrollArea className="mt-2 h-[calc(100vh-180px)] rounded-sm border bg-background p-4">
-                    <TabsContent value="reference">
-                      <ClientCard
-                        client={{
-                          DNI_O_RUC: orderData.Id_Cliente,
-                          nombre_comercial: orderData.Cliente_Nombre,
-                          razon_social: orderData.Razon_Social,
-                        }}
-                      />
-                    </TabsContent>
-                    <TabsContent value="prices" className="space-y-6 pt-1">
-                      <CreateQuotationProductsSection />
-                      <CreateQuotationTruckSelector />
-                      <CreateQuotationPickupSection
-                        address={orderData.ubicacion}
-                      />
-                      <CreateQuotationSummaryCard />
-                    </TabsContent>
-                    <TabsContent value="conditions">
-                      <CreateQuotationConditionCard />
-                    </TabsContent>
-                    <TabsContent value="visualize">
-                      <CreateQuotationVisualizeSection
-                        detailedOrder={orderData}
-                      />
-                    </TabsContent>
+                  <ScrollArea className="mt-2 flex-1 min-h-0">
+                    <div className="px-3 py-6">
+                      <TabsContent value="reference">
+                        <ClientCard
+                          client={{
+                            DNI_O_RUC: orderData.Id_Cliente,
+                            nombre_comercial: orderData.Cliente_Nombre,
+                            razon_social: orderData.Razon_Social,
+                          }}
+                        />
+                      </TabsContent>
+                      <TabsContent value="prices" className="space-y-6">
+                        <CreateQuotationProductsSection />
+                        <CreateQuotationTruckSelector />
+                        <CreateQuotationPickupSection
+                          address={orderData.ubicacion}
+                        />
+                        <CreateQuotationSummaryCard />
+                      </TabsContent>
+                      <TabsContent value="conditions">
+                        <CreateQuotationConditionCard />
+                      </TabsContent>
+                      <TabsContent value="visualize">
+                        <CreateQuotationVisualizeSection
+                          detailedOrder={orderData}
+                        />
+                      </TabsContent>
+                    </div>
                   </ScrollArea>
                 </QuotationPickupStoreProvider>
               </QuotationProductStoreProvider>
