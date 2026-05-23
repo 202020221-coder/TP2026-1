@@ -87,7 +87,14 @@ export const CreateQuotationVisualizeSection = ({
         <Send className="mr-2 h-4 w-4" />
         {isSending ? "Enviando..." : "Crear Cotización y enviar al cliente"}
       </Button>
-      <PdfPreview key={Date.now()} />
+      <PdfPreview
+        key={Date.now()}
+        client={{
+          RUC: detailedOrder.Id_Cliente,
+          nombre_comercial: detailedOrder.Cliente_Nombre,
+          razon_social: detailedOrder.Razon_Social,
+        }}
+      />
     </>
   );
 };

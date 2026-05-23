@@ -6,7 +6,15 @@ import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 
-export const PdfPreview = () => {
+interface PdfPreviewProps {
+  client: {
+    RUC: string;
+    nombre_comercial: string;
+    razon_social: string;
+  };
+}
+
+export const PdfPreview = ({ client }: PdfPreviewProps) => {
   // Obtenemos datos de cada store
   const inventory = useQuotationProductStore((state) => state.items);
   const truck = useQuotationTruckStore((state) => state.selectedTruck);
@@ -19,14 +27,7 @@ export const PdfPreview = () => {
 
   if (!truck) {
     throw new Error("TRUCK NO DEFINIDO");
-  } 
-
-  // Datos del cliente (pueden venir de otro store o props)
-  const client = {
-    RUC: "20501234567",
-    nombre_comercial: "Mall Aventura Plaza",
-    razon_social: "Aventura Plaza S.A.",
-  };
+  }
 
   // Construimos el objeto data
   const data = {

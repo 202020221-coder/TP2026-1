@@ -1,6 +1,6 @@
 import { Document, Page, StyleSheet } from "@react-pdf/renderer";
 import Header from "./pdf/Header";
-// import ClientInfo from "./components/ClientInfo";
+import ClientInfo from "./pdf/ClientInfo";
 import InventoryTable from "./pdf/InventoryTable";
 import CostSummary from "./pdf/CostSummary";
 import PickupSection from "./pdf/PickupSection";
@@ -38,7 +38,7 @@ export const PdfDocument = ({ data }: PDFQuotationDocumentProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <Header />
-      {/* <ClientInfo client={data.client} /> */}
+      <ClientInfo client={data.client} />
       <InventoryTable items={data.inventory} />
       <TruckDriverSection truck={data.truck} />
       <PickupSection pickup={data.pickup} />
