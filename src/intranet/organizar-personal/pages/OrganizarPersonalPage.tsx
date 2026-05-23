@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { WorkCalendar } from '../components/work-calendar';
 import { DailyStaffPanel } from '../components/daily-staff-panel';
+import { BudgetAnalysis } from '../components/budget-analysis';
 import {
   proyectoService,
   trabajoService,
@@ -63,55 +65,73 @@ export default function OrganizarPersonalPage() {
     (proyecto ? `Proyecto #${proyecto.id_Proyecto}` : '');
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-gray-50">
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-4 pt-4 pb-2 shrink-0 flex items-center gap-3 border-b bg-white">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/intranet/proyectos')}
-            className="gap-1"
-          >
-            <ArrowLeft className="w-4 h-4" /> Proyectos
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold truncate">
-              {loadingProyecto
-                ? 'Cargando proyecto…'
-                : proyecto
-                  ? projectName
-                  : 'Proyecto no encontrado'}
-            </h2>
-            {proyecto && (
-              <p className="text-xs text-muted-foreground truncate">
-                {proyecto.Cliente_Nombre ?? 'Sin cliente'}
-                {proyecto.ubicacion ? ` · ${proyecto.ubicacion}` : ''}
-                {personalRequerido > 0
-                  ? ` · Personal requerido por día: ${personalRequerido}`
-                  : ''}
-              </p>
-            )}
-          </div>
+    <div className="flex flex-col h-[calc(100vh-4rem)] w-full overflow-hidden bg-gray-50">
+      <div className="px-4 pt-4 pb-2 shrink-0 flex items-center gap-3 border-b bg-white">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/intranet/proyectos')}
+          className="gap-1"
+        >
+          <ArrowLeft className="w-4 h-4" /> Proyectos
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-semibold truncate">
+            {loadingProyecto
+              ? 'Cargando proyecto…'
+              : proyecto
+                ? projectName
+                : 'Proyecto no encontrado'}
+          </h2>
+          {proyecto && (
+            <p className="text-xs text-muted-foreground truncate">
+              {proyecto.Cliente_Nombre ?? 'Sin cliente'}
+              {proyecto.ubicacion ? ` · ${proyecto.ubicacion}` : ''}
+              {personalRequerido > 0
+                ? ` · Personal requerido por día: ${personalRequerido}`
+                : ''}
+            </p>
+          )}
         </div>
+      </div>
 
-        <WorkCalendar
-          jornadas={jornadas}
-          onSelectDate={setSelectedDate}
-          personalRequerido={personalRequerido}
-          fechaInicio={proyecto?.fecha_inicio ?? null}
-          fechaFin={proyecto?.fecha_fin ?? null}
-        />
-      </main>
+      <Tabs defaultValue="cronograma" className="flex flex-col flex-1 overflow-hidden">
+        <TabsList className="shrink-0 px-4 pt-2 bg-white border-b justify-start rounded-none">
+          <TabsTrigger value="cronograma">Cronograma</TabsTrigger>
+          <TabsTrigger value="presupuesto">Análisis de Presupuesto</TabsTrigger>
+        </TabsList>
 
-      <aside className="w-72 shrink-0 border-l bg-white flex flex-col overflow-hidden">
-        <DailyStaffPanel
-          selectedDate={selectedDate}
-          idTrabajo={proyecto?.ID_Trabajo ?? null}
-          jornadas={jornadas}
-          personalRequerido={personalRequerido}
-          onRefresh={loadJornadas}
-        />
-      </aside>
+        <TabsContent value="cronograma" className="flex flex-1 overflow-hidden m-0">
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <WorkCalendar
+              jornadas={jornadas}
+              onSelectDate={setSelectedDate}
+              personalRequerido={personalRequerido}
+              fechaInicio={proyecto?.fecha_inicio ?? null}
+              fechaFin={proyecto?.fecha_fin ?? null}
+            />
+          </main>
+
+          <aside className="w-72 shrink-0 border-l bg-white flex flex-col overflow-hidden">
+            <DailyStaffPanel
+              selectedDate={selectedDate}
+              idTrabajo={proyecto?.ID_Trabajo ?? null}
+              jornadas={jornadas}
+              personalRequerido={personalRequerido}
+              onRefresh={loadJornadas}
+            />
+          </aside>
+        </TabsContent>
+
+        <TabsContent value="presupuesto" className="flex-1 overflow-y-auto p-4 m-0">
+          <BudgetAnalysis
+            jornadas={jornadas}
+            personalRequerido={personalRequerido}
+            fechaInicio={proyecto?.fecha_inicio ?? null}
+            fechaFin={proyecto?.fecha_fin ?? null}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
