@@ -18,10 +18,10 @@ const QuotationPickupStoreContext = createContext<StoreApi<PickupStore> | null>(
 
 export const QuotationPickupStoreProvider: FC<
   PropsWithChildren<{
-    initialData?: PickupState;
+    initialData?: Partial<PickupState>;
   }>
 > = ({ children, initialData }) => {
-  const [store] = useState(() => createPickupStore(initialData)); //lazy initialization
+  const [store] = useState(() => createPickupStore(initialData));
   return (
     <QuotationPickupStoreContext.Provider value={store}>
       {children}

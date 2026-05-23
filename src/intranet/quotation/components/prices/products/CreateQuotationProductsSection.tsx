@@ -71,8 +71,6 @@ export const CreateQuotationProductsSection: FC = () => {
           open={isDialogOpen}
         />
         <QuotationProductsTable
-          isPending={false}
-          isError={false}
           items={products}
           onDelete={deleteItem}
           onUpdateQuantity={(id, quantity) =>

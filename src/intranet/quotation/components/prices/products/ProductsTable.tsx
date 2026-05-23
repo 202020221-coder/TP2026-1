@@ -10,8 +10,6 @@ import { Input } from "@/shared/components/ui/input";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
 import { Bird, Eraser } from "lucide-react";
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
-import { AlertCircle } from "lucide-react";
-import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -62,11 +60,9 @@ type OptionalProps =
 
 type QuotationTableProps = {
   items: QuotationProduct[];
-  isPending: boolean;
-  isError: boolean;
 } & OptionalProps;
 export const QuotationProductsTable: FC<QuotationTableProps> = memo(
-  ({ items, isPending, isError, ...rest }) => {
+  ({ items, ...rest }) => {
     return (
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         <Table>
@@ -85,13 +81,9 @@ export const QuotationProductsTable: FC<QuotationTableProps> = memo(
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isPending ? (
-              <InventoryTableSkeleton />
-            ) : isError ? (
-              <InventoryTableError message="Error al cargar los productos adjuntados en la solicitud." />
-            ) : items.length === 0 ? (
+            {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="bg-gray-50 h-56">
+                <TableCell colSpan={8} className="bg-gray-50 h-56">
                   <div className="h-full flex flex-col">
                     <Bird className="flex-1 w-auto stroke-1 text-gray-400" />
                     <div className="text-center space-y-1">
@@ -174,31 +166,6 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
             </SelectContent>
           </Select>
         </TableCell>
-
-{/* <TableCell className="text-center">
-          
-          <Select
-            defaultValue={product.intencion}
-            onValueChange={(value: QuotationProductIntention) =>
-              onUpdateIntention?.(product.id, value)
-            }
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-8 border-border bg-background text-xs min-w-32">
-              <SelectValue placeholder="Seleccione la intención" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(QuotationProductIntentionsRecord).map(
-                (value, i) => (
-                  <SelectItem key={`${i}-${value}`} value={value}>
-                    {value}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-        </TableCell> */}
-
         <TableCell className="text-center max-w-14">
           {product.intencion === "alquilar" ? (
             <Input
@@ -215,7 +182,6 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
             <span className="text-muted-foreground">—</span>
           )}
         </TableCell>
-
 
         <TableCell className="text-center max-w-14">
           <Input
@@ -258,54 +224,3 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
     );
   },
 );
-
-const InventoryTableError: FC<{ message?: string }> = memo(
-  ({
-    message = "No se pudieron cargar los ensayos. Intenta recargar la página.",
-  }) => (
-    <TableRow>
-      <TableCell colSpan={9} className="text-center py-8">
-        <div className="flex flex-col items-center gap-2">
-          <AlertCircle className="h-8 w-8 text-destructive" />
-          <p className="font-medium text-destructive">{message}</p>
-        </div>
-      </TableCell>
-    </TableRow>
-  ),
-);
-
-const InventoryTableSkeleton: FC = memo(() => (
-  <>
-    {Array.from({ length: 6 }).map((_, i) => (
-      <TableRow key={i}>
-        <TableCell>
-          <Skeleton className="h-7 rounded-sm w-16 bg-muted" />
-        </TableCell>
-
-        <TableCell className="text-center">
-          <Skeleton className="h-7 w-96 bg-muted" />
-        </TableCell>
-
-        <TableCell className="max-w-20">
-          <Skeleton className="h-7 w-30 bg-muted" />
-        </TableCell>
-
-        <TableCell>
-          <Skeleton className="h-7 w-24 bg-muted mx-auto" />
-        </TableCell>
-
-        <TableCell>
-          <Skeleton className="h-7 w-24 bg-muted mx-auto" />
-        </TableCell>
-
-        <TableCell className="max-w-20">
-          <Skeleton className="h-7 w-28 bg-muted ml-auto" />
-        </TableCell>
-
-        <TableCell className="text-center">
-          <Skeleton className="mx-auto rounded-full h-8 w-8 bg-muted" />
-        </TableCell>
-      </TableRow>
-    ))}
-  </>
-));

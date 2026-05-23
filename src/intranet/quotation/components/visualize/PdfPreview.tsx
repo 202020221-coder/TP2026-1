@@ -15,6 +15,7 @@ export const PdfPreview = () => {
   const emissionDate = useQuotationConditionStore((state) => state.emissionDate);
   const expirationDate = useQuotationConditionStore((state) => state.expirationDate);
   const conditions = useQuotationConditionStore((state) => state.conditions);
+  const observaciones = useQuotationConditionStore((state) => state.observaciones);
 
   if (!truck) {
     throw new Error("TRUCK NO DEFINIDO");
@@ -40,6 +41,7 @@ export const PdfPreview = () => {
       emissionDate,
       expirationDate,
       conditions,
+      observaciones,
     },
   };
 

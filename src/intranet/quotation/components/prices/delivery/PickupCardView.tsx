@@ -13,27 +13,30 @@ import { memo, type FC } from "react";
 type PickupCardViewProps = {
   pickupDate: string;
   pickupCost: number;
-  address: string;
+  pickupAddress: string;
 } & (
   | {
       readOnly?: true;
       onPickupDateChange: undefined;
       onPickupCostChange: undefined;
+      onPickupAddressChange: undefined;
     }
   | {
       readOnly?: false;
       onPickupDateChange: (pickupDate: string) => void;
       onPickupCostChange: (pickupCost: number) => void;
+      onPickupAddressChange: (address: string) => void;
     }
 );
 
 export const PickupCardView: FC<PickupCardViewProps> = memo(
   ({
-    address,
     pickupCost,
     pickupDate,
+    pickupAddress,
     onPickupCostChange,
     onPickupDateChange,
+    onPickupAddressChange,
     readOnly = false,
   }) => {
     return (
@@ -84,9 +87,13 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
             <p className="font-medium text-[14px] mb-0.5">
               Dirección de Entrega:
             </p>
-            <p className="flex flex-1 items-center text-muted-foreground">
-              <span className="text-foreground">{address}</span>
-            </p>
+            <Input
+              type="text"
+              className="h-10"
+              value={pickupAddress}
+              onChange={(e) => onPickupAddressChange?.(e.target.value)}
+              readOnly={readOnly}
+            />
           </div>
         </CardContent>
       </Card>

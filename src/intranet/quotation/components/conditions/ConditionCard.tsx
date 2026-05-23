@@ -13,18 +13,21 @@ type ConditionCardProps = {
   emissionDate: string;
   expirationDate: string;
   conditions: string;
+  observaciones: string;
 } & (
   | {
       readOnly?: false;
       onEmissionChange: (v: string) => void;
       onExpirationChange: (v: string) => void;
       onConditionsChange: (v: string) => void;
+      onObservacionesChange: (v: string) => void;
     }
   | {
       readOnly?: true;
       onEmissionChange: undefined;
       onExpirationChange: undefined;
       onConditionsChange: undefined;
+      onObservacionesChange: undefined;
     }
 );
 
@@ -32,10 +35,12 @@ export const ConditionCard: FC<ConditionCardProps> = ({
   emissionDate,
   expirationDate,
   conditions,
+  observaciones,
   readOnly = false,
   onEmissionChange,
   onExpirationChange,
   onConditionsChange,
+  onObservacionesChange,
 }) => {
   return (
     <section className="h-full flex flex-col justify-between">
@@ -55,7 +60,9 @@ export const ConditionCard: FC<ConditionCardProps> = ({
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* EMISION */}
           <div>
-            <p>Fecha de Emisión</p>
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Fecha de Emisión
+            </p>
             <Input
               type="date"
               value={emissionDate}
@@ -66,8 +73,9 @@ export const ConditionCard: FC<ConditionCardProps> = ({
 
           {/* VIGENCIA */}
           <div>
-            <p>Vigencia</p>
-
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Fecha de Vigencia
+            </p>
             <Input
               type="date"
               value={expirationDate}
@@ -76,12 +84,30 @@ export const ConditionCard: FC<ConditionCardProps> = ({
             />
           </div>
 
-          {/* TEXTAREA */}
-          <div className="sm:col-span-2 h-[20vh]">
+          {/* CONDICIONES */}
+          <div className="sm:col-span-2">
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Condiciones
+            </p>
             <Textarea
+              className="min-h-[20vh]"
               value={conditions}
               readOnly={readOnly}
               onChange={(e) => onConditionsChange?.(e.target.value)}
+            />
+          </div>
+
+          {/* OBSERVACIONES */}
+          <div className="sm:col-span-2">
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Observaciones
+            </p>
+            <Textarea
+              className="min-h-[15vh]"
+              value={observaciones}
+              readOnly={readOnly}
+              placeholder="Notas adicionales para la cotización..."
+              onChange={(e) => onObservacionesChange?.(e.target.value)}
             />
           </div>
         </CardContent>

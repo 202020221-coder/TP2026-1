@@ -29,6 +29,7 @@ interface PDFQuotationDocumentProps {
       emissionDate: string;
       expirationDate: string;
       conditions: string;
+      observaciones?: string;
     };
   };
 }

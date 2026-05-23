@@ -73,8 +73,8 @@ export const useAddProductsDialog = (
         nombre: item.nombre_objeto,
         /**campos modificables por el usuario */
         intencion: "comprar",
-        cantidad: 0,
-        precio_unitario: 0,
+        cantidad: 1,
+        precio_unitario: Number(item.precio_comercial),
       });
     }
   }, []);

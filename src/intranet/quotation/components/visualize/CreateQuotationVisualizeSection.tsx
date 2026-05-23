@@ -10,6 +10,7 @@ import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
+import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
 
 export const CreateQuotationVisualizeSection = ({
@@ -21,8 +22,10 @@ export const CreateQuotationVisualizeSection = ({
   const Navigate = useNavigate();
   const inventory = useQuotationProductStore((state) => state.items);
   const truck = useQuotationTruckStore((state) => state.selectedTruck);
+  const quotationName = useQuotationReferenceStore((state) => state.name);
   const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
   const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
+  const pickupAddress = useQuotationPickupStore((state) => state.pickupAddress);
   const emissionDate = useQuotationConditionStore(
     (state) => state.emissionDate,
   );
@@ -30,6 +33,7 @@ export const CreateQuotationVisualizeSection = ({
     (state) => state.expirationDate,
   );
   const conditions = useQuotationConditionStore((state) => state.conditions);
+  const observaciones = useQuotationConditionStore((state) => state.observaciones);
   const rate = useQuotationExchangeRate((s) => s.rate);
   const handleSend = async () => {
     try {
@@ -39,16 +43,16 @@ export const CreateQuotationVisualizeSection = ({
           await createQuotation({
             id_solicitud: detailedOrder.ID,
             DNI_O_RUC: detailedOrder.Id_Cliente,
-            nombre: "cotizacion nombre",
+            nombre: quotationName || "cotizacion nombre",
             condiciones: {
               condiciones: conditions,
               fechaEmision: emissionDate,
               fechaVigencia: expirationDate,
-              observaciones: conditions,
+              observaciones,
             },
             costoRecojo: {
               costo: pickupCost,
-              direccionRecojo: "", //guardar direccion siempre
+              direccionRecojo: pickupAddress,
               fechaRecojo: pickupDate,
             },
             id_camion: truck?.Placa ?? "",

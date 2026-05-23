@@ -5,6 +5,7 @@ type State = {
   emissionDate: string;
   expirationDate: string;
   conditions: string;
+  observaciones: string;
   initialized: boolean;
 };
 
@@ -24,6 +25,7 @@ const defaultState = () => ({
   emissionDate: format(new Date(), "yyyy-MM-dd"),
   expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
   conditions: `Incluye combustible solo para el traslado y retorno al punto.\nSe requiere un espacio adecuado y protegido para la ubicación de las unidades de emergencia.\nEl costo no incluye IGV.\nEl costo está expresado en dólares.\nIncluye el sctr del personal piloto y bombero.\nNo incluye nada que no esté expresado en la cotización.\nPago al contado previo al servicio.`,
+  observaciones: "",
 });
 
 export const createConditionsStore = (initialData?: ConditionState) =>

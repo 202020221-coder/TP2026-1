@@ -4,6 +4,7 @@ import { format } from "date-fns";
 type State = {
   pickupCost: number;
   pickupDate: string;
+  pickupAddress: string;
   initialized: boolean;
 };
 
@@ -21,9 +22,10 @@ export type PickupStore = State & Actions;
 const defaultState = (): PickupState => ({
   pickupCost: 0,
   pickupDate: format(new Date(), "yyyy-MM-dd"),
+  pickupAddress: "",
 });
 
-export const createPickupStore = (initialData?: PickupState) =>
+export const createPickupStore = (initialData?: Partial<PickupState>) =>
   createStore<PickupStore>((set) => ({
     ...defaultState(),
     ...initialData,

@@ -20,7 +20,7 @@ export type GetAvailableTrucksResponse = Pagination<Truck[]>;
 export type CreateQuotationBody = {
   id_solicitud:Order["ID"];
   DNI_O_RUC: string;
-  nombre: "cotizacion nombre";
+  nombre: string;
   productos: Omit<QuotationProduct, "nombre">[];
   id_camion: Truck["Placa"];
   costoRecojo: QuotationPickUpCosts;
