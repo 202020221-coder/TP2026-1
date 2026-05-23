@@ -1,30 +1,11 @@
-import { useQuotationExchangeRate } from "@/intranet/quotation/hooks/stores/quotation.exchange.rate.store.provider";
 import { useQuotationPickupStore } from "@/intranet/quotation/hooks/stores/quotation.pickup.store.provider";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { formatCurrency } from "@/shared/lib/format-currency";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
-import type { ExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
+import { useMemo } from "react";
 
-export const useSummaryCard = (rateQueryFn?: () => Promise<ExchangeRate>) => {
+export const useSummaryCard = () => {
   const products = useQuotationProductStore((s) => s.items);
   const pickupCost = useQuotationPickupStore((s) => s.pickupCost);
-  const exchangeRate = useQuotationExchangeRate((s) => s.rate);
-  const initializeRate = useQuotationExchangeRate((s) => s.initialize);
-  const rateInitialized = useQuotationExchangeRate((s) => s.initialized);
-  const rateQuery = useQuery({
-    initialData: exchangeRate,
-    queryKey: ["exchange", "rate"],
-    queryFn: rateQueryFn,
-    enabled: !exchangeRate,
-    staleTime: Infinity,
-  });
-
-  useEffect(() => {
-    if (rateQuery.data && !rateInitialized) {
-      initializeRate(rateQuery.data);
-    }
-  }, [rateQuery.data, rateInitialized]);
 
   const subtotal = useMemo(() => {
     return Object.values(products).reduce(
@@ -38,6 +19,5 @@ export const useSummaryCard = (rateQueryFn?: () => Promise<ExchangeRate>) => {
     subtotal: formatCurrency(subtotal, "USD", 2),
     total: formatCurrency(total, "USD", 2),
     pickupCost: formatCurrency(pickupCost, "USD", 2),
-    rateQuery,
   };
 };

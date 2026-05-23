@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { getOrder } from "@/intranet/orders/api/order.api";
+import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
 import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
+import type { ExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
 
 export const useCreateQuotationPage = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
-
   const [orderData, setOrderData] = useState<DetailedOrder | null>(null);
   const [isPending, setIsPending] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | undefined>();
 
   useEffect(() => {
     if (!orderId) return;
@@ -37,9 +39,18 @@ export const useCreateQuotationPage = () => {
     };
   }, [orderId]);
 
+  useEffect(() => {
+    getExchangeRate()
+      .then((rate) => setExchangeRate(rate))
+      .catch(() => {
+        // rate stays undefined, VisualizeTrigger bloquea
+      });
+  }, []);
+
   return {
     orderId,
     orderData,
+    exchangeRate,
     isPending,
     isError,
   };

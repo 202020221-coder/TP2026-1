@@ -35,7 +35,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
 
 export function CreateQuotationPage() {
-  const { orderId, orderData, isPending, isError } =
+  const { orderId, orderData, exchangeRate, isPending, isError } =
     useCreateQuotationPage();
 
   if (!orderId) {
@@ -69,7 +69,9 @@ export function CreateQuotationPage() {
         className="w-full flex flex-col flex-1 min-h-0"
       >
         <QuotationConditionStoreProvider>
-          <QuotationExchangeRateProvider>
+          <QuotationExchangeRateProvider
+            initialData={exchangeRate ? { rate: exchangeRate } : undefined}
+          >
             <QuotationReferenceStoreProvider
               initialName={orderDataSafe.Cliente_Nombre}
             >
