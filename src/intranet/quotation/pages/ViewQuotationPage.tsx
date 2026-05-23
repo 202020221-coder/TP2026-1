@@ -1,4 +1,5 @@
 import { ClientCard } from "../components/reference/ClientCard";
+import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
 import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
@@ -23,12 +24,18 @@ import { TruckInfoCard } from "../components/prices/truck/TruckInfoCard";
 import { PickupCardView } from "../components/prices/delivery/PickupCardView";
 import { SummaryCard } from "../components/prices/summary/SummaryCard";
 import { ConditionCard } from "../components/conditions/ConditionCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 
-export function ProjectAssistantQuotationDetailsPage() {
+export function ViewQuotationPage() {
   const { quotationId, data, isPending, isError } = useViewQuotationPage();
 
   if (!quotationId) {
@@ -51,7 +58,7 @@ export function ProjectAssistantQuotationDetailsPage() {
       <div className="flex items-center gap-3 mb-4">
         <div className="h-7 w-1 rounded-full bg-primary" />
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {data.nombre}
+          Cotización #{quotationId}
         </h1>
       </div>
 
@@ -59,12 +66,8 @@ export function ProjectAssistantQuotationDetailsPage() {
         defaultValue="reference"
         className="w-full flex flex-col flex-1 min-h-0"
       >
-        <QuotationReferenceStoreProvider
-          initialName={data.nombre}
-        >
-          <QuotationProductStoreProvider
-            initialProducts={data.productos}
-          >
+        <QuotationReferenceStoreProvider initialName={data.nombre}>
+          <QuotationProductStoreProvider initialProducts={data.productos}>
             <QuotationPickupStoreProvider
               initialData={{
                 pickupAddress: data.costoRecojo.direccionRecojo,
@@ -81,10 +84,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                 }}
               >
                 <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                  <TabsTrigger
-                    value="reference"
-                    className={baseTriggerClass}
-                  >
+                  <TabsTrigger value="reference" className={baseTriggerClass}>
                     <FileText className="w-4 h-4" />
                     Datos de Referencia
                   </TabsTrigger>
@@ -92,10 +92,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                     <DollarSign className="w-4 h-4" />
                     Precios
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="conditions"
-                    className={baseTriggerClass}
-                  >
+                  <TabsTrigger value="conditions" className={baseTriggerClass}>
                     <ClipboardList className="w-4 h-4" />
                     Condiciones
                   </TabsTrigger>
@@ -104,6 +101,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                   <div className="px-3 py-6">
                     <TabsContent value="reference" className="space-y-6">
                       <ClientCard client={data.client} />
+                      <ReferenceNameCard />
                     </TabsContent>
                     <TabsContent value="prices" className="space-y-6">
                       <Card className="gap-4 border bg-card shadow-none">
@@ -199,4 +197,4 @@ const ViewQuotationPageError: FC = () => (
   </div>
 );
 
-export default ProjectAssistantQuotationDetailsPage;
+export default ViewQuotationPage;

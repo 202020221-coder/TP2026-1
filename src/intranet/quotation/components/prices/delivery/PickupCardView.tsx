@@ -65,6 +65,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
               value={pickupCost}
               onChange={(e) => onPickupCostChange?.(Number(e.target.value))}
               readOnly={readOnly}
+              disabled={readOnly}
             />
           </div>
 
@@ -80,6 +81,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
                 onPickupDateChange?.(e.target.value);
               }}
               readOnly={readOnly}
+              disabled={readOnly}
             />
           </div>
 
@@ -93,6 +95,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
               value={pickupAddress}
               onChange={(e) => onPickupAddressChange?.(e.target.value)}
               readOnly={readOnly}
+              disabled={readOnly}
             />
           </div>
         </CardContent>

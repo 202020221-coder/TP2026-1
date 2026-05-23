@@ -177,6 +177,7 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
               onChange={(e) =>
                 onUpdateRentedDays?.(product.id, Number(e.target.value))
               }
+              disabled={readOnly}
             />
           ) : (
             <span className="text-muted-foreground">—</span>
@@ -193,6 +194,7 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
             onChange={(e) =>
               onUpdateQuantity?.(product.id, Number(e.target.value))
             }
+            disabled={readOnly}
           />
         </TableCell>
         <TableCell className="text-center max-w-14">
@@ -204,6 +206,7 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
             onChange={(e) =>
               onUpdateUnitPrice?.(product.id, Number(e.target.value))
             }
+            disabled={readOnly}
           />
         </TableCell>
         <TableCell className="text-right font-medium">

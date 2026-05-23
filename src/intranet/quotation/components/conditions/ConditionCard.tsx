@@ -68,6 +68,7 @@ export const ConditionCard: FC<ConditionCardProps> = ({
               value={emissionDate}
               disabled
               onChange={(e) => onEmissionChange?.(e.target.value)}
+              readOnly={readOnly}
             />
           </div>
 
@@ -81,6 +82,7 @@ export const ConditionCard: FC<ConditionCardProps> = ({
               value={expirationDate}
               disabled={readOnly}
               onChange={(e) => onExpirationChange?.(e.target.value)}
+              readOnly={readOnly}
             />
           </div>
 
@@ -94,6 +96,7 @@ export const ConditionCard: FC<ConditionCardProps> = ({
               value={conditions}
               readOnly={readOnly}
               onChange={(e) => onConditionsChange?.(e.target.value)}
+              disabled={readOnly}
             />
           </div>
 
@@ -108,6 +111,7 @@ export const ConditionCard: FC<ConditionCardProps> = ({
               readOnly={readOnly}
               placeholder="Notas adicionales para la cotización..."
               onChange={(e) => onObservacionesChange?.(e.target.value)}
+              disabled={readOnly}
             />
           </div>
         </CardContent>
