@@ -118,7 +118,10 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               >
                 Organizar recursos
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/presupuestos")}
+              >
+
                 Gestionar Presupuesto
               </DropdownMenuItem>
             </DropdownMenuContent>
