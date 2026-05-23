@@ -17,9 +17,8 @@ import {
   Eye,
   AlertCircle,
 } from "lucide-react";
-import { useSearchParams } from "react-router";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
-import { useEffect, useState, type FC } from "react";
+import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
@@ -33,52 +32,25 @@ import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQ
 import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { getOrder } from "@/intranet/orders/api/order.api";
-import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
+import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
 
 export function CreateQuotationPage() {
-  const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("orderId");
+  const { orderId, orderData, isPending, isError } =
+    useCreateQuotationPage();
 
   if (!orderId) {
     throw new Error("Id de la solicitud no especificada");
   }
 
-  const [orderData, setOrderData] = useState<DetailedOrder | null>(null);
-  const [isPending, setIsPending] = useState(true);
-  const [isError, setIsError] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    setIsPending(true);
-    setIsError(false);
-    getOrder(Number(orderId))
-      .then((data) => {
-        if (mounted) {
-          setOrderData(data);
-          setIsPending(false);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setIsError(true);
-          setIsPending(false);
-        }
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [orderId]);
-
   if (isPending) {
     return <CreateQuotationPageSkeleton />;
   }
 
-  if (isError) {
+  if (isError || !orderData) {
     return <CreateQuotationPageError />;
   }
 
-  const orderDataSafe = orderData as DetailedOrder;
+  const orderDataSafe = orderData;
 
   const baseTriggerClass =
     "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
