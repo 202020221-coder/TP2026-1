@@ -45,7 +45,7 @@ export function useLoginForm() {
   };
 
   const handleNavigation = useCallback((user: User) => {
-    const FIRSTTIME = true;
+    const FIRSTTIME = user.nuevo;
     switch (user.rol) {
       case RolesRecord.client:
         FIRSTTIME

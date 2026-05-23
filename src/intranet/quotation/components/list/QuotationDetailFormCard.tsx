@@ -42,10 +42,10 @@ export function QuotationDetailFormCard({
             <Label htmlFor="estado">Estado</Label>
             <Input id="estado" readOnly value={quotation.estado} />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="mensajes">Mensajes</Label>
             <Input id="mensajes" readOnly value={quotation.mensajes} />
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

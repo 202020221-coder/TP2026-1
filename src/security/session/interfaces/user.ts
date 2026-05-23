@@ -5,4 +5,7 @@ export interface User {
   dni_perfil: string;
   correo: string;
   rol: UserRole;
+  nuevo:boolean;
+  nombres:string;
+  apellidos:string;
 }

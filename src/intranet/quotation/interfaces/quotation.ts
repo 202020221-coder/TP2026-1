@@ -11,7 +11,8 @@ export interface Quotation {
   condiciones: QuotationConditions;
   estado: QuotationState;
   tasaCambio: QuotationExchangeRate;
-  mensajes: QuotationMessagesState;
+  /** Valor del API; se normaliza en UI con `normalizeQuotationMessageState`. */
+  mensajes?: QuotationMessagesState | string | null;
   version: number;
   /**solo visibles por el administrador */
   nombreCliente?: string;
