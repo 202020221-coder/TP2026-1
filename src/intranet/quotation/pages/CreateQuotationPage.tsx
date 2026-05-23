@@ -27,22 +27,10 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
-import { useEffect, useState, type FC, type PropsWithChildren } from "react";
-import {
-  TooltipContent,
-  TooltipTrigger,
-  Tooltip,
-} from "@/shared/components/ui/tooltip";
-import { cn } from "@/shared/lib/utils";
+import { useEffect, useState, type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
-import {
-  QuotationProductStoreProvider,
-  useQuotationProductStore,
-} from "../hooks/stores/quotation.products.store.provider";
-import {
-  QuotationTruckStoreProvider,
-  useQuotationTruckStore,
-} from "../hooks/stores/quotation.truck.store.provider";
+import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
+import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
 import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
@@ -50,6 +38,7 @@ import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQ
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
 import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQuotationVisualizeSection";
+import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { getOrder } from "@/intranet/orders/api/order.api";
@@ -189,54 +178,6 @@ export function CreateQuotationPage() {
     </div>
   );
 }
-
-const VisualizeTrigger: FC<PropsWithChildren<{ baseTriggerClass: string }>> = ({
-  children,
-  baseTriggerClass,
-}) => {
-  const truck = useQuotationTruckStore((s) => s.selectedTruck);
-  const inventory = useQuotationProductStore((s) => s.items);
-
-  const hasInventory = Object.keys(inventory).length > 0;
-  const isDisabled = !truck || !hasInventory;
-
-  const getDisabledReasons = () => {
-    const reasons: string[] = [];
-
-    if (!truck) reasons.push("Debe seleccionar un camión");
-    if (!hasInventory)
-      reasons.push("Debe agregar al menos un item al inventario");
-
-    return reasons;
-  };
-
-  const disabledMessage = getDisabledReasons().join("\n");
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="block min-w-full">
-          <TabsTrigger
-            value="visualize"
-            className={cn(
-              baseTriggerClass,
-              "w-full",
-              isDisabled && "pointer-events-none opacity-50",
-            )}
-          >
-            {children}
-          </TabsTrigger>
-        </div>
-      </TooltipTrigger>
-
-      {isDisabled && (
-        <TooltipContent>
-          <p className="whitespace-pre-line">{disabledMessage}</p>
-        </TooltipContent>
-      )}
-    </Tooltip>
-  );
-};
 
 const CreateQuotationPageSkeleton: FC = () => (
   <div className="flex h-full flex-col p-6 min-h-0">
