@@ -37,6 +37,10 @@ type UpdateIntentionHandler = (
   id: QuotationProduct["id"],
   quantity: QuotationProduct["intencion"],
 ) => void;
+type UpdateRentedDaysHandler = (
+  id: QuotationProduct["id"],
+  dias: QuotationProduct["dias_alquilados"],
+) => void;
 type DeleteHandler = (id: QuotationProduct["id"]) => void;
 type OptionalProps =
   | {
@@ -44,6 +48,7 @@ type OptionalProps =
       onUpdateQuantity: undefined;
       onUpdateUnitPrice: undefined;
       onUpdateIntention: undefined;
+      onUpdateRentedDays: undefined;
       onDelete: undefined;
     }
   | {
@@ -51,6 +56,7 @@ type OptionalProps =
       onUpdateQuantity: UpdateQuantityHandler;
       onUpdateUnitPrice: UpdateUnitPriceHandler;
       onUpdateIntention: UpdateIntentionHandler;
+      onUpdateRentedDays: UpdateRentedDaysHandler;
       onDelete: DeleteHandler;
     };
 
@@ -120,12 +126,23 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
     onUpdateQuantity,
     onUpdateUnitPrice,
     onUpdateIntention,
+    onUpdateRentedDays,
     onDelete,
   }) => {
     const formattedSubtotal = useMemo(() => {
-      const subtotal = product.precio_unitario * product.cantidad;
+      const subtotal =
+        product.intencion === "alquilar"
+          ? product.precio_unitario *
+            product.cantidad *
+            (product.dias_alquilados ?? 1)
+          : product.precio_unitario * product.cantidad;
       return formatCurrency(subtotal, "USD", 2);
-    }, [product.precio_unitario, product.cantidad]);
+    }, [
+      product.precio_unitario,
+      product.cantidad,
+      product.intencion,
+      product.dias_alquilados,
+    ]);
     return (
       <TableRow
         key={product.id}
@@ -182,7 +199,22 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
           </Select>
         </TableCell> */}
 
-        <TableCell>-</TableCell>
+        <TableCell className="text-center max-w-14">
+          {product.intencion === "alquilar" ? (
+            <Input
+              type="number"
+              min={1}
+              value={product.dias_alquilados ?? 1}
+              className="h-9 border-border bg-background text-sm"
+              readOnly={readOnly}
+              onChange={(e) =>
+                onUpdateRentedDays?.(product.id, Number(e.target.value))
+              }
+            />
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </TableCell>
 
 
         <TableCell className="text-center max-w-14">

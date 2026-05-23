@@ -10,14 +10,14 @@ import { useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { Button } from "@/shared/components/ui/button";
-// import { AddProductsDialog } from "./AddProductsDialog";
-// import type { QuotationProductIntention } from "@/intranet/quotation/enum/order-inventory-intention";
+import { AddProductsDialog } from "./AddProductsDialog";
+import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 export const CreateQuotationProductsSection: FC = () => {
-  const [_isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const items = useQuotationProductStore((s) => s.items);
   const deleteItem = useQuotationProductStore((s) => s.removeItem);
   const updateItem = useQuotationProductStore((s) => s.updateItem);
-  // const addItems = useQuotationProductStore((s) => s.addItems);
+  const addItems = useQuotationProductStore((s) => s.addItems);
   const products = useMemo(() => {
     return Object.values(items);
   }, [items]);
@@ -42,21 +42,34 @@ export const CreateQuotationProductsSection: FC = () => {
         >
           <Plus /> Agregar Productos
         </Button>
-        {/* <AddProductsDialog
+        <AddProductsDialog
           addHandler={(items) =>
             addItems(
-              items.map((i) => ({
-                id: i.idInventario,
-                cantidad: i.cantidad,
-                intencion: i.intencion as QuotationProductIntention,
-                nombre: i.nombre,
-                precio_unitario: i.precio_unitario,
-              })),
+              items.map((i): QuotationProduct => {
+                if (i.intencion === "alquilar") {
+                  return {
+                    id: i.idInventario,
+                    cantidad: i.cantidad,
+                    intencion: "alquilar",
+                    nombre: i.nombre,
+                    precio_unitario: i.precio_unitario,
+                    dias_alquilados: i.dias_alquilados,
+                  };
+                }
+                return {
+                  id: i.idInventario,
+                  cantidad: i.cantidad,
+                  intencion: "comprar",
+                  nombre: i.nombre,
+                  precio_unitario: i.precio_unitario,
+                  dias_alquilados: null,
+                };
+              }),
             )
           }
           onOpenChange={setIsDialogOpen}
           open={isDialogOpen}
-        /> */}
+        />
         <QuotationProductsTable
           isPending={false}
           isError={false}
@@ -70,6 +83,9 @@ export const CreateQuotationProductsSection: FC = () => {
           }
           onUpdateIntention={(id, intention) =>
             updateItem(id, "intencion", intention)
+          }
+          onUpdateRentedDays={(id, dias) =>
+            updateItem(id, "dias_alquilados", dias)
           }
           readOnly={false}
         />
