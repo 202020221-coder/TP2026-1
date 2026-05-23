@@ -53,13 +53,13 @@ export function useLoginForm() {
           : navigate("/intranet/solicitudes");
         break;
       case RolesRecord.manager:
-        navigate("/intranet/solicitudes");
+        navigate("/intranet/dashboard");
         break;
       case RolesRecord.projectAdmin:
-        navigate("/intranet/solicitudes");
+        navigate("/intranet/dashboard");
         break;
       case RolesRecord.fieldSupervisor:
-        navigate("/intranet/solicitudes");
+        navigate("/intranet/proyectos");
         break;
       case RolesRecord.fieldWorker:
         navigate("/intranet/solicitudes");

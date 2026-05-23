@@ -9,13 +9,13 @@ export const routes: IRoute[] = [
     path: "/",
     Component: ListQuotationsPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin, RolesRecord.client],
+    roles: [RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.manager],
   },
   {
     path: "/detalles/:quotationId",
     Component: QuotationDetailsPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin, RolesRecord.client],
+    roles: [RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.manager],
   },
   {
     path: "/crear",
