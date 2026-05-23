@@ -4,7 +4,6 @@ import { QuotationDetailsPage } from "../pages/QuotationDetailPage";
 import CreateQuotationPage from "../pages/CreateQuotationPage";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 
-// 🔹 Se definen todas las rutas publicas del modulo de autenticacion
 export const routes: IRoute[] = [
   {
     path: "/",
@@ -22,6 +21,7 @@ export const routes: IRoute[] = [
     path: "/crear",
     Component: CreateQuotationPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin ,RolesRecord.manager],
   },
+
 ];

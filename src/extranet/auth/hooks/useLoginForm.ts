@@ -65,7 +65,7 @@ export function useLoginForm() {
         navigate("/intranet/solicitudes");
         break;
       case RolesRecord.lawyer:
-        navigate("/intranet/solicitudes");
+        navigate("/intranet/proyectos");
         break;
       case RolesRecord.workshopWorker:
         navigate("/intranet/solicitudes");

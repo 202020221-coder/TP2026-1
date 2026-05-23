@@ -1,3 +1,4 @@
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 import type { IRoute } from "@/shared/interfaces/route";
 import { lazy } from "react";
 
@@ -10,5 +11,6 @@ export const routes: IRoute[] = [
     path: "/",
     Component: OrganizarPersonalPage,
     isPrivate: true,
+    roles: [RolesRecord.projectAdmin , RolesRecord.manager],
   },
 ];

@@ -8,12 +8,12 @@ export const routes: IRoute[] = [
     path: "/",
     Component: ListTrucksPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
   },
   {
     path: "/inventory/:placa",
     Component: TruckInventoryPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin ,RolesRecord.manager],
   },
 ];
