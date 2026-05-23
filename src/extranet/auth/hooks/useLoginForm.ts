@@ -45,12 +45,9 @@ export function useLoginForm() {
   };
 
   const handleNavigation = useCallback((user: User) => {
-    const FIRSTTIME = true;
     switch (user.rol) {
       case RolesRecord.client:
-        FIRSTTIME
-          ? navigate("/intranet/solicitudes/crear")
-          : navigate("/intranet/solicitudes");
+        navigate("/intranet/solicitudes");
         break;
       case RolesRecord.manager:
         navigate("/intranet/dashboard");
@@ -59,19 +56,13 @@ export function useLoginForm() {
         navigate("/intranet/dashboard");
         break;
       case RolesRecord.fieldSupervisor:
-        navigate("/intranet/proyectos");
-        break;
       case RolesRecord.fieldWorker:
-        navigate("/intranet/solicitudes");
-        break;
       case RolesRecord.lawyer:
-        navigate("/intranet/proyectos");
-        break;
       case RolesRecord.workshopWorker:
-        navigate("/intranet/solicitudes");
+        navigate("/intranet/proyectos");
         break;
       default:
-        throw new Error("Unknown user role unhandled");
+        navigate("/intranet/proyectos");
     }
   }, []);
 
