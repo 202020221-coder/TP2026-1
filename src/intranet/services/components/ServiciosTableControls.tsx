@@ -42,7 +42,7 @@ export const ServiciosTableControls: FC<Props> = ({
   onUpdateFilter,
   onResetFilters,
 }) => (
-  <div className="flex flex-1 flex-col space-y-3 min-h-0">
+  <div className="flex flex-1 flex-col space-y-5 min-h-0">
     <TopControls
       onAddClick={onAddClick}
       onEliminadosClick={onEliminadosClick}
@@ -97,7 +97,7 @@ const TopControls: FC<TopProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+    <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       {/* Búsqueda + Filtros */}
       <div className="col-span-1 md:col-span-3 flex items-center gap-2">
         <div className="relative flex-1">

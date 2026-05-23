@@ -17,12 +17,12 @@ export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl mx-4 flex flex-col max-h-[80vh]">
+      <div className="bg-card rounded-xl shadow-xl w-full max-w-5xl mx-4 flex flex-col max-h-[80vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Servicios Desactivados</h2>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h2 className="text-lg font-semibold text-foreground">Servicios Desactivados</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
               {serviciosDesactivados.length} servicio{serviciosDesactivados.length !== 1 ? "s" : ""} desactivado{serviciosDesactivados.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -30,7 +30,7 @@ export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-muted-foreground hover:text-foreground"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -39,25 +39,25 @@ export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
         {/* Body */}
         <div className="overflow-auto flex-1 px-6 py-4">
           {result.isPending ? (
-            <div className="flex justify-center items-center py-16 text-gray-400">
+            <div className="flex justify-center items-center py-16 text-muted-foreground">
               <Loader2 className="w-6 h-6 animate-spin mr-2" />
               Cargando...
             </div>
           ) : serviciosDesactivados.length === 0 ? (
-            <div className="text-center text-gray-400 py-16">
+            <div className="text-center text-muted-foreground py-16">
               No hay servicios desactivados.
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-700">Nombre</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Descripción</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Precio Regular</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Condicional de Precio</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Observaciones</TableHead>
-                  <TableHead className="font-semibold text-gray-700 text-center">Estado</TableHead>
-                  <TableHead className="font-semibold text-gray-700 text-center">Acciones</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold text-foreground">Nombre</TableHead>
+                  <TableHead className="font-semibold text-foreground">Descripción</TableHead>
+                  <TableHead className="font-semibold text-foreground">Precio Regular</TableHead>
+                  <TableHead className="font-semibold text-foreground">Condicional de Precio</TableHead>
+                  <TableHead className="font-semibold text-foreground">Observaciones</TableHead>
+                  <TableHead className="font-semibold text-foreground text-center">Estado</TableHead>
+                  <TableHead className="font-semibold text-foreground text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -67,14 +67,14 @@ export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
                     (toggleActivoMutation.variables as { id: number }).id === servicio.id;
 
                   return (
-                    <TableRow key={servicio.id} className="border-b border-gray-100 hover:bg-gray-50 opacity-70">
+                    <TableRow key={servicio.id} className="border-b border-border hover:bg-muted/50 opacity-70">
                       <TableCell className="font-medium py-3">{servicio.nombre}</TableCell>
-                      <TableCell className="text-gray-700 max-w-[180px] truncate">{servicio.descripcion}</TableCell>
-                      <TableCell className="text-gray-700">S/ {servicio.precio_regular.toFixed(2)}</TableCell>
-                      <TableCell className="text-gray-700">{servicio.condicional_precio}</TableCell>
-                      <TableCell className="text-gray-700 max-w-[200px] truncate">{servicio.observaciones}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[180px] truncate">{servicio.descripcion}</TableCell>
+                      <TableCell className="text-muted-foreground">S/ {servicio.precio_regular.toFixed(2)}</TableCell>
+                      <TableCell className="text-muted-foreground">{servicio.condicional_precio}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{servicio.observaciones}</TableCell>
                       <TableCell className="text-center">
-                        <Badge className="bg-red-100 text-red-600 border border-red-300 hover:bg-red-100">
+                        <Badge variant="destructive">
                           Desactivo
                         </Badge>
                       </TableCell>

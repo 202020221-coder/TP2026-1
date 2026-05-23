@@ -22,7 +22,7 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-1 flex-col space-y-3 min-h-0">
+    <div className="flex flex-1 flex-col space-y-5 min-h-0">
       <TopControls />
       {children}
       <BottomControls />
@@ -33,7 +33,7 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
 const TopControls: FC = () => {
   const { query, queryParams, result } = useOrders();  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+    <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       <div className="col-span-1 md:col-span-3 relative">
         <Input placeholder="Buscar por nombre" className="pl-8" disabled={result.isFetching}/>
         <Search
