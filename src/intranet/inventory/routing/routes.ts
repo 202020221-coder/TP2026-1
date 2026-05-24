@@ -10,19 +10,19 @@ export const routes: IRoute[] = [
   {
     path: "/",
     Component: GestionarInventario,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin , RolesRecord.manager],
     isPrivate: true,
   },
   {
     path: "camiones",
     Component: InventarioCamiones,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin , RolesRecord.manager],
     isPrivate: true,
   },
   {
     path: "/camiones/gestionar",
     Component: GestionarCamiones,
-    roles: [RolesRecord.projectAdmin],
+    roles: [RolesRecord.projectAdmin , RolesRecord.manager],
     isPrivate: true,
   },
 ];

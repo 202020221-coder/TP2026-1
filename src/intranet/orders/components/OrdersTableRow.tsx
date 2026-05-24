@@ -43,7 +43,7 @@ export const OrderTableRow: FC<{
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <TableCell className="font-medium py-3">{order.ID}</TableCell>
-      {user?.rol === RolesRecord.projectAdmin && (
+      {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) && (
         <TableCell className="text-gray-700">
           <div className="space-y-1">
             <div className="font-medium text-gray-900">
@@ -95,7 +95,7 @@ export const OrderTableRow: FC<{
               Ver Solicitud
             </TooltipContent>
           </Tooltip>
-          {user?.rol === RolesRecord.projectAdmin &&
+          {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) &&
             order.estado === OrderStatesRecord.pending && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -121,7 +121,7 @@ export const OrderTableRow: FC<{
               </Tooltip>
             )}
 
-          {user?.rol === RolesRecord.projectAdmin &&
+          {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) &&
             order.estado === OrderStatesRecord.pending && (
               <>
                 <Tooltip>
