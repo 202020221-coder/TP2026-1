@@ -48,3 +48,15 @@ export const useDeletePresupuestoItem = (cotizacionId: number, tipo: TipoPresupu
     onSuccess: () => toast.success("Elemento eliminado"),
   });
 };
+
+export const useUpdatePresupuestoItem = (cotizacionId: number, tipo: TipoPresupuesto) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, payload }: { itemId: number; payload: Partial<AddPresupuestoItemPayload> }) =>
+      presupuestosApi.updateItem(itemId, payload),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
+    },
+    onSuccess: () => toast.success("Elemento actualizado"),
+  });
+};
