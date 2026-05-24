@@ -7,8 +7,8 @@ import {
 } from "@/shared/components/ui/card";
 import {
   SquareChartGantt,
-  MapPin,
   ClipboardList,
+  TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { QuotationProductsTable } from "../prices/products/ProductsTable";
@@ -17,9 +17,9 @@ import { QuotationPickupStoreProvider } from "../../hooks/stores/quotation.picku
 import { QuotationExchangeRateProvider } from "../../hooks/stores/quotation.exchange.rate.store.provider";
 import { TruckInfoCard } from "../prices/truck/TruckInfoCard";
 import { PickupCardView } from "../prices/delivery/PickupCardView";
-import { ConditionCard } from "../conditions/ConditionCard";
 import { SummaryCard } from "../prices/summary/SummaryCard";
 import type { ClientQuotationDetailsData } from "../../api/quotation.api";
+import { format } from "date-fns";
 
 type QuotationDetailFormCardProps = {
   quotation: ClientQuotationDetailsData;
@@ -30,6 +30,46 @@ const estadoVariant: Record<string, "secondary" | "default" | "destructive"> = {
   aprobado: "default",
   rechazado: "destructive",
 };
+
+const ConditionsDatesCard = ({
+  fechaEmision,
+  fechaVigencia,
+}: {
+  fechaEmision: string;
+  fechaVigencia: string;
+}) => (
+  <Card className="border bg-card shadow-none">
+    <CardHeader className="pb-0">
+      <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+        <ClipboardList className="text-primary" />
+        <span className="pb-0.5 font-[375] text-[18px]">Condiciones</span>
+      </CardTitle>
+      <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+        Vigencia de la cotización.
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium text-muted-foreground">
+            Fecha de Emisión
+          </p>
+          <p className="text-sm font-semibold text-foreground">
+            {format(new Date(fechaEmision), "dd/MM/yyyy")}
+          </p>
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium text-muted-foreground">
+            Fecha de Expiración
+          </p>
+          <p className="text-sm font-semibold text-foreground">
+            {format(new Date(fechaVigencia), "dd/MM/yyyy")}
+          </p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export function QuotationDetailFormCard({
   quotation,
@@ -95,59 +135,22 @@ export function QuotationDetailFormCard({
             <TruckInfoCard truck={quotation.camionEspecificado} />
 
             {/* Pickup */}
-            <Card className="border bg-card shadow-none">
-              <CardHeader className="pb-0">
-                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                  <MapPin className="text-primary" />
-                  <span className="pb-0.5 font-[375] text-[18px]">
-                    Recojo
-                  </span>
-                </CardTitle>
-                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                  Datos del servicio de recojo.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PickupCardView
-                  pickupCost={quotation.costoRecojo.costo}
-                  pickupDate={quotation.costoRecojo.fechaRecojo}
-                  pickupAddress={quotation.costoRecojo.direccionRecojo}
-                  readOnly={true}
-                  onPickupDateChange={undefined}
-                  onPickupCostChange={undefined}
-                  onPickupAddressChange={undefined}
-                />
-              </CardContent>
-            </Card>
+            <PickupCardView
+              pickupCost={quotation.costoRecojo.costo}
+              pickupDate={quotation.costoRecojo.fechaRecojo}
+              pickupAddress={quotation.costoRecojo.direccionRecojo}
+              description="Datos del servicio de recojo incluido en la cotización."
+              readOnly={true}
+              onPickupDateChange={undefined}
+              onPickupCostChange={undefined}
+              onPickupAddressChange={undefined}
+            />
 
-            {/* Conditions */}
-            <Card className="border bg-card shadow-none">
-              <CardHeader className="pb-0">
-                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                  <ClipboardList className="text-primary" />
-                  <span className="pb-0.5 font-[375] text-[18px]">
-                    Condiciones
-                  </span>
-                </CardTitle>
-                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                  Condiciones y vigencia de la cotización.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ConditionCard
-                  emissionDate={quotation.condiciones.fechaEmision}
-                  expirationDate={quotation.condiciones.fechaVigencia}
-                  conditions={quotation.condiciones.condiciones}
-                  observaciones={quotation.condiciones.observaciones}
-                  readOnly={true}
-                  onEmissionChange={undefined}
-                  onExpirationChange={undefined}
-                  onConditionsChange={undefined}
-                  onObservacionesChange={undefined}
-                />
-              </CardContent>
-            </Card>
-
+            {/* Conditions (dates only for client) */}
+            <ConditionsDatesCard
+              fechaEmision={quotation.condiciones.fechaEmision}
+              fechaVigencia={quotation.condiciones.fechaVigencia}
+            />
             {/* Summary */}
             <SummaryCard />
           </div>
