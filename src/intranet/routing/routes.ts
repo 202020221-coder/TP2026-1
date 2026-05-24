@@ -32,6 +32,9 @@ const OrganizarRecursosNavigation = lazy(
 const ProjectNavigation = lazy(
   () => import("@/intranet/projects/routing/Navigation"),
 );
+const PresupuestosNavigation = lazy(
+  () => import("@/intranet/presupuestos/routing/Navigation"),
+);
 
 //Order matters since it defines hierarchy, this hierarchy makes the routing work properly
 export const routes: IRoute[] = [
@@ -84,6 +87,11 @@ export const routes: IRoute[] = [
   {
     path: "/proyectos/*",
     Component: ProjectNavigation,
+    isPrivate: true,
+  },
+  {
+    path: "/presupuestos/*",
+    Component: PresupuestosNavigation,
     isPrivate: true,
   },
 ];

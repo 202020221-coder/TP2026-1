@@ -10,10 +10,17 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Edit2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { Proyecto } from "../interfaces/proyecto";
 import { formatDate } from "@/shared/lib/utils";
-import { ESTADO_BADGES } from "../lib/constants";
+import { ESTADO_BADGES, ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
 import { useInventarioDelProyecto, useCamionesByProyecto } from "../hooks/useOrganizarRecursos";
 
 function ProyectoRow({
@@ -109,28 +116,48 @@ export function ProyectosTable({
   onPageChange,
 }: ProyectosTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [estadoFilter, setEstadoFilter] = useState("todos");
 
   const filteredProyectos = useMemo(() => {
-    if (!searchTerm.trim()) return proyectos;
-    const term = searchTerm.toLowerCase();
-    return proyectos.filter(
-      (p) =>
+    return proyectos.filter((p) => {
+      const term = searchTerm.toLowerCase().trim();
+      const matchesSearch =
+        !term ||
+        p.Cotizacion_Nombre?.toLowerCase().includes(term) ||
         p.Cliente_Nombre?.toLowerCase().includes(term) ||
         p.descripcion_servicio?.toLowerCase().includes(term) ||
-        p.id_Proyecto.toString().includes(term)
-    );
-  }, [proyectos, searchTerm]);
+        p.id_Proyecto.toString().includes(term);
+
+      const matchesEstado =
+        estadoFilter === "todos" || p.estado === estadoFilter;
+
+      return matchesSearch && matchesEstado;
+    });
+  }, [proyectos, searchTerm, estadoFilter]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Search className="h-5 w-5 text-muted-foreground" />
+        <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         <Input
           placeholder="Buscar por nombre de proyecto"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-10"
+          className="h-10 flex-1"
         />
+        <Select value={estadoFilter} onValueChange={setEstadoFilter}>
+          <SelectTrigger className="h-10 w-48 flex-shrink-0">
+            <SelectValue placeholder="Todos los estados" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los estados</SelectItem>
+            {ORGANIZAR_RECURSOS_DEFAULTS.ESTADOS_PROYECTO.map((e) => (
+              <SelectItem key={e.value} value={e.value}>
+                {e.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-lg border border-border overflow-x-auto">
