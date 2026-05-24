@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, MessageCircle, Trash2 } from "lucide-react";
+import { Eye, Mail, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -113,23 +113,43 @@ export const QuotationTableRow: FC<{
 
           {user?.rol === RolesRecord.projectAdmin &&
             quotation.estado === QuotationStatesRecord.pending && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                      onClick={handleNavigateEdit}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                    align="center"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                  align="center"
-                >
-                  Rechazar Cotizacion
-                </TooltipContent>
-              </Tooltip>
+                    Editar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                    align="center"
+                  >
+                    Rechazar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
 
           {canNegotiate && (
