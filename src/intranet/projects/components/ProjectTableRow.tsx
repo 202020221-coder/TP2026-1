@@ -4,7 +4,7 @@ import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil } from "lucide-react";
+import { Users, FileText, AlertTriangle, Pencil, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,6 +12,8 @@ import {
 } from "@/shared/components/ui/tooltip";
 import type { Project } from "../interfaces/project";
 import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
+import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import { toast } from "sonner";
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,6 +34,19 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
     const [datePart] = dateStr.split("T");
     const [year, month, day] = datePart.split("-");
     return `${day}/${month}/${year}`;
+  };
+
+  const handleModalSend = () => {
+    if (!project.id_cotizacion) {
+      toast.error("El proyecto no tiene una cotización asociada.");
+      return;
+    }
+
+    toast.promise(downloadPurchaseOrder(project.id_cotizacion), {
+      loading: "Descargando orden de compra...",
+      success: "Descarga iniciada.",
+      error: "No se pudo descargar la orden de compra.",
+    });
   };
 
   return (
@@ -96,6 +111,32 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
             <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
               {project.orden_servicio}
             </span>
+          ) : (
+            <span className="text-gray-400 text-sm italic">—</span>
+          )}
+        </TableCell>
+        {/* Ver Orden de Compra */}
+        <TableCell className="text-center">
+          {project.orden_servicio ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
+                  onClick={() => handleModalSend()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
+              >
+                Ver Orden de Compra
+              </TooltipContent>
+            </Tooltip>
+
           ) : (
             <span className="text-gray-400 text-sm italic">—</span>
           )}

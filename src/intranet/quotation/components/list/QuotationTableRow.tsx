@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, MessageCircle, Trash2 } from "lucide-react";
+import { Eye, Mail, MessageCircle, Trash2, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +22,9 @@ import {
 } from "../../enum/quotation-message-state.record";
 import { cn } from "@/shared/lib/utils";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
+import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
+import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import { toast } from "sonner";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
@@ -32,6 +35,7 @@ export const QuotationTableRow: FC<{
 }> = ({ quotation }) => {
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
+  const [orderPurchaseModalOpen, setOrderPurchaseModalOpen] = useState(false);
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
 
   const quotationDisplayName =
@@ -52,6 +56,24 @@ export const QuotationTableRow: FC<{
   const handleNavigateDetails = () => {
     Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
   };
+  const handleModalSend = () => {
+    setOrderPurchaseModalOpen(true);
+  };
+
+  const handleDownloadOrder = async () => {
+    try {
+      await toast.promise(
+        async () => downloadPurchaseOrder(quotation.ID),
+        {
+          loading: "Descargando orden de compra...",
+          success: "Descarga iniciada.",
+          error: "No se pudo descargar la orden de compra.",
+        },
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleNavigateNegotiation = () => {
     Navigate(
@@ -64,47 +86,66 @@ export const QuotationTableRow: FC<{
   const messageBadgeClass = getQuotationMessageStateBadgeClass(quotation.mensajes);
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-      <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
-      <TableCell className="text-gray-700">
-        {formatPEDate(quotation.condiciones.fechaEmision)}
-      </TableCell>
-      <TableCell className="text-gray-700">
-        {formatPEDate(quotation.condiciones.fechaVigencia)}
-      </TableCell>
-      <TableCell className="font-medium py-3">
-        {formatCurrency(quotation.precioTotal, "PEN", 2)}
-      </TableCell>
-      <TableCell className="">
-        <Badge
-          className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
-            quotation.estado,
-          )}`}
-        >
-          {quotation.estado}
-        </Badge>
-      </TableCell>
+    <>
+      <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
+        <TableCell className="text-gray-700">
+          {formatPEDate(quotation.condiciones.fechaEmision)}
+        </TableCell>
+        <TableCell className="text-gray-700">
+          {formatPEDate(quotation.condiciones.fechaVigencia)}
+        </TableCell>
+        <TableCell className="font-medium py-3">
+          {formatCurrency(quotation.precioTotal, "PEN", 2)}
+        </TableCell>
+        <TableCell className="">
+          <Badge
+            className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
+              quotation.estado,
+            )}`}
+          >
+            {quotation.estado}
+          </Badge>
+        </TableCell>
 
-      <TableCell>
-        <div className="flex justify-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
-                onClick={() => handleNavigateDetails()}
+        <TableCell>
+          <div className="flex justify-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-blue-500 hover:border hover:border-blue-500 hover:text-blue-600 transition-colors hover:bg-blue-50"
+                  onClick={() => handleNavigateDetails()}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
               >
-                <Eye className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-              align="center"
-            >
-              Ver Cotizacion
-            </TooltipContent>
-          </Tooltip>
+                Ver Cotizacion
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
+                  onClick={() => handleModalSend()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
+                align="center"
+              >
+                Enviar Orden de Compra
+              </TooltipContent>
+            </Tooltip>
 
           {user?.rol === RolesRecord.projectAdmin &&
             quotation.estado === QuotationStatesRecord.pending && (
@@ -215,6 +256,12 @@ export const QuotationTableRow: FC<{
         )}
       </TableCell>
     </TableRow>
+    <QuotationOrderPurchaseDialog
+        quotationId={quotation.ID}
+        open={orderPurchaseModalOpen}
+        onOpenChange={setOrderPurchaseModalOpen}
+      />
+    </>
   );
 };
 
