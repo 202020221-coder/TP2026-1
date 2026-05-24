@@ -1,202 +1,50 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { presupuestosApi } from "../api/presupuestos.api";
+import type { AddPresupuestoItemPayload, TipoPresupuesto } from "../interfaces/presupuesto";
 import { toast } from "sonner";
 
-export const usePresupuestosList = (page = 1, limit = 10) =>
+export const useCotizacionesList = (page = 1, limit = 10) =>
   useQuery({
-    queryKey: ["presupuestos", page, limit],
-    queryFn: () => presupuestosApi.list(page, limit),
+    queryKey: ["cotizaciones-presupuesto", page, limit],
+    queryFn: () => presupuestosApi.listCotizaciones(page, limit),
     select: (d) => d.data,
   });
 
-export const useMaterialDirecto = (presupuestoId: number) =>
+const itemsKey = (cotizacionId: number, tipo: TipoPresupuesto) =>
+  ["presupuesto-items", cotizacionId, tipo] as const;
+
+export const usePresupuestoItems = (cotizacionId: number, tipo: TipoPresupuesto) =>
   useQuery({
-    queryKey: ["presupuesto-material-directo", presupuestoId],
-    queryFn: () => presupuestosApi.getMaterialDirecto(presupuestoId),
+    queryKey: itemsKey(cotizacionId, tipo),
+    queryFn: () => presupuestosApi.getItems(cotizacionId, tipo),
     select: (d) => d.data,
-    enabled: !!presupuestoId,
+    enabled: !!cotizacionId,
   });
 
-export const useManoObra = (presupuestoId: number) =>
-  useQuery({
-    queryKey: ["presupuesto-mano-obra", presupuestoId],
-    queryFn: () => presupuestosApi.getManoObra(presupuestoId),
-    select: (d) => d.data,
-    enabled: !!presupuestoId,
-  });
-
-export const useServiciosPresupuesto = (presupuestoId: number) =>
-  useQuery({
-    queryKey: ["presupuesto-servicios", presupuestoId],
-    queryFn: () => presupuestosApi.getServicios(presupuestoId),
-    select: (d) => d.data,
-    enabled: !!presupuestoId,
-  });
-
-export const useGastosAdmin = (presupuestoId: number) =>
-  useQuery({
-    queryKey: ["presupuesto-gastos-admin", presupuestoId],
-    queryFn: () => presupuestosApi.getGastosAdmin(presupuestoId),
-    select: (d) => d.data,
-    enabled: !!presupuestoId,
-  });
-
-// --- Mutations: Material Directo ---
-export const useAddMaterialDirecto = () => {
+export const useAddPresupuestoItem = (tipo: TipoPresupuesto) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
-      presupuestoId,
+      cotizacionId,
       payload,
     }: {
-      presupuestoId: number;
-      payload: { nombre: string; costo: number };
-    }) => presupuestosApi.addMaterialDirecto(presupuestoId, payload),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-material-directo", presupuestoId],
-      });
+      cotizacionId: number;
+      payload: AddPresupuestoItemPayload;
+    }) => presupuestosApi.addItem(cotizacionId, payload),
+    onSettled: (_, __, { cotizacionId }) => {
+      qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
     },
-    onSuccess: () => toast.success("Material directo agregado"),
+    onSuccess: () => toast.success("Elemento agregado"),
   });
 };
 
-export const useDeleteMaterialDirecto = () => {
+export const useDeletePresupuestoItem = (cotizacionId: number, tipo: TipoPresupuesto) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      sid,
-    }: {
-      presupuestoId: number;
-      sid: number;
-    }) => presupuestosApi.deleteMaterialDirecto(presupuestoId, sid),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-material-directo", presupuestoId],
-      });
+    mutationFn: (itemId: number) => presupuestosApi.deleteItem(itemId),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
     },
-    onSuccess: () => toast.success("Material directo eliminado"),
-  });
-};
-
-// --- Mutations: Mano de Obra ---
-export const useAddManoObra = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      payload,
-    }: {
-      presupuestoId: number;
-      payload: {
-        profesion_ejercida: string;
-        costo_x_hora: number;
-        costo_general: number;
-      };
-    }) => presupuestosApi.addManoObra(presupuestoId, payload),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-mano-obra", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Mano de obra agregada"),
-  });
-};
-
-export const useDeleteManoObra = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      sid,
-    }: {
-      presupuestoId: number;
-      sid: number;
-    }) => presupuestosApi.deleteManoObra(presupuestoId, sid),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-mano-obra", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Mano de obra eliminada"),
-  });
-};
-
-// --- Mutations: Servicios ---
-export const useAddServicioPresupuesto = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      payload,
-    }: {
-      presupuestoId: number;
-      payload: { nombre_servicio: string; costo: number };
-    }) => presupuestosApi.addServicio(presupuestoId, payload),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-servicios", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Servicio agregado"),
-  });
-};
-
-export const useDeleteServicioPresupuesto = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      sid,
-    }: {
-      presupuestoId: number;
-      sid: number;
-    }) => presupuestosApi.deleteServicio(presupuestoId, sid),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-servicios", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Servicio eliminado"),
-  });
-};
-
-// --- Mutations: Gastos Admin ---
-export const useAddGastoAdmin = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      payload,
-    }: {
-      presupuestoId: number;
-      payload: { nombre_gasto: string; costo: number };
-    }) => presupuestosApi.addGastoAdmin(presupuestoId, payload),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-gastos-admin", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Gasto administrativo agregado"),
-  });
-};
-
-export const useDeleteGastoAdmin = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      presupuestoId,
-      sid,
-    }: {
-      presupuestoId: number;
-      sid: number;
-    }) => presupuestosApi.deleteGastoAdmin(presupuestoId, sid),
-    onSettled: (_, __, { presupuestoId }) => {
-      qc.invalidateQueries({
-        queryKey: ["presupuesto-gastos-admin", presupuestoId],
-      });
-    },
-    onSuccess: () => toast.success("Gasto administrativo eliminado"),
+    onSuccess: () => toast.success("Elemento eliminado"),
   });
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Table,
   TableBody,
@@ -17,43 +17,68 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import {
-  useGastosAdmin,
-  useAddGastoAdmin,
-  useDeleteGastoAdmin,
+  usePresupuestoItems,
+  useAddPresupuestoItem,
+  useDeletePresupuestoItem,
 } from "../../hooks/usePresupuestos";
+import type { RealizacionGastos, Moneda } from "../../interfaces/presupuesto";
+
+const TIPO = "Gastos Administrativos" as const;
 
 interface Props {
-  presupuestoId: number;
+  cotizacionId: number;
 }
 
-type FormData = { nombre_gasto: string; costo: number };
+type FormData = {
+  nombre_gasto: string;
+  costo_total: number;
+  realizacion_gastos: RealizacionGastos;
+  moneda: Moneda;
+};
 
-export function GastoAdminTab({ presupuestoId }: Props) {
+export function GastoAdminTab({ cotizacionId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<number | null>(null);
 
-  const { data: items, isLoading } = useGastosAdmin(presupuestoId);
-  const { mutate: add, isPending: isAdding } = useAddGastoAdmin();
-  const { mutate: remove, isPending: isRemoving } = useDeleteGastoAdmin();
+  const { data: items, isLoading } = usePresupuestoItems(cotizacionId, TIPO);
+  const { mutate: add, isPending: isAdding } = useAddPresupuestoItem(TIPO);
+  const { mutate: remove, isPending: isRemoving } = useDeletePresupuestoItem(cotizacionId, TIPO);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
-    defaultValues: { nombre_gasto: "" },
-  });
+  const { register, handleSubmit, reset, control, formState: { errors } } =
+    useForm<FormData>({
+      defaultValues: {
+        realizacion_gastos: "en preparacion",
+        moneda: "soles",
+      },
+    });
 
   const onSubmit = (data: FormData) => {
     add(
       {
-        presupuestoId,
-        payload: { nombre_gasto: data.nombre_gasto, costo: Number(data.costo) },
+        cotizacionId,
+        payload: {
+          tipo: TIPO,
+          nombre_gasto: data.nombre_gasto,
+          costo_total: String(data.costo_total),
+          realizacion_gastos: data.realizacion_gastos,
+          moneda: data.moneda,
+        },
       },
       { onSettled: () => { setIsOpen(false); reset(); } }
     );
   };
 
   const handleDelete = (id: number) => {
-    remove({ presupuestoId, sid: id }, { onSettled: () => setConfirmId(null) });
+    remove(id, { onSettled: () => setConfirmId(null) });
   };
 
   return (
@@ -66,7 +91,7 @@ export function GastoAdminTab({ presupuestoId }: Props) {
               Nuevo Gasto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Agregar Gasto Administrativo</DialogTitle>
             </DialogHeader>
@@ -82,20 +107,64 @@ export function GastoAdminTab({ presupuestoId }: Props) {
                   <p className="text-sm text-destructive mt-1">{errors.nombre_gasto.message}</p>
                 )}
               </div>
+
               <div>
-                <label className="text-sm font-medium">Costo (S/.) *</label>
+                <label className="text-sm font-medium">Total (S/.) *</label>
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
                   placeholder="Ej: 3200.00"
-                  {...register("costo", { required: "El costo es requerido", min: 0 })}
+                  {...register("costo_total", { required: "El costo es requerido" })}
                   className="mt-1"
                 />
-                {errors.costo && (
-                  <p className="text-sm text-destructive mt-1">{errors.costo.message}</p>
+                {errors.costo_total && (
+                  <p className="text-sm text-destructive mt-1">{errors.costo_total.message}</p>
                 )}
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Moneda *</label>
+                  <Controller
+                    name="moneda"
+                    control={control}
+                    rules={{ required: "Requerido" }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="soles">Soles</SelectItem>
+                          <SelectItem value="dolares">Dólares</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Realización *</label>
+                  <Controller
+                    name="realizacion_gastos"
+                    control={control}
+                    rules={{ required: "Requerido" }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en preparacion">En preparación</SelectItem>
+                          <SelectItem value="durante servicio">Durante servicio</SelectItem>
+                          <SelectItem value="anulada">Anulada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
               <Button type="submit" disabled={isAdding} className="w-full">
                 {isAdding ? "Agregando..." : "Agregar Gasto"}
               </Button>
@@ -110,14 +179,15 @@ export function GastoAdminTab({ presupuestoId }: Props) {
             <TableRow className="hover:bg-transparent">
               <TableHead className="font-semibold w-16">ID</TableHead>
               <TableHead className="font-semibold">Razón del Gasto</TableHead>
-              <TableHead className="font-semibold text-right">Costo (S/.)</TableHead>
+              <TableHead className="font-semibold">Realización</TableHead>
+              <TableHead className="font-semibold text-right">Total (S/.)</TableHead>
               <TableHead className="font-semibold text-center">Acción</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Cargando...</span>
@@ -126,25 +196,28 @@ export function GastoAdminTab({ presupuestoId }: Props) {
               </TableRow>
             ) : !items || items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   Sin gastos administrativos registrados
                 </TableCell>
               </TableRow>
             ) : (
               items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="text-muted-foreground">{item.id}</TableCell>
+                <TableRow key={item.ID}>
+                  <TableCell className="text-muted-foreground">{item.ID}</TableCell>
                   <TableCell className="font-medium">{item.nombre_gasto}</TableCell>
-                  <TableCell className="text-right">{parseFloat(item.costo).toFixed(2)}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground capitalize">
+                    {item.realizacion_gastos}
+                  </TableCell>
+                  <TableCell className="text-right">{parseFloat(item.costo_total).toFixed(2)}</TableCell>
                   <TableCell className="text-center">
-                    {confirmId === item.id ? (
+                    {confirmId === item.ID ? (
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-sm text-muted-foreground">¿Eliminar?</span>
                         <Button
                           size="sm"
                           variant="destructive"
                           disabled={isRemoving}
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item.ID)}
                           className="h-7 px-2 text-xs"
                         >
                           Sí
@@ -162,7 +235,7 @@ export function GastoAdminTab({ presupuestoId }: Props) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setConfirmId(item.id)}
+                        onClick={() => setConfirmId(item.ID)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
