@@ -1,3 +1,4 @@
+import { ProjectDetailModal } from "./ProjectDetailModal";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { EditProjectModal } from "./EditProjectModal";
@@ -24,29 +25,15 @@ import {
 
 export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const statusStyles = new Map<ProjectState, string>([
-    [
-      ProjectStatesRecord.pending,
-      "bg-yellow-100 text-yellow-700 border-yellow-300",
-    ],
-    [
-      ProjectStatesRecord.inExecution,
-      "bg-blue-100 text-blue-700 border-blue-300",
-    ],
-    [
-      ProjectStatesRecord.completed,
-      "bg-green-100 text-green-700 border-green-300",
-    ],
-    [
-      ProjectStatesRecord.legalProcess,
-      "bg-red-100 text-red-700 border-red-300",
-    ],
-    [
-      ProjectStatesRecord.cancelled,
-      "bg-gray-100 text-gray-600 border-gray-300",
-    ],
+    [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
+    [ProjectStatesRecord.inExecution, "bg-blue-100 text-blue-700 border-blue-300"],
+    [ProjectStatesRecord.completed, "bg-green-100 text-green-700 border-green-300"],
+    [ProjectStatesRecord.legalProcess, "bg-red-100 text-red-700 border-red-300"],
+    [ProjectStatesRecord.cancelled, "bg-gray-100 text-gray-600 border-gray-300"],
   ]);
 
   const formatDate = (dateStr: string) => {
@@ -61,6 +48,11 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         project={project}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+      />
+      <ProjectDetailModal
+        projectId={detailProjectId ?? 0}
+        open={detailProjectId !== null}
+        onClose={() => setDetailProjectId(null)}
       />
 
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -107,7 +99,11 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center">
-              <DropdownMenuItem disabled>Ver detalle-proyecto</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDetailProjectId(project.id_Proyecto)}
+              >
+                Ver detalle-proyecto
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/intranet/organizar-personal")}
               >
@@ -121,7 +117,6 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
               <DropdownMenuItem
                 onClick={() => navigate("/intranet/presupuestos")}
               >
-
                 Gestionar Presupuesto
               </DropdownMenuItem>
             </DropdownMenuContent>
