@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
-import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
 import {
@@ -51,12 +50,6 @@ export const QuotationTableRow: FC<{
 
   const handleNavigateDetails = () => {
     Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
-  };
-
-  const handleNavigateNegotiation = () => {
-    Navigate(
-      `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
-    );
   };
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
@@ -134,7 +127,7 @@ export const QuotationTableRow: FC<{
                   variant="ghost"
                   size="icon"
                   className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                  onClick={handleNavigateNegotiation}
+                  onClick={handleNavigateDetails}
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
