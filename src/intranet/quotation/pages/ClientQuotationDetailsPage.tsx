@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router";
 import { QuotationDetailState } from "../components/list/QuotationDetailState";
 import { useQuery } from "@tanstack/react-query";
-import { getQuotation } from "../api/quotation.api";
 import { QuotationDetailHeader } from "../components/list/QuotationDetailHeader";
 import { QuotationDetailFormCard } from "../components/list/QuotationDetailFormCard";
 import type { FC } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { getQuotationForClient } from "../api/quotation.api";
 
 export function ClientQuotationDetailsPage() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export function ClientQuotationDetailsPage() {
   const quotationId = Number(params["quotationId"]);
   const { data, isPending, isError, error } = useQuery({
     queryKey: ["quotation", "details", quotationId],
-    queryFn: () => getQuotation(quotationId),
+    queryFn: () => getQuotationForClient(quotationId),
   });
   if (isError) {
     return (
