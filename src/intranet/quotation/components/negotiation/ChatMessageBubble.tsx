@@ -11,20 +11,25 @@ export const MessageBubble: FC<{
     minute: "2-digit",
   });
   return (
-    <div
-      className={cn("flex flex-col gap-1", isOwn ? "items-end" : "items-start")}
-    >
+    <div className="flex w-full flex-col gap-1">
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+          "flex max-w-[350px] flex-col break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
           isOwn
-            ? "rounded-br-md bg-primary text-primary-foreground"
-            : "rounded-bl-md border border-gray-200 bg-white text-gray-800",
+            ? "self-end rounded-br-md bg-primary text-primary-foreground"
+            : "self-start rounded-bl-md border border-gray-200 bg-white text-gray-800",
         )}
       >
         {message.mensaje}
       </div>
-      <span className="px-1 text-[10px] text-gray-400">{time}</span>
+      <span
+        className={cn(
+          "px-1 text-[10px] text-gray-400",
+          isOwn ? "self-end" : "self-start",
+        )}
+      >
+        {time}
+      </span>
     </div>
   );
 };

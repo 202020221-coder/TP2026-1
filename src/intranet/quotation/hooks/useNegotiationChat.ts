@@ -12,7 +12,6 @@ export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const socketRef = useRef<Socket | null>(null);
-  const initializedRef = useRef(false);
 
   const accessToken = useSession((s) => s.accessToken);
   const user = useSession((s) => s.loggedUser);
@@ -20,15 +19,20 @@ export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
   const initialMessagesQuery = useQuery({
     queryKey: ["initial", "messages", quotationID],
     queryFn: () => getQuotationChatHistory(quotationID),
-    staleTime: Infinity,
   });
 
   useEffect(() => {
-    if (initialMessagesQuery.status === "success" && !initializedRef.current) {
-      setMessages(initialMessagesQuery.data);
-      initializedRef.current = true;
-    }
-  }, [initialMessagesQuery.status, initialMessagesQuery.data]);
+    if (!initialMessagesQuery.data) return;
+
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m) => m.id_mensaje));
+      const newMessages = initialMessagesQuery.data.filter(
+        (m) => !existingIds.has(m.id_mensaje),
+      );
+      if (newMessages.length === 0) return prev;
+      return [...prev, ...newMessages];
+    });
+  }, [initialMessagesQuery.data]);
 
   useEffect(() => {
     if (!accessToken) return;

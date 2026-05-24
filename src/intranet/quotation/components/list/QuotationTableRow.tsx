@@ -2,14 +2,13 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, MessageCircle, Trash2, Send } from "lucide-react";
+import { Eye, Mail, MessageCircle, Pencil, Trash2, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
-import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
 import {
@@ -53,9 +52,6 @@ export const QuotationTableRow: FC<{
     ],
   ]);
 
-  const handleNavigateDetails = () => {
-    Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
-  };
   const handleModalSend = () => {
     setOrderPurchaseModalOpen(true);
   };
@@ -75,10 +71,21 @@ export const QuotationTableRow: FC<{
     }
   };
 
-  const handleNavigateNegotiation = () => {
-    Navigate(
-      `/intranet/cotizaciones/comentar?${toSearchParams({ quotationId: quotation.ID })}`,
-    );
+  const handleNavigateDetails = () => {
+    Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
+  };
+
+
+  const handleNavigateEdit = () => {
+    Navigate(`/intranet/cotizaciones/editar/${quotation.ID}`);
+  };
+
+  const handleNegotiateClick = () => {
+    if (user?.rol === RolesRecord.client) {
+      handleNavigateDetails();
+    } else {
+      handleNavigateEdit();
+    }
   };
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
@@ -149,23 +156,43 @@ export const QuotationTableRow: FC<{
 
           {user?.rol === RolesRecord.projectAdmin &&
             quotation.estado === QuotationStatesRecord.pending && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                      onClick={handleNavigateEdit}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                    align="center"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                  align="center"
-                >
-                  Rechazar Cotizacion
-                </TooltipContent>
-              </Tooltip>
+                    Editar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                    align="center"
+                  >
+                    Rechazar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
 
           {canNegotiate && (
@@ -175,7 +202,7 @@ export const QuotationTableRow: FC<{
                   variant="ghost"
                   size="icon"
                   className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                  onClick={handleNavigateNegotiation}
+                  onClick={handleNegotiateClick}
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
@@ -226,7 +253,7 @@ export const QuotationTableRow: FC<{
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={handleNavigateNegotiation}
+                onClick={handleNegotiateClick}
                 className={cn(
                   "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
                   messageBadgeClass,

@@ -2,7 +2,6 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useEffect, useRef, type FC } from "react";
 import { MessageBubble } from "./ChatMessageBubble";
-import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import type { ChatMessage } from "../../api/negotiation-chat.api";
 import { HandCoins } from "lucide-react";
@@ -42,12 +41,7 @@ export const ChatMessageQueue: FC<ChatMessageQueueProps> = ({
             <MessageBubble
               key={message.id_mensaje}
               message={message}
-              isOwn={
-                (message.tipo_remitente === "cliente" &&
-                  user?.rol === RolesRecord.client) ||
-                (message.tipo_remitente === "empleado" &&
-                  user?.rol !== RolesRecord.client)
-              }
+              isOwn={message.id_remitente === user?.dni_perfil}
             />
           ))}
           <div ref={bottomRef} />

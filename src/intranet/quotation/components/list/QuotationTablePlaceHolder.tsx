@@ -5,7 +5,10 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
   return (
     <>
       {Array.from({ length: rows }).map((_, idx) => (
-        <TableRow key={idx} className="border-b border-gray-100 hover:bg-transparent">
+        <TableRow
+          key={idx}
+          className="border-b border-gray-100 hover:bg-transparent"
+        >
           <TableCell className="py-3">
             <Skeleton className="h-4 w-16 mb-2 bg-gray-50" />
           </TableCell>
@@ -23,6 +26,7 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
           </TableCell>
           <TableCell className="text-center">
             <div className="flex justify-center gap-2">
+              <Skeleton className="h-8 w-8 rounded bg-gray-50" />
               <Skeleton className="h-8 w-8 rounded bg-gray-50" />
               <Skeleton className="h-8 w-8 rounded bg-gray-50" />
               <Skeleton className="h-8 w-8 rounded bg-gray-50" />

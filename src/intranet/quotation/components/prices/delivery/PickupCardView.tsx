@@ -13,27 +13,32 @@ import { memo, type FC } from "react";
 type PickupCardViewProps = {
   pickupDate: string;
   pickupCost: number;
-  address: string;
+  pickupAddress: string;
+  description?: string;
 } & (
   | {
       readOnly?: true;
       onPickupDateChange: undefined;
       onPickupCostChange: undefined;
+      onPickupAddressChange: undefined;
     }
   | {
       readOnly?: false;
       onPickupDateChange: (pickupDate: string) => void;
       onPickupCostChange: (pickupCost: number) => void;
+      onPickupAddressChange: (address: string) => void;
     }
 );
 
 export const PickupCardView: FC<PickupCardViewProps> = memo(
   ({
-    address,
     pickupCost,
     pickupDate,
+    pickupAddress,
     onPickupCostChange,
     onPickupDateChange,
+    onPickupAddressChange,
+    description,
     readOnly = false,
   }) => {
     return (
@@ -46,47 +51,68 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
             </span>
           </CardTitle>
           <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-            Establece el costo y fecha de recojo
+            {description ?? "Establece el costo y fecha de recojo"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col gap-4 overflow-y-auto md:flex-row">
           <div className="sm:flex-3">
-            <p className="font-medium text-[14px] mb-0.5">
+            <p className="text-sm font-medium text-muted-foreground mb-1.5">
               {"Costo de Recojo ($)"}
             </p>
-            <Input
-              min={0}
-              type="number"
-              step={0.01}
-              className="h-10"
-              value={pickupCost}
-              onChange={(e) => onPickupCostChange?.(Number(e.target.value))}
-              readOnly={readOnly}
-            />
+            {readOnly ? (
+              <p className="text-sm font-semibold text-foreground">
+                {pickupCost}
+              </p>
+            ) : (
+              <Input
+                min={0}
+                type="number"
+                step={0.01}
+                className="h-10"
+                value={pickupCost}
+                onChange={(e) => onPickupCostChange?.(Number(e.target.value))}
+              />
+            )}
           </div>
 
           <div className="sm:flex-3">
-            <p className="font-medium text-[14px] mb-0.5">Fecha de Recojo</p>
-            <Input
-              type="date"
-              className="h-10"
-              value={pickupDate}
-              min={format(new Date(), "yyyy-MM-dd")}
-              onChange={(e) => {
-                console.log(e.target.value);
-                onPickupDateChange?.(e.target.value);
-              }}
-              readOnly={readOnly}
-            />
+            <p className="text-sm font-medium text-muted-foreground mb-1.5">
+              Fecha de Recojo
+            </p>
+            {readOnly ? (
+              <p className="text-sm font-semibold text-foreground">
+                {format(new Date(pickupDate), "dd/MM/yyyy")}
+              </p>
+            ) : (
+              <Input
+                type="date"
+                className="h-10"
+                value={pickupDate}
+                min={format(new Date(), "yyyy-MM-dd")}
+                onChange={(e) => {
+                  console.log(e.target.value);
+                  onPickupDateChange?.(e.target.value);
+                }}
+              />
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-7">
-            <p className="font-medium text-[14px] mb-0.5">
+            <p className="text-sm font-medium text-muted-foreground mb-1.5">
               Dirección de Entrega:
             </p>
-            <p className="flex flex-1 items-center text-muted-foreground">
-              <span className="text-foreground">{address}</span>
-            </p>
+            {readOnly ? (
+              <p className="text-sm font-semibold text-foreground">
+                {pickupAddress}
+              </p>
+            ) : (
+              <Input
+                type="text"
+                className="h-10"
+                value={pickupAddress}
+                onChange={(e) => onPickupAddressChange?.(e.target.value)}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
