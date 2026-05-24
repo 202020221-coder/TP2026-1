@@ -14,7 +14,11 @@ export const useSummaryCard = () => {
     );
   }, [products]);
 
-  const total = useMemo(() => pickupCost + subtotal, [pickupCost, subtotal]);
+  //TODO: pickupCost & subtotal passed as string but disguised by typescript
+  const total = useMemo(
+    () => Number(pickupCost) + Number(subtotal),
+    [pickupCost, subtotal],
+  );
   return {
     subtotal: formatCurrency(subtotal, "USD", 2),
     total: formatCurrency(total, "USD", 2),

@@ -10,11 +10,15 @@ import { ChatMessageQueue } from "./ChatMessageQueue";
 type NegotiationChatPanelProps = {
   quotationId: number;
   onClose: () => void;
+  contactName?: string;
+  contactRole?: UserRole;
 };
 
 export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
   quotationId,
   onClose,
+  contactName: propContactName,
+  contactRole: propContactRole,
 }) => {
   const user = useSession((s) => s.loggedUser);
   const {
@@ -23,17 +27,21 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
     sendMessage,
   } = useNegotiationChat(quotationId);
 
-  let contactName: string, contactRole: UserRole;
-  if (user?.rol === RolesRecord.client) {
-    contactName =
-      messages.find((m) => m.tipo_remitente === "empleado")?.nombre_remitente ??
-      "";
-    contactRole = RolesRecord.projectAdmin;
-  } else {
-    contactName =
-      messages.find((m) => m.tipo_remitente === "cliente")?.nombre_remitente ??
-      "";
-    contactRole = RolesRecord.client;
+  let contactName = propContactName ?? "";
+  let contactRole = propContactRole ?? (RolesRecord.client as UserRole);
+
+  if (!contactName) {
+    if (user?.rol === RolesRecord.client) {
+      contactName =
+        messages.find((m) => m.tipo_remitente !== "cliente")
+          ?.nombre_remitente ?? "";
+      contactRole = RolesRecord.projectAdmin;
+    } else {
+      contactName =
+        messages.find((m) => m.tipo_remitente === "cliente")
+          ?.nombre_remitente ?? "";
+      contactRole = RolesRecord.client;
+    }
   }
 
   return (

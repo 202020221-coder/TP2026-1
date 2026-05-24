@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Eye,
   AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { type FC } from "react";
@@ -33,8 +34,10 @@ import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
+import { useNavigate } from "react-router";
 
 export function CreateQuotationPage() {
+  const navigate = useNavigate();
   const { orderId, orderData, exchangeRate, isPending, isError } =
     useCreateQuotationPage();
 
@@ -57,11 +60,17 @@ export function CreateQuotationPage() {
 
   return (
     <div className="flex h-full flex-col p-6 min-h-0">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-7 w-1 rounded-full bg-primary" />
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Elaborar Cotización - Solicitud #{orderId}
-        </h1>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-7 w-1 rounded-full bg-primary" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Elaborar Cotización - Solicitud #{orderId}
+          </h1>
+        </div>
+        <Button variant="outline" onClick={() => navigate("/intranet/solicitudes")}>
+          <ArrowLeft className="h-4 w-4" />
+          Regresar
+        </Button>
       </div>
 
       <Tabs

@@ -12,6 +12,7 @@ import {
   DollarSign,
   ClipboardList,
   AlertCircle,
+  ArrowLeft,
   SquareChartGantt,
 } from "lucide-react";
 import { type FC } from "react";
@@ -32,10 +33,13 @@ import {
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 
 export function ProjectAssistantQuotationDetailsPage() {
+  const navigate = useNavigate();
   const { quotationId, data, isPending, isError } = useViewQuotationPage();
 
   if (!quotationId) {
@@ -56,11 +60,17 @@ export function ProjectAssistantQuotationDetailsPage() {
   return (
     <>
       <div className="flex h-full flex-col p-6 min-h-0">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-7 w-1 rounded-full bg-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {data.nombre}
-          </h1>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-7 w-1 rounded-full bg-primary" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {data.nombre}
+            </h1>
+          </div>
+          <Button variant="outline" onClick={() => navigate("/intranet/cotizaciones")}>
+            <ArrowLeft className="h-4 w-4" />
+            Regresar
+          </Button>
         </div>
 
         <Tabs
@@ -167,6 +177,8 @@ export function ProjectAssistantQuotationDetailsPage() {
       <NegotiationChatFloating
         quotationId={Number(quotationId)}
         quotationEstado={data.estado}
+        contactName={data.client.razon_social}
+        contactRole={RolesRecord.client}
       />
     </>
   );

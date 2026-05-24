@@ -5,15 +5,20 @@ import { NegotiationChatPanel } from "./NegotiationChatPanel";
 import { canNegotiateQuotation } from "../../lib/can-negotiate-quotation";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import type { QuotationState } from "../../enum/quotation-state.record";
+import type { UserRole } from "@/security/session/interfaces/roles";
 
 type NegotiationChatFloatingProps = {
   quotationId: number;
   quotationEstado: string;
+  contactName?: string;
+  contactRole?: UserRole;
 };
 
 export const NegotiationChatFloating: FC<NegotiationChatFloatingProps> = ({
   quotationId,
   quotationEstado,
+  contactName,
+  contactRole,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useSession((s) => s.loggedUser);
@@ -31,6 +36,8 @@ export const NegotiationChatFloating: FC<NegotiationChatFloatingProps> = ({
           <NegotiationChatPanel
             quotationId={quotationId}
             onClose={() => setIsOpen(false)}
+            contactName={contactName}
+            contactRole={contactRole}
           />
       )}
 

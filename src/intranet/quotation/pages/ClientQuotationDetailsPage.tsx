@@ -109,7 +109,7 @@ const PageSkeleton: FC = () => {
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-10 w-full" />
               </div>
-              <div className="flex-[2] space-y-2">
+              <div className="flex-2 space-y-2">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-10 w-full" />
               </div>
