@@ -7,6 +7,7 @@ import type { FC } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { getQuotationForClient } from "../api/quotation.api";
+import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 
 export function ClientQuotationDetailsPage() {
   const navigate = useNavigate();
@@ -33,6 +34,11 @@ export function ClientQuotationDetailsPage() {
         onBack={() => navigate("/intranet/cotizaciones")}
       />
       <QuotationDetailFormCard quotation={data} />
+
+      <NegotiationChatFloating
+        quotationId={quotationId}
+        quotationEstado={data.estado}
+      />
     </div>
   );
 }

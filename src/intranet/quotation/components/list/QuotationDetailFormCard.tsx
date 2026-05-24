@@ -8,7 +8,6 @@ import {
 import {
   SquareChartGantt,
   ClipboardList,
-  TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { QuotationProductsTable } from "../prices/products/ProductsTable";

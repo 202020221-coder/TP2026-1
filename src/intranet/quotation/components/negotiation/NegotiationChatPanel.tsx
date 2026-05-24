@@ -37,7 +37,7 @@ export const NegotiationChatPanel: FC<NegotiationChatPanelProps> = ({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="flex h-[500px] w-[400px] min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <ChatHeader
         onCloseChat={onClose}
         contactName={contactName}

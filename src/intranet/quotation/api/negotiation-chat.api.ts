@@ -77,7 +77,7 @@ export interface ChatMessage {
   id_mensaje: number;
   id_cotizacion: number;
   id_remitente: string;
-  tipo_remitente: "cliente"|"empleado";
+  tipo_remitente: string;
   nombre_remitente: string;
   mensaje: string;
   fecha_hora: string;

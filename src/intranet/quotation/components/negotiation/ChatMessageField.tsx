@@ -39,7 +39,7 @@ export const ChatMessageField: FC<ChatMessageFieldProps> = ({ onSubmit }) => {
         type="submit"
         size="icon"
         disabled={invalidDraft}
-        className="h-11 w-11 shrink-0 rounded-xl bg-green-600 text-white hover:bg-green-700"
+        className="h-11 w-11 shrink-0 rounded-xl"
         aria-label="Enviar mensaje"
       >
         <Send className="h-4 w-4" />
