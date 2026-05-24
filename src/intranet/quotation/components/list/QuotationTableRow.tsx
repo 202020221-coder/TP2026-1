@@ -52,6 +52,18 @@ export const QuotationTableRow: FC<{
     Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
   };
 
+  const handleNavigateEdit = () => {
+    Navigate(`/intranet/cotizaciones/editar/${quotation.ID}`);
+  };
+
+  const handleNegotiateClick = () => {
+    if (user?.rol === RolesRecord.client) {
+      handleNavigateDetails();
+    } else {
+      handleNavigateEdit();
+    }
+  };
+
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
   const messageLabel = getQuotationMessageStateLabel(quotation.mensajes);
   const messageBadgeClass = getQuotationMessageStateBadgeClass(quotation.mensajes);
@@ -127,7 +139,7 @@ export const QuotationTableRow: FC<{
                   variant="ghost"
                   size="icon"
                   className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
-                  onClick={handleNavigateDetails}
+                  onClick={handleNegotiateClick}
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
@@ -178,7 +190,7 @@ export const QuotationTableRow: FC<{
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={()=>handleNavigateDetails()}
+                onClick={handleNegotiateClick}
                 className={cn(
                   "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
                   messageBadgeClass,

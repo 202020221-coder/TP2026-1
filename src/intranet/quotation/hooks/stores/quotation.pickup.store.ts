@@ -28,7 +28,12 @@ const defaultState = (): PickupState => ({
 export const createPickupStore = (initialData?: Partial<PickupState>) =>
   createStore<PickupStore>((set) => ({
     ...defaultState(),
-    ...initialData,
+    ...(initialData?.pickupDate
+      ? {
+          ...initialData,
+          pickupDate: format(initialData.pickupDate, "yyyy-MM-dd"),
+        }
+      : { ...initialData }),
     initialized: false,
     initialize: (data) => {
       set({ ...data, initialized: true });
