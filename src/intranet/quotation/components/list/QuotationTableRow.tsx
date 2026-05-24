@@ -178,7 +178,7 @@ export const QuotationTableRow: FC<{
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={handleNavigateNegotiation}
+                onClick={()=>handleNavigateDetails()}
                 className={cn(
                   "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
                   messageBadgeClass,
