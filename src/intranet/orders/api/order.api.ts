@@ -31,17 +31,9 @@ export const UpdateRequest = async (id: number, data: UpdateRequestDTO) => {
   const response = await axiosInstance.put(`/solicitudes/${id}`, data)
   return response.data;
 }
-// export const DeleteRequest = async (id: number) =>
-//   safeRequest<DeleteRequestDTO>({
-//     url: `/solicitudes/${id}`,
-//     method: "DELETE",
-//   });
-
-// export const GetAllRequest = async () =>
-//   safePagination<ResponseRequestDTO[]>({
-//     url: "/solicitudes",
-//     method: "GET",
-//   });
+export const DeleteRequest = async (id: Order["ID"]) => {
+  await axiosInstance.delete(`/solicitudes/${id}`)
+}
 
 //------------------------------------------------
 export const GetAllProducts = async (page:number, limit:number) =>
