@@ -79,10 +79,10 @@ export const sidebarLinks: IMenu[] = [
     icon: "FileText",
   },
   {
-    title: "Ver Incidencias",
+    title: "Incidencias",
     roles: [RolesRecord.projectAdmin, RolesRecord.manager, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
-    url: "/intranet/organizar-recursos/",
-    icon: "ClipboardList",
+    url: "/intranet/incidencias/",
+    icon: "AlertTriangle",
   },
   {
     title: "Presupuesto Interno",

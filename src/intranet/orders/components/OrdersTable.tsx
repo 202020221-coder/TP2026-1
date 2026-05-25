@@ -49,7 +49,20 @@ export const OrdersTable: FC = () => {
             <>
               {
                 (() => {
-                  const all = data.data ?? [];
+                  const getOrderDate = (order: (typeof data.data)[number]) => {
+                    const rawOrder = order as unknown as {
+                      FechaCreacion?: string;
+                      fecha_inicio?: string;
+                    };
+
+                    return new Date(
+                      rawOrder.FechaCreacion ?? rawOrder.fecha_inicio ?? 0,
+                    ).getTime();
+                  };
+
+                  const all = [...(data.data ?? [])].sort((left, right) => {
+                    return getOrderDate(right) - getOrderDate(left);
+                  });
                   const filtered = queryParams.order_name
                     ? all.filter((o) =>
                       (o.Cliente_Nombre ?? o.descripcion ?? "")
