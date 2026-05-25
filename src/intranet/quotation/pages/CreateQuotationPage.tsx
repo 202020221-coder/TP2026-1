@@ -19,7 +19,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
-import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
@@ -34,6 +33,7 @@ import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
+import { type FC } from "react";
 import { useNavigate } from "react-router";
 
 export function CreateQuotationPage() {

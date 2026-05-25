@@ -20,10 +20,11 @@ export const useCreateQuotationPage = () => {
     setIsPending(true);
     setIsError(false);
 
-    getOrder(Number(orderId))
-      .then((data) => {
+    Promise.all([getOrder(Number(orderId)), getExchangeRate()])
+      .then(([order, rate]) => {
         if (mounted) {
-          setOrderData(data);
+          setOrderData(order);
+          setExchangeRate(rate);
           setIsPending(false);
         }
       })
@@ -38,14 +39,6 @@ export const useCreateQuotationPage = () => {
       mounted = false;
     };
   }, [orderId]);
-
-  useEffect(() => {
-    getExchangeRate()
-      .then((rate) => setExchangeRate(rate))
-      .catch(() => {
-        // rate stays undefined, VisualizeTrigger bloquea
-      });
-  }, []);
 
   return {
     orderId,
