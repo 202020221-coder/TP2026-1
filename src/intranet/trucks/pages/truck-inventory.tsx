@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, Eye, Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -31,8 +31,10 @@ import {
 } from "@/shared/components/ui/table";
 import { cn } from "@/shared/lib/utils";
 import { useNavigate } from "react-router";
+import { trucksInventoryApi } from "../api/trucks.inventory.api";
 import { useTruckInventory } from "../hooks/useTruckInventory";
 import type {
+  TruckInventoryDetail,
   TruckInventoryRow,
 } from "../interfaces/truck.interface";
 
@@ -147,6 +149,14 @@ export function TruckInventoryPage() {
   const [editingInventoryForm, setEditingInventoryForm] =
     useState<InventoryFormState>(getInitialInventoryForm);
 
+  const [addItemError, setAddItemError] = useState<string | null>(null);
+  const [catalogItems, setCatalogItems] = useState<TruckInventoryDetail[]>([]);
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [inventorySearch, setInventorySearch] = useState("");
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+
   const itemDetalle = itemToView?.detalle ?? null;
   const objectName =
     itemToView?.detalle?.nombre_objeto?.trim() ||
@@ -158,22 +168,97 @@ export function TruckInventoryPage() {
     ).length;
   }, [inventario]);
 
+  const filteredCatalog = useMemo(() => {
+    const term = inventorySearch.trim().toLowerCase();
+    if (!term) {
+      return [];
+    }
+
+    return catalogItems
+      .filter((item) => {
+        const name = item.nombre_objeto?.toLowerCase() ?? "";
+        return name.includes(term) || String(item.Id_Objeto).includes(term);
+      })
+      .slice(0, 8);
+  }, [catalogItems, inventorySearch]);
+
+  const selectedCatalogItem = useMemo(() => {
+    const id = Number(inventoryForm.Id_Objeto);
+    if (!Number.isFinite(id)) {
+      return null;
+    }
+
+    return catalogItems.find((item) => item.Id_Objeto === id) ?? null;
+  }, [catalogItems, inventoryForm.Id_Objeto]);
+
   const hasInlineEditing = editingItemId !== null;
   const isCreateFormValid = isInventoryFormValid(inventoryForm);
 
+  useEffect(() => {
+    if (!isAddItemDialogOpen || catalogLoaded) {
+      return;
+    }
+
+    let isActive = true;
+
+    const loadCatalog = async () => {
+      setIsCatalogLoading(true);
+      setCatalogError(null);
+
+      try {
+        const response = await trucksInventoryApi.getInventarioCatalog({
+          limit: 200,
+        });
+
+        if (!isActive) {
+          return;
+        }
+
+        setCatalogItems(response.data);
+        setCatalogLoaded(true);
+      } catch {
+        if (isActive) {
+          setCatalogError("No se pudo cargar el inventario disponible.");
+        }
+      } finally {
+        if (isActive) {
+          setIsCatalogLoading(false);
+        }
+      }
+    };
+
+    void loadCatalog();
+
+    return () => {
+      isActive = false;
+    };
+  }, [catalogLoaded, isAddItemDialogOpen]);
+
   const onSubmitInventoryForm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAddItemError(null);
 
-    const success = await asignarInventario(
+    if (!isCreateFormValid) {
+      setAddItemError("Selecciona un objeto del inventario para continuar.");
+      return;
+    }
+
+    const result = await asignarInventario(
       mapInventoryFormToPayload(inventoryForm),
+      { suppressError: true },
     );
 
-    if (!success) {
+    if (!result.ok) {
+      setAddItemError(
+        result.error ?? "No se pudo asignar el ítem al camión.",
+      );
       return;
     }
 
     setIsAddItemDialogOpen(false);
     setInventoryForm(getInitialInventoryForm());
+    setInventorySearch("");
+    setIsCatalogOpen(false);
   };
 
   const onDeleteInventoryItem = async (inventoryId?: number) => {
@@ -219,15 +304,25 @@ export function TruckInventoryPage() {
       return;
     }
 
+    const maxAvailable = item.detalle?.cantidad;
+    const parsedCantidadActual = Number(editingInventoryForm.cantidad_actual);
+    if (
+      typeof maxAvailable === "number" &&
+      Number.isFinite(parsedCantidadActual) &&
+      parsedCantidadActual > maxAvailable
+    ) {
+      return;
+    }
+
     const deleted = await desasignarInventario(item.id);
     if (!deleted) {
       return;
     }
 
-    const success = await asignarInventario(
+    const result = await asignarInventario(
       mapInventoryFormToPayload(editingInventoryForm),
     );
-    if (!success) {
+    if (!result.ok) {
       return;
     }
 
@@ -261,6 +356,9 @@ export function TruckInventoryPage() {
             <Button
               onClick={() => {
                 setInventoryForm(getInitialInventoryForm());
+                setInventorySearch("");
+                setAddItemError(null);
+                setIsCatalogOpen(false);
                 setIsAddItemDialogOpen(true);
               }}
               disabled={isLoading || hasInlineEditing}
@@ -307,6 +405,15 @@ export function TruckInventoryPage() {
                   hasInlineEditing && !isInlineEditingRow;
                 const objectName =
                   item.detalle?.nombre_objeto?.trim() || `Objeto #${item.Id_Objeto}`;
+                const maxAvailable = item.detalle?.cantidad;
+                const parsedEditingCantidadActual = Number(
+                  editingInventoryForm.cantidad_actual,
+                );
+                const exceedsAvailable =
+                  isInlineEditingRow &&
+                  typeof maxAvailable === "number" &&
+                  Number.isFinite(parsedEditingCantidadActual) &&
+                  parsedEditingCantidadActual > maxAvailable;
 
                 return (
                   <TableRow
@@ -371,19 +478,50 @@ export function TruckInventoryPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {isInlineEditingRow ? (
-                        <Input
-                          type="number"
-                          min={0}
-                          value={editingInventoryForm.cantidad_actual}
-                          onChange={(event) =>
-                            setEditingInventoryForm((current) => ({
-                              ...current,
-                              cantidad_actual: event.target.value,
-                            }))
-                          }
-                          className="h-9 text-center"
-                          disabled={isLoading}
-                        />
+                        <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={maxAvailable ?? undefined}
+                            value={editingInventoryForm.cantidad_actual}
+                            onChange={(event) =>
+                              setEditingInventoryForm((current) => ({
+                                ...current,
+                                cantidad_actual: event.target.value,
+                              }))
+                            }
+                            className="h-9 text-center"
+                            disabled={isLoading}
+                            aria-invalid={exceedsAvailable}
+                          />
+                          {typeof maxAvailable === "number" ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span
+                                  className={cn(
+                                    "inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
+                                    exceedsAvailable
+                                      ? "border-destructive/40 text-destructive"
+                                      : "border-muted-foreground/30 text-muted-foreground",
+                                  )}
+                                >
+                                  i
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className={cn(
+                                  "border",
+                                  exceedsAvailable
+                                    ? "border-destructive/40 text-destructive"
+                                    : "border-muted-foreground/30",
+                                )}
+                                align="center"
+                              >
+                                Disponible: {maxAvailable}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : null}
+                        </div>
                       ) : (
                         item.cantidad_actual
                       )}
@@ -452,7 +590,9 @@ export function TruckInventoryPage() {
                                   void onSaveInlineEdit(item);
                                 }}
                                 disabled={
-                                  isLoading || !isInventoryFormValid(editingInventoryForm)
+                                  isLoading ||
+                                  exceedsAvailable ||
+                                  !isInventoryFormValid(editingInventoryForm)
                                 }
                                 aria-label="Aceptar cambios"
                               >
@@ -581,6 +721,9 @@ export function TruckInventoryPage() {
 
           if (!open) {
             setInventoryForm(getInitialInventoryForm());
+            setInventorySearch("");
+            setAddItemError(null);
+            setIsCatalogOpen(false);
           }
         }}
       >
@@ -593,6 +736,11 @@ export function TruckInventoryPage() {
           </DialogHeader>
 
           <form onSubmit={onSubmitInventoryForm} className="grid gap-5">
+            {addItemError && (
+              <div className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {addItemError}
+              </div>
+            )}
             <div className="grid gap-4 rounded-lg border border-gray-200 bg-gray-50/50 p-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label
@@ -601,20 +749,81 @@ export function TruckInventoryPage() {
                 >
                   ID del objeto
                 </label>
-                <Input
-                  id="new-item-id-objeto"
-                  type="number"
-                  min={0}
-                  value={inventoryForm.Id_Objeto}
-                  onChange={(event) =>
-                    setInventoryForm((current) => ({
-                      ...current,
-                      Id_Objeto: event.target.value,
-                    }))
-                  }
-                  placeholder="Ej. 120"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="new-item-id-objeto"
+                    type="text"
+                    value={inventorySearch}
+                    onChange={(event) => {
+                      setInventorySearch(event.target.value);
+                      setAddItemError(null);
+                      setIsCatalogOpen(true);
+                      setInventoryForm((current) => ({
+                        ...current,
+                        Id_Objeto: "",
+                      }));
+                    }}
+                    onFocus={() => setIsCatalogOpen(true)}
+                    onBlur={() => setIsCatalogOpen(false)}
+                    placeholder="Busca por nombre o ID"
+                    autoComplete="off"
+                    required
+                  />
+                  {isCatalogOpen && (inventorySearch.trim().length > 0 || isCatalogLoading) && (
+                    <div
+                      className="absolute z-50 mt-1 w-full rounded-md border bg-white shadow-md"
+                      onMouseDown={(event) => event.preventDefault()}
+                    >
+                      <div className="max-h-56 overflow-auto">
+                        {isCatalogLoading ? (
+                          <div className="px-3 py-2 text-sm text-muted-foreground">
+                            Cargando inventario...
+                          </div>
+                        ) : filteredCatalog.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-muted-foreground">
+                            Sin resultados para tu búsqueda.
+                          </div>
+                        ) : (
+                          filteredCatalog.map((item) => (
+                            <button
+                              key={item.Id_Objeto}
+                              type="button"
+                              className="flex w-full flex-col gap-1 px-3 py-2 text-left text-sm hover:bg-gray-50"
+                              onClick={() => {
+                                setInventoryForm((current) => ({
+                                  ...current,
+                                  Id_Objeto: String(item.Id_Objeto),
+                                }));
+                                setInventorySearch(
+                                  item.nombre_objeto?.trim() ||
+                                    `Objeto #${item.Id_Objeto}`,
+                                );
+                                setAddItemError(null);
+                                setIsCatalogOpen(false);
+                              }}
+                            >
+                              <span className="font-medium text-gray-900">
+                                {item.nombre_objeto?.trim() ||
+                                  `Objeto #${item.Id_Objeto}`}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                ID {item.Id_Objeto} · Disponible {item.cantidad}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {selectedCatalogItem ? (
+                  <p className="text-xs text-muted-foreground">
+                    Seleccionado: ID {selectedCatalogItem.Id_Objeto} · Disponible {selectedCatalogItem.cantidad}
+                  </p>
+                ) : null}
+                {catalogError && (
+                  <p className="text-xs text-destructive">{catalogError}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -635,6 +844,7 @@ export function TruckInventoryPage() {
                       cantidad_requerida: event.target.value,
                     }))
                   }
+                  onInput={() => setAddItemError(null)}
                   placeholder="Ej. 5"
                   required
                 />
@@ -651,6 +861,7 @@ export function TruckInventoryPage() {
                   id="new-item-cantidad-actual"
                   type="number"
                   min={0}
+                  max={selectedCatalogItem?.cantidad ?? undefined}
                   value={inventoryForm.cantidad_actual}
                   onChange={(event) =>
                     setInventoryForm((current) => ({
@@ -658,9 +869,15 @@ export function TruckInventoryPage() {
                       cantidad_actual: event.target.value,
                     }))
                   }
+                  onInput={() => setAddItemError(null)}
                   placeholder="Ej. 3"
                   required
                 />
+                {selectedCatalogItem && (
+                  <p className="text-xs text-muted-foreground">
+                    Disponible en inventario: {selectedCatalogItem.cantidad}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -669,12 +886,14 @@ export function TruckInventoryPage() {
                 </label>
                 <Select
                   value={inventoryForm.requerido_legal}
-                  onValueChange={(value: "si" | "no") =>
+                  onValueChange={(value: "si" | "no") => {
                     setInventoryForm((current) => ({
                       ...current,
                       requerido_legal: value,
-                    }))
-                  }
+                    }));
+                    setAddItemError(null);
+                  }}
+                  onOpenChange={() => setAddItemError(null)}
                 >
                   <SelectTrigger id="new-item-requerido-legal" className="w-full bg-white">
                     <SelectValue placeholder="Requerido legal" />
@@ -702,6 +921,7 @@ export function TruckInventoryPage() {
                       ubicacion_en_camion: event.target.value,
                     }))
                   }
+                  onInput={() => setAddItemError(null)}
                   placeholder="Ej. Compartimento lateral izquierdo"
                   required
                 />

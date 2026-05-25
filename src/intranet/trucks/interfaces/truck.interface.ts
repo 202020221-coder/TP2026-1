@@ -32,7 +32,22 @@ export interface Truck {
   soat_dia_pago: string;
 }
 
-export type RegisterTruckPayload = Omit<Truck, "Fabricante_Nombre" | "ID_Fabricante"> & {
+export type RegisterTruckPayload = Pick<
+  Truck,
+  | "Placa"
+  | "nombre"
+  | "ano_fabricacion"
+  | "modelo"
+  | "color"
+  | "caracteristicas"
+  | "fecha_prox_revision"
+  | "vencimiento_tarjeta"
+  | "soat_n_poliza"
+  | "soat_empresa"
+  | "soat_precio"
+  | "soat_dia_pago"
+  | "Estado"
+> & {
   ID_Fabricante: number;
 };
 
@@ -50,11 +65,12 @@ export type UpdateTruckPayload = Pick<
 
 export interface TruckMaintenance {
   id?: number;
+  Placa?: string;
   fecha_ultimo_mant: string;
   responsable: string;
   razon: string;
   contacto_responsable: string;
-  pdf_mantenimiento: string;
+  pdf_mantenimiento: string | null;
 }
 
 export interface TruckInventoryItem {

@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { trucksInventoryApi } from "../api/trucks.inventory.api";
@@ -9,6 +10,42 @@ import type {
 } from "../interfaces/truck.interface";
 
 type NewTruckInventoryItem = Omit<TruckInventoryRow, "id" | "detalle">;
+type InventoryActionResult = {
+  ok: boolean;
+  error?: string;
+};
+type InventoryActionOptions = {
+  suppressError?: boolean;
+};
+
+const getActionErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError(error)) {
+    const payload = error.response?.data;
+    if (typeof payload === "string") {
+      return payload;
+    }
+    if (payload && typeof payload === "object") {
+      const messagePayload = payload as Record<string, unknown>;
+      const knownMessage =
+        messagePayload.message ??
+        messagePayload.error ??
+        messagePayload.detail ??
+        messagePayload.mensaje;
+      if (typeof knownMessage === "string" && knownMessage.trim().length > 0) {
+        return knownMessage;
+      }
+    }
+    if (typeof error.message === "string" && error.message.trim().length > 0) {
+      return error.message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return fallback;
+};
 
 const tryGetInventoryDetail = async (
   idObjeto: number,
@@ -99,14 +136,24 @@ export const useTruckInventory = () => {
   }, [loadData]);
 
   const asignarInventario = useCallback(
-    async (data: NewTruckInventoryItem) => {
+    async (
+      data: NewTruckInventoryItem,
+      options?: InventoryActionOptions,
+    ): Promise<InventoryActionResult> => {
+      const canReportError = !options?.suppressError;
+
       if (!placa) {
-        setError("No se encontró la placa del camión.");
-        return false;
+        const message = "No se encontró la placa del camión.";
+        if (canReportError) {
+          setError(message);
+        }
+        return { ok: false, error: message };
       }
 
       setIsLoading(true);
-      setError(null);
+      if (canReportError) {
+        setError(null);
+      }
 
       try {
         await trucksInventoryApi.asignarItem(placa, {
@@ -118,22 +165,35 @@ export const useTruckInventory = () => {
         });
 
         await loadData(placa);
-        setError(null);
-        return true;
-      } catch {
+        if (canReportError) {
+          setError(null);
+        }
+        return { ok: true };
+      } catch (error) {
+        const message = getActionErrorMessage(
+          error,
+          "No se pudo asignar el ítem al camión.",
+        );
+
         try {
           const applied = await verifyInventoryAddApplied(placa, data);
           if (!applied) {
-            setError("No se pudo asignar el ítem al camión.");
-            return false;
+            if (canReportError) {
+              setError(message);
+            }
+            return { ok: false, error: message };
           }
 
           await loadData(placa);
-          setError(null);
-          return true;
+          if (canReportError) {
+            setError(null);
+          }
+          return { ok: true };
         } catch {
-          setError("No se pudo asignar el ítem al camión.");
-          return false;
+          if (canReportError) {
+            setError(message);
+          }
+          return { ok: false, error: message };
         }
       } finally {
         setIsLoading(false);

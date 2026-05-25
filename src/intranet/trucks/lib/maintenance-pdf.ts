@@ -1,14 +1,49 @@
-export const openMaintenancePdfUrl = (url: string) => {
+const getApiOrigin = () => {
+  const baseUrl = import.meta.env.VITE_API_URL;
+  if (typeof baseUrl === "string" && baseUrl.trim().length > 0) {
+    try {
+      return new URL(baseUrl).origin;
+    } catch {
+      try {
+        return new URL(baseUrl, window.location.origin).origin;
+      } catch {
+        return window.location.origin;
+      }
+    }
+  }
+
+  return window.location.origin;
+};
+
+export const resolveBackendFileUrl = (url: string) => {
   const trimmed = url.trim();
   if (!trimmed) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const origin = getApiOrigin();
+  if (trimmed.startsWith("/")) {
+    return `${origin}${trimmed}`;
+  }
+
+  return `${origin}/${trimmed}`;
+};
+
+export const openMaintenancePdfUrl = (url: string) => {
+  const resolved = resolveBackendFileUrl(url);
+  if (!resolved) {
     return;
   }
-  window.open(trimmed, "_blank", "noopener,noreferrer");
+  window.open(resolved, "_blank", "noopener,noreferrer");
 };
 
 const suggestedFileName = (url: string) => {
   try {
-    const path = new URL(url, window.location.origin).pathname;
+    const path = new URL(resolveBackendFileUrl(url), window.location.origin).pathname;
     const last = path.split("/").pop() ?? "";
     const base = decodeURIComponent(last.split("?")[0] ?? "");
     if (base && /\.pdf$/i.test(base)) {
@@ -24,15 +59,15 @@ const suggestedFileName = (url: string) => {
 };
 
 export const downloadMaintenancePdfUrl = async (url: string) => {
-  const trimmed = url.trim();
-  if (!trimmed) {
+  const resolved = resolveBackendFileUrl(url);
+  if (!resolved) {
     return;
   }
 
-  const name = suggestedFileName(trimmed);
+  const name = suggestedFileName(resolved);
 
   try {
-    const res = await fetch(trimmed);
+    const res = await fetch(resolved);
     if (!res.ok) {
       throw new Error("Respuesta no OK");
     }
@@ -47,6 +82,6 @@ export const downloadMaintenancePdfUrl = async (url: string) => {
     a.remove();
     URL.revokeObjectURL(objUrl);
   } catch {
-    openMaintenancePdfUrl(trimmed);
+    openMaintenancePdfUrl(resolved);
   }
 };
