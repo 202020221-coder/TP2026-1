@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { QuotationProductsTable } from "../prices/products/ProductsTable";
+import { QuotationServicesTable } from "../prices/services/ServicesTable";
 import { QuotationProductStoreProvider } from "../../hooks/stores/quotation.products.store.provider";
 import { QuotationPickupStoreProvider } from "../../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../../hooks/stores/quotation.exchange.rate.store.provider";
@@ -130,8 +131,32 @@ export function QuotationDetailFormCard({
               </CardContent>
             </Card>
 
+            {/* Services */}
+            <Card className="border bg-card shadow-none">
+              <CardHeader className="pb-0">
+                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                  <SquareChartGantt className="text-primary" />
+                  <span className="pb-0.5 font-[375] text-[18px]">
+                    Servicios
+                  </span>
+                </CardTitle>
+                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                  Servicios incluidos en la cotización.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <QuotationServicesTable
+                  items={quotation.servicios}
+                  readOnly={true}
+                  onUpdateQuantity={undefined}
+                  onUpdateUnitPrice={undefined}
+                  onDelete={undefined}
+                />
+              </CardContent>
+            </Card>
+
             {/* Truck */}
-            <TruckInfoCard truck={quotation.camionEspecificado} />
+            <TruckInfoCard trucks={quotation.camiones} />
 
             {/* Pickup */}
             <PickupCardView

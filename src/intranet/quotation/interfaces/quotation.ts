@@ -43,6 +43,13 @@ export interface QuotationExchangeRate {
   tasaVenta: number;
 }
 
+export type ServiceItem = {
+  id: string;
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+};
+
 export interface QuotationConditions {
   fechaEmision: string;
   fechaVigencia: string;

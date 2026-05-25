@@ -17,12 +17,21 @@ import {
   Eye,
   AlertCircle,
   ArrowLeft,
+  SquareChartGantt,
 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
+import { QuotationServicesTable } from "../components/prices/services/ServicesTable";
 import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
 import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";
@@ -143,6 +152,28 @@ export function CreateQuotationPage() {
                         </TabsContent>
                         <TabsContent value="prices" className="space-y-6">
                           <CreateQuotationProductsSection />
+                          <Card className="gap-4 border bg-card shadow-none">
+                            <CardHeader className="pb-0">
+                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                <SquareChartGantt className="text-primary" />
+                                <span className="pb-0.5 font-[375] text-[18px]">
+                                  Servicios
+                                </span>
+                              </CardTitle>
+                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                Servicios incluidos en la cotización.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <QuotationServicesTable
+                                items={[]}
+                                readOnly={true}
+                                onUpdateQuantity={undefined}
+                                onUpdateUnitPrice={undefined}
+                                onDelete={undefined}
+                              />
+                            </CardContent>
+                          </Card>
                           <CreateQuotationTruckSelector />
                           <CreateQuotationPickupSection />
                           <CreateQuotationSummaryCard />

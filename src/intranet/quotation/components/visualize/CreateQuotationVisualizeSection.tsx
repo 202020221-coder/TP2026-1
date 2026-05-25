@@ -21,7 +21,7 @@ export const CreateQuotationVisualizeSection = ({
   const [isSending, setIsSending] = useState(false);
   const Navigate = useNavigate();
   const inventory = useQuotationProductStore((state) => state.items);
-  const truck = useQuotationTruckStore((state) => state.selectedTruck);
+  const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
   const quotationName = useQuotationReferenceStore((state) => state.name);
   const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
   const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
@@ -55,7 +55,7 @@ export const CreateQuotationVisualizeSection = ({
               direccionRecojo: pickupAddress,
               fechaRecojo: pickupDate,
             },
-            id_camion: truck?.Placa ?? "",
+            id_camion: trucks[0]?.Placa ?? "",
             productos: Object.values(inventory),
             tasaCambio: {
               tasaCompra: rate?.buyingRate ?? 0.0,

@@ -17,7 +17,7 @@ interface PdfPreviewProps {
 export const PdfPreview = ({ client }: PdfPreviewProps) => {
   // Obtenemos datos de cada store
   const inventory = useQuotationProductStore((state) => state.items);
-  const truck = useQuotationTruckStore((state) => state.selectedTruck);
+  const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
   const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
   const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
   const emissionDate = useQuotationConditionStore((state) => state.emissionDate);
@@ -25,15 +25,11 @@ export const PdfPreview = ({ client }: PdfPreviewProps) => {
   const conditions = useQuotationConditionStore((state) => state.conditions);
   const observaciones = useQuotationConditionStore((state) => state.observaciones);
 
-  if (!truck) {
-    throw new Error("TRUCK NO DEFINIDO");
-  }
-
   // Construimos el objeto data
   const data = {
     client,
     inventory,
-    truck,
+    trucks,
     pickup: {
       pickupCost,
       pickupDate,

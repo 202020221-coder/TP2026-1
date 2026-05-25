@@ -20,7 +20,7 @@ interface PDFQuotationDocumentProps {
       razon_social: string;
     };
     inventory: Record<string, QuotationProduct>;
-    truck: Truck;
+    trucks: Truck[];
     pickup: {
       pickupCost: number;
       pickupDate: string;
@@ -40,7 +40,7 @@ export const PdfDocument = ({ data }: PDFQuotationDocumentProps) => (
       <Header />
       <ClientInfo client={data.client} />
       <InventoryTable items={data.inventory} />
-      <TruckDriverSection truck={data.truck} />
+      <TruckDriverSection trucks={data.trucks} />
       <PickupSection pickup={data.pickup} />
       <ConditionsSection conditions={data.conditions} />
       <CostSummary inventory={data.inventory} pickup={data.pickup} />

@@ -81,7 +81,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
             </p>
             {readOnly ? (
               <p className="text-sm font-semibold text-foreground">
-                {format(new Date(pickupDate), "dd/MM/yyyy")}
+                {pickupDate ? format(new Date(pickupDate), "dd/MM/yyyy") : "—"}
               </p>
             ) : (
               <Input

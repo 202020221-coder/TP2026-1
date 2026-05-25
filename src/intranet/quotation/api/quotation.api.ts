@@ -1,4 +1,8 @@
-import type { Quotation, QuotationProduct } from "../interfaces/quotation";
+import type {
+  Quotation,
+  QuotationProduct,
+  ServiceItem,
+} from "../interfaces/quotation";
 import axiosInstance from "@/shared/api/axios.config";
 import type {
   CreateQuotationBody,
@@ -38,16 +42,17 @@ export const getQuotationForClient = async (
     `/cotizaciones/${id}/detalles-franco`,
   );
 
-  const corruptedTruckData = response.data.camiones[0];
-
+  const costoRecojo = response.data.costoRecojo ?? {
+    costo: 0,
+    fechaRecojo: "",
+    direccionRecojo: "",
+  };
   return {
     ...response.data,
-    camionEspecificado: {
-      ...corruptedTruckData,
-      Placa: corruptedTruckData.placa,
-      fecha_prox_revision: corruptedTruckData.fechaProximaRevision,
-    },
+    camiones: (response.data.camiones ?? []).map(normalizeTruck),
+    costoRecojo,
     tasaCambio: response.data.tipoCambio,
+    servicios: response.data.servicios ?? [],
     productos: response.data.productos.map(
       ({ precioUnitario, ...rest }) =>
         ({
@@ -58,10 +63,6 @@ export const getQuotationForClient = async (
   };
 };
 
-export const createQuotation = async (data: CreateQuotationBody) => {
-  await axiosInstance.post("/cotizaciones", data);
-};
-
 export const getQuotationForAdmin = async (
   id: Quotation["ID"],
 ): Promise<AdminQuotationDetailsData> => {
@@ -69,16 +70,17 @@ export const getQuotationForAdmin = async (
     `/cotizaciones/${id}/detalles-franco`,
   );
 
-  // return ADMIN_QUOTATION
-  const corruptedTruckData = response.data.camiones[0];
+  const costoRecojo = response.data.costoRecojo ?? {
+    costo: 0,
+    fechaRecojo: "",
+    direccionRecojo: "",
+  };
   return {
     ...response.data,
-    camionEspecificado: {
-      ...corruptedTruckData,
-      Placa: corruptedTruckData.placa,
-      fecha_prox_revision: corruptedTruckData.fechaProximaRevision,
-    },
+    camiones: (response.data.camiones ?? []).map(normalizeTruck),
+    costoRecojo,
     tasaCambio: response.data.tipoCambio,
+    servicios: response.data.servicios ?? [],
     client: {
       DNI_O_RUC: response.data.cliente.documentoIdentidad,
       nombre_comercial: response.data.cliente.nombreComercial,
@@ -94,6 +96,10 @@ export const getQuotationForAdmin = async (
   };
 };
 
+export const createQuotation = async (data: CreateQuotationBody) => {
+  await axiosInstance.post("/cotizaciones", data);
+};
+
 export type AdminQuotationDetailsData = {
   ID: number;
   nombre: string;
@@ -101,7 +107,8 @@ export type AdminQuotationDetailsData = {
   version: number;
   client: Client;
   productos: QuotationProduct[];
-  camionEspecificado: Truck;
+  servicios: ServiceItem[];
+  camiones: Truck[];
   costoRecojo: {
     costo: number;
     fechaRecojo: string;
@@ -124,7 +131,8 @@ export type ClientQuotationDetailsData = {
   nombre: string;
   estado: string;
   productos: QuotationProduct[];
-  camionEspecificado: Truck;
+  servicios: ServiceItem[];
+  camiones: Truck[];
   costoRecojo: {
     costo: number;
     fechaRecojo: string;
@@ -142,10 +150,11 @@ export type ClientQuotationDetailsData = {
 
 interface QuotationDetailsData extends Omit<
   AdminQuotationDetailsData,
-  "camionEspecificado" | "tasaCambio" | "client" | "productos"
+  "camiones" | "tasaCambio" | "client" | "productos" | "servicios"
 > {
   camiones: BadDefinedTruck[];
   productos: BadDefinedProduct[];
+  servicios?: ServiceItem[];
   tipoCambio: {
     tasaCompra: number;
     tasaVenta: number;
@@ -167,6 +176,12 @@ interface BadDefinedTruck extends Omit<Truck, "Placa" | "fecha_prox_revision"> {
 interface BadDefinedProduct extends Omit<QuotationProduct, "precio_unitario"> {
   precioUnitario: string;
 }
+
+const normalizeTruck = (t: BadDefinedTruck): Truck => ({
+  ...t,
+  Placa: t.placa,
+  fecha_prox_revision: t.fechaProximaRevision,
+});
 
 // const ADMIN_QUOTATION: AdminQuotationDetailsData = {
 //   ID: 1,
