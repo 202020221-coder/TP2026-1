@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, MessageCircle, Pencil, Trash2, Send } from "lucide-react";
+import { Eye, Mail, Pencil, Trash2, Send } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -58,7 +58,6 @@ export const QuotationTableRow: FC<{
     Navigate(`/intranet/cotizaciones/detalles/${quotation.ID}`);
   };
 
-
   const handleNavigateEdit = () => {
     Navigate(`/intranet/cotizaciones/editar/${quotation.ID}`);
   };
@@ -73,12 +72,16 @@ export const QuotationTableRow: FC<{
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
   const messageLabel = getQuotationMessageStateLabel(quotation.mensajes);
-  const messageBadgeClass = getQuotationMessageStateBadgeClass(quotation.mensajes);
+  const messageBadgeClass = getQuotationMessageStateBadgeClass(
+    quotation.mensajes,
+  );
 
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-        <TableCell className="font-medium py-3">{quotationDisplayName}</TableCell>
+        <TableCell className="font-medium py-3">
+          {quotationDisplayName}
+        </TableCell>
         <TableCell className="text-gray-700">
           {formatPEDate(quotation.condiciones.fechaEmision)}
         </TableCell>
@@ -118,155 +121,138 @@ export const QuotationTableRow: FC<{
                 Ver Cotizacion
               </TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
-                  onClick={() => handleModalSend()}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-                align="center"
-              >
-                Enviar Orden de Compra
-              </TooltipContent>
-            </Tooltip>
 
-          {user?.rol === RolesRecord.projectAdmin &&
-            quotation.estado === QuotationStatesRecord.pending && (
-              <>
+            {user?.rol === RolesRecord.client &&
+              quotation.estado !== QuotationStatesRecord.approved && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
-                      onClick={handleNavigateEdit}
+                      className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
+                      onClick={() => handleModalSend()}
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Send className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent
-                    className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                    className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
                     align="center"
                   >
-                    Editar Cotizacion
+                    Enviar Orden de Compra
                   </TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                    align="center"
-                  >
-                    Rechazar Cotizacion
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
+              )}
 
-          {canNegotiate && (
+            {user?.rol === RolesRecord.projectAdmin &&
+              quotation.estado === QuotationStatesRecord.pending && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                        onClick={handleNavigateEdit}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                      align="center"
+                    >
+                      Editar Cotizacion
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                      align="center"
+                    >
+                      Rechazar Cotizacion
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+
+            {user?.rol === RolesRecord.client &&
+              quotation.estado === QuotationStatesRecord.rejected && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                        onClick={() => setRejectionMsgModalOpen(true)}
+                      >
+                        <Mail className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                      align="center"
+                    >
+                      Ver Mensaje de Declinación
+                    </TooltipContent>
+                  </Tooltip>
+                  <QuotationRejectionMessageDialog
+                    open={rejectionMsgModalOpen}
+                    onOpenChange={(open) => setRejectionMsgModalOpen(open)}
+                    quotationId={quotation.ID}
+                  />
+                </>
+              )}
+          </div>
+        </TableCell>
+
+        <TableCell className="text-center">
+          {canNegotiate ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-green-500 hover:border hover:border-green-500 hover:text-green-600 transition-colors hover:bg-green-50"
+                <button
+                  type="button"
                   onClick={handleNegotiateClick}
+                  className={cn(
+                    "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
+                    messageBadgeClass,
+                    "cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
+                  )}
                 >
-                  <MessageCircle className="w-4 h-4" />
-                </Button>
+                  {messageLabel}
+                </button>
               </TooltipTrigger>
               <TooltipContent
-                className="bg-white border-[1.5px] border-green-500 text-green-500 font-normal text-center"
+                className="bg-white border-[1.5px] border-sky-500 text-sky-600 font-normal text-center"
                 align="center"
               >
-                Comentar
+                Abrir chat de negociación
               </TooltipContent>
             </Tooltip>
-          )}
-
-          {user?.rol === RolesRecord.client &&
-            quotation.estado === QuotationStatesRecord.rejected && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                      onClick={() => setRejectionMsgModalOpen(true)}
-                    >
-                      <Mail className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                    align="center"
-                  >
-                    Ver Mensaje de Declinación
-                  </TooltipContent>
-                </Tooltip>
-                <QuotationRejectionMessageDialog
-                  open={rejectionMsgModalOpen}
-                  onOpenChange={(open) => setRejectionMsgModalOpen(open)}
-                  quotationId={quotation.ID}
-                />
-              </>
-            )}
-        </div>
-      </TableCell>
-
-      <TableCell className="text-center">
-        {canNegotiate ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={handleNegotiateClick}
-                className={cn(
-                  "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
-                  messageBadgeClass,
-                  "cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
-                )}
-              >
-                {messageLabel}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent
-              className="bg-white border-[1.5px] border-sky-500 text-sky-600 font-normal text-center"
-              align="center"
+          ) : (
+            <Badge
+              variant="outline"
+              className={cn(
+                "mx-auto max-w-[200px] whitespace-normal text-center text-xs font-medium leading-snug",
+                messageBadgeClass,
+              )}
             >
-              Abrir chat de negociación
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Badge
-            variant="outline"
-            className={cn(
-              "mx-auto max-w-[200px] whitespace-normal text-center text-xs font-medium leading-snug",
-              messageBadgeClass,
-            )}
-          >
-            {messageLabel}
-          </Badge>
-        )}
-      </TableCell>
-    </TableRow>
-    <QuotationOrderPurchaseDialog
+              {messageLabel}
+            </Badge>
+          )}
+        </TableCell>
+      </TableRow>
+      <QuotationOrderPurchaseDialog
         quotationId={quotation.ID}
         open={orderPurchaseModalOpen}
         onOpenChange={setOrderPurchaseModalOpen}
@@ -274,4 +260,3 @@ export const QuotationTableRow: FC<{
     </>
   );
 };
-

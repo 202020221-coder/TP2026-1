@@ -1,6 +1,16 @@
 import { Input } from "@/shared/components/ui/input";
-import { /*ArrowLeft, ArrowRight,*/ ArrowLeft, ArrowRight, Eraser, Search } from "lucide-react";
-import { /*useEffect, useState,*/ useEffect, useState, type FC, type ReactNode } from "react";
+import {
+  /*ArrowLeft, ArrowRight,*/ ArrowLeft,
+  ArrowRight,
+  Eraser,
+  Search,
+} from "lucide-react";
+import {
+  /*useEffect, useState,*/ useEffect,
+  useState,
+  type FC,
+  type ReactNode,
+} from "react";
 // import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -31,11 +41,19 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
 };
 
 const TopControls: FC = () => {
-  const { query, queryParams, result } = useOrders();  
+  const { query, queryParams, result } = useOrders();
+  const onNameChange = useDebounced((nameSearch: string) => {
+    query({ ...queryParams, page: 1, nombre: nameSearch });
+  }, 500);
   return (
     <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       <div className="col-span-1 md:col-span-3 relative">
-        <Input placeholder="Buscar por nombre" className="pl-8" disabled={result.isFetching}/>
+        <Input
+          placeholder="Buscar por nombre"
+          className="pl-8"
+          disabled={result.isFetching}
+          onChange={(e) => onNameChange(e.target.value)}
+        />
         <Search
           className="absolute top-1/2 -translate-y-1/2 w-8 text-gray-400"
           size={20}
@@ -44,9 +62,9 @@ const TopControls: FC = () => {
       <div className="col-span-1 md:col-span-2 flex gap-x-2">
         <Select
           onValueChange={(value) => {
-            query({ ...queryParams, page: 1, status: value as OrderState });
+            query({ ...queryParams, page: 1, estado: value as OrderState });
           }}
-          value={queryParams.status || ""}
+          value={queryParams.estado || ""}
         >
           <SelectTrigger>
             <SelectValue placeholder="Seleccione un estado" />
@@ -54,7 +72,7 @@ const TopControls: FC = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Estados</SelectLabel>
-              {Object.values(OrderStatesRecord).map((status,i) => (
+              {Object.values(OrderStatesRecord).map((status, i) => (
                 <SelectItem key={`${i}-${status}`} value={status}>
                   {status}
                 </SelectItem>
@@ -65,9 +83,9 @@ const TopControls: FC = () => {
         <Button
           size={"icon"}
           onClick={() => {
-            query({ ...queryParams, page: 1, status: undefined });
+            query({ ...queryParams, page: 1, estado: undefined });
           }}
-          disabled={!queryParams.status}
+          disabled={!queryParams.estado}
         >
           <Eraser />
         </Button>
@@ -177,7 +195,7 @@ const BottomControls: FC = () => {
             disabled={result.data.pagination.totalPages === 1}
           />
           <p>de</p>
-          <p>{Math.max(result.data.pagination.totalPages,1)}</p>
+          <p>{Math.max(result.data.pagination.totalPages, 1)}</p>
         </div>
       </div>
     )

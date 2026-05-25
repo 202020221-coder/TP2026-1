@@ -10,9 +10,11 @@ import { toSearchParams } from "@/shared/lib/to-search-params";
 export const getAllOrders = async ({
   page,
   limit,
+  nombre,
+  estado,
 }: GetOrdersQP): Promise<GetOrdersResponse> => {
   const response = axiosInstance.get<GetOrdersResponse>(
-    `/solicitudes?${toSearchParams({ page, limit })}`,
+    `/solicitudes?${toSearchParams({ page, limit, nombre, estado })}`,
   );
   return (await response).data;
 };
@@ -24,26 +26,33 @@ export const getOrder = async (id: Order["ID"]): Promise<GetOrderResponse> => {
   return response.data;
 };
 
-import type { GetProductDTO, GetServiceDTO,UpdateRequestDTO } from "../interfaces";
+import type {
+  GetProductDTO,
+  GetServiceDTO,
+  UpdateRequestDTO,
+} from "../interfaces";
 import { safePagination } from "@/shared/api/safe-request";
+import { OrderStatesRecord } from "../enum/order-state.record";
 
 export const UpdateRequest = async (id: number, data: UpdateRequestDTO) => {
-  const response = await axiosInstance.put(`/solicitudes/${id}`, data)
+  const response = await axiosInstance.put(`/solicitudes/${id}`, data);
   return response.data;
-}
-export const DeleteRequest = async (id: Order["ID"]) => {
-  await axiosInstance.delete(`/solicitudes/${id}`)
-}
+};
+export const RejectRequest = async (id: Order["ID"]) => {
+  await axiosInstance.put(`/solicitudes/${id}`, {
+    estado: OrderStatesRecord.rejected,
+  });
+};
 
 //------------------------------------------------
-export const GetAllProducts = async (page:number, limit:number) =>
+export const GetAllProducts = async (page: number, limit: number) =>
   safePagination<GetProductDTO[]>({
     url: `/inventario`,
     method: "GET",
     params: { page, limit },
   });
 
-export const GetAllServices = async (page:number, limit:number) =>
+export const GetAllServices = async (page: number, limit: number) =>
   safePagination<GetServiceDTO[]>({
     url: `/servicios`,
     method: "GET",

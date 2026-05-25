@@ -19,5 +19,6 @@ export interface GetQuotationQP {
   page?: number;
   per_page?: number;
   dni_o_ruc?: string;
-  status?: QuotationState;
+  estado?: QuotationState;
+  nombre?:string;
 }

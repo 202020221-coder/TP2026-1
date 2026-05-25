@@ -23,7 +23,7 @@ import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DeleteRequest } from "../api/order.api";
+import { RejectRequest } from "../api/order.api";
 import { toast } from "sonner";
 export const OrderTableRow: FC<{
   order: Order;
@@ -33,7 +33,7 @@ export const OrderTableRow: FC<{
   const queryClient = useQueryClient()
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
   const { mutate: rejectOrder, isPending: isRejecting } = useMutation({
-    mutationFn: (id: Order["ID"]) => DeleteRequest(id),
+    mutationFn: (id: Order["ID"]) => RejectRequest(id),
     onSuccess: () => toast.success("Solicitud rechazada exitosamente"),
     onError: () => toast.error("Error al rechazar la solicitud"),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
