@@ -20,7 +20,7 @@ export type QuotationProduct = {
   id: string;
   nombre: string;
   cantidad: number;
-  precio_unitario: string;
+  precio_unitario: number;
 } & (
   | {
       intencion: Extract<QuotationProductIntention, "comprar">;

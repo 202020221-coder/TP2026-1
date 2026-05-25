@@ -86,7 +86,21 @@ export function CreateQuotationPage() {
             >
               <QuotationTruckStoreProvider>
                 <QuotationProductStoreProvider
-                  initialProducts={orderDataSafe.inventario}
+                  initialProducts={orderDataSafe.inventario.map((item) => ({
+                    id: item.id.toString(),
+                    nombre: item.nombre,
+                    cantidad: item.cantidad,
+                    precio_unitario: Number(item.precio_unitario),
+                    ...(item.intencion === "alquilar"
+                      ? {
+                          intencion: "alquilar" as const,
+                          dias_alquilados: item.dias_alquilados ?? 1,
+                        }
+                      : {
+                          intencion: "comprar" as const,
+                          dias_alquilados: null,
+                        }),
+                  }))}
                 >
                   <QuotationPickupStoreProvider
                     initialData={{ pickupAddress: orderDataSafe.ubicacion }}

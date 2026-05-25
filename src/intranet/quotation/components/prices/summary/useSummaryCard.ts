@@ -8,10 +8,15 @@ export const useSummaryCard = () => {
   const pickupCost = useQuotationPickupStore((s) => s.pickupCost);
 
   const subtotal = useMemo(() => {
-    return Object.values(products).reduce(
-      (acc, item) => acc + (item.precio_unitario ?? 0) * (item.cantidad ?? 0),
-      0,
-    );
+    return Object.values(products).reduce((acc, item) => {
+      const unitPrice = Number(item.precio_unitario) || 0;
+      const quantity = Number(item.cantidad) || 0;
+      if (item.intencion === "alquilar") {
+        const days = Number(item.dias_alquilados) || 1;
+        return acc + unitPrice * quantity * days;
+      }
+      return acc + unitPrice * quantity;
+    }, 0);
   }, [products]);
 
   //TODO: pickupCost & subtotal passed as string but disguised by typescript

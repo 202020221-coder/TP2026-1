@@ -58,26 +58,24 @@ export const useAddProductsDialog = (
     });
 
     if (selected) {
-      //delete from fields
       const deleteFieldIndex = fields.findIndex(
-        (field) => field.id === item.Id_Objeto.toString(),
+        (field) => field.idInventario === item.Id_Objeto.toString(),
       );
 
-      remove(deleteFieldIndex);
+      if (deleteFieldIndex !== -1) {
+        remove(deleteFieldIndex);
+      }
     } else {
-      //add to fields
       append({
-        /**campos visuales */
         idInventario: item.Id_Objeto.toString(),
         precio_comercial: Number(item.precio_comercial),
         nombre: item.nombre_objeto,
-        /**campos modificables por el usuario */
         intencion: "comprar",
         cantidad: 1,
         precio_unitario: Number(item.precio_comercial),
       });
     }
-  }, []);
+  }, [fields]);
 
   const removeItem = useCallback((itemId: string, deleteFieldIndex: number) => {
     setPreSelectedIds((prev) => {
