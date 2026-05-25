@@ -1,8 +1,6 @@
-import type { Order } from "@/intranet/orders/interfaces/order";
 import type { QuotationProductIntention } from "../enum/order-inventory-intention";
 import type { QuotationMessagesState } from "../enum/quotation-message-state.record";
 import { type QuotationState } from "../enum/quotation-state.record";
-import type { Truck } from "./create/order-trucks";
 
 export interface Quotation {
   ID: number;
@@ -11,17 +9,11 @@ export interface Quotation {
   condiciones: QuotationConditions;
   estado: QuotationState;
   tasaCambio: QuotationExchangeRate;
-  mensajes: QuotationMessagesState;
+  /** Valor del API; se normaliza en UI con `normalizeQuotationMessageState`. */
+  mensajes?: QuotationMessagesState | string | null;
   version: number;
   /**solo visibles por el administrador */
   nombreCliente?: string;
-}
-
-export interface DetailedQuotation extends Omit<Quotation, "nombreCliente"> {
-  productos: QuotationProduct[];
-  camionEspecificado: Truck;
-  costoRecojo: QuotationPickUpCosts;
-  idSolicitud: Order["ID"];
 }
 
 export type QuotationProduct = {

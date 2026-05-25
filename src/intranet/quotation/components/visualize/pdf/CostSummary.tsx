@@ -1,4 +1,3 @@
-import type { PickupState } from "@/intranet/quotation/hooks/stores/quotation.pickup.store";
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
@@ -34,7 +33,7 @@ const CostSummary = ({
   pickup,
 }: {
   inventory: Record<QuotationProduct["id"], QuotationProduct>;
-  pickup: PickupState;
+  pickup: { pickupCost: number; pickupDate: string };
 }) => {
   const subtotal = Object.values(inventory).reduce(
     (acc, item) => acc + item.cantidad * item.precio_unitario,

@@ -9,8 +9,8 @@ export const TrucksTableControls: FC<{ children: ReactNode }> = ({ children }) =
     useTrucks();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+    <div className="flex flex-1 flex-col gap-5 min-h-0">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
         <div className="md:col-span-7 space-y-1">
           <p className="text-xs text-transparent select-none">Buscar</p>
           <div className="relative">

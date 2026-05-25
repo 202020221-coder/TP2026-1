@@ -23,7 +23,7 @@ import { type SelectInventoryFormType } from "@/intranet/quotation/schemas/addIn
 import type { InventoryItem } from "@/intranet/quotation/interfaces/create/order-inventory";
 import {
   Controller,
-  // useWatch,
+  useWatch,
   type Control,
   type FieldArrayWithId,
 } from "react-hook-form";
@@ -277,8 +277,6 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
   onRemoveItem,
   control,
 }) => {
-
-  // const watch = useWatch({control, name:`items.${index}.intencion`})
   if (selectedItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
@@ -301,7 +299,12 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
 
       <ScrollArea className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card">
         <div className="space-y-2 p-4">
-          {selectedItems.map((field, index) => (
+          {selectedItems.map((field, index) => {
+            const watchedIntention = useWatch({
+              control,
+              name: `items.${index}.intencion`,
+            });
+            return (
             <Card
               key={field.id}
               className="overflow-hidden border-border bg-muted/50 p-4 shadow-none"
@@ -329,7 +332,13 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div
+                  className={
+                    watchedIntention === "alquilar"
+                      ? "grid grid-cols-3 gap-2"
+                      : "grid grid-cols-2 gap-2"
+                  }
+                >
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">
                       Cantidad
@@ -389,6 +398,37 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
                       )}
                     />
                   </div>
+
+                  {watchedIntention === "alquilar" && (
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                        Días Alq.
+                      </label>
+                      <Controller
+                        name={`items.${index}.dias_alquilados`}
+                        control={control}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <Input
+                              type="number"
+                              min={1}
+                              placeholder="Días"
+                              value={field.value ?? ""}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                              className="h-8 border-border bg-background text-xs"
+                            />
+                            {error && (
+                              <p className="text-destructive font-bold text-sm">
+                                {error.message}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -436,7 +476,8 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
                 </div>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
     </div>

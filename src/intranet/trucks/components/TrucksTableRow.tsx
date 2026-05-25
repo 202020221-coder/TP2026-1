@@ -14,6 +14,7 @@ import type { Truck } from "../interfaces/truck.interface";
 import { EditTruckDialog } from "./EditTruckDialog";
 import {
   formatTruckTableDate,
+  getNextTruckOccupancyDate,
   getTruckEstadoBadge,
   getSoatStatus,
 } from "../lib/trucks-table.utils";
@@ -26,6 +27,15 @@ export const TrucksTableRow: FC<{
   const navigate = useNavigate();
   const soatStatus = getSoatStatus(camion.soat_dia_pago);
   const estadoBadge = getTruckEstadoBadge(camion.Estado);
+  const estadoValue = typeof camion.Estado === "string" ? camion.Estado : "";
+  const estadoNormalized = estadoValue.trim().toLowerCase();
+  const proyectoActual =
+    typeof camion.proyecto_actual === "string" ? camion.proyecto_actual.trim() : "";
+  const estadoLabel =
+    estadoNormalized === "ocupado" && proyectoActual
+      ? `Ocupado - ${proyectoActual}`
+      : estadoValue || estadoBadge.label;
+  const nextOccupancyDate = getNextTruckOccupancyDate(camion.programacion_futura);
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -41,9 +51,10 @@ export const TrucksTableRow: FC<{
             estadoBadge.className,
           )}
         >
-          {estadoBadge.label}
+          {estadoLabel}
         </Badge>
       </TableCell>
+      <TableCell className="text-gray-700">{nextOccupancyDate}</TableCell>
       <TableCell>
         <Badge
           variant={soatStatus.variant}

@@ -94,7 +94,7 @@ export default function DashboardClientPage() {
 
   return (
     <>
-      <section className="rounded-xl border bg-linear-to-r from-zinc-50 via-white to-lime-50 p-5 shadow-sm">
+      <section className="rounded-xl border bg-card p-6 shadow-xs mb-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <Badge
@@ -103,21 +103,21 @@ export default function DashboardClientPage() {
             >
               Centro de control
             </Badge>
-            <h1 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
               Panel de Administracion
             </h1>
-            <p className="max-w-2xl text-sm text-zinc-600 md:text-base">
+            <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
               Supervisa operaciones, prioridades comerciales y estado del flujo
               de solicitudes en tiempo real.
             </p>
           </div>
 
           <div className="space-y-1 text-left lg:text-right">
-            <p className="text-xs font-medium uppercase tracking-[0.08em] text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Hoy
             </p>
-            <p className="text-sm font-medium text-zinc-800">{today}</p>
-            <div className="inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
+            <p className="text-sm font-medium text-foreground">{today}</p>
+            <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
               <TrendingUp className="h-3.5 w-3.5" />
               Rendimiento operativo estable
             </div>
@@ -125,31 +125,31 @@ export default function DashboardClientPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 mb-4">
         {kpiCards.map(({ title, value, detail, icon: Icon, tone }) => (
-          <Card key={title} className="border shadow-none">
+          <Card key={title} className="border shadow-xs">
             <CardHeader className="pb-3">
-              <CardDescription className="text-xs uppercase tracking-[0.06em] text-zinc-500">
+              <CardDescription className="text-xs uppercase tracking-[0.06em] text-muted-foreground">
                 {title}
               </CardDescription>
               <div className="flex items-start justify-between">
-                <CardTitle className="text-2xl font-semibold text-zinc-900">
+                <CardTitle className="text-2xl font-semibold text-foreground">
                   {value}
                 </CardTitle>
-                <div className="rounded-lg border bg-white p-2">
+                <div className="rounded-lg border bg-card p-2">
                   <Icon className={`h-4 w-4 ${tone}`} />
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-zinc-600">{detail}</p>
+              <p className="text-xs text-muted-foreground">{detail}</p>
             </CardContent>
           </Card>
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="border shadow-none xl:col-span-2">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3 mb-4">
+        <Card className="border shadow-xs xl:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Estado Operativo</CardTitle>
             <CardDescription>
@@ -163,20 +163,20 @@ export default function DashboardClientPage() {
               return (
                 <div key={label} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-zinc-800">{label}</span>
-                    <span className="text-zinc-600">
+                    <span className="font-medium text-foreground">{label}</span>
+                    <span className="text-muted-foreground">
                       {value} / {goal}
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-zinc-100">
+                  <div className="h-2 rounded-full bg-muted">
                     <div
-                      className="h-2 rounded-full bg-zinc-800 transition-all"
+                      className="h-2 rounded-full bg-foreground transition-all"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-600">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {risk === "alta" ? (
-                      <AlertTriangle className="h-3.5 w-3.5 text-rose-600" />
+                      <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
                     ) : (
                       <Clock3 className="h-3.5 w-3.5 text-amber-600" />
                     )}
@@ -188,7 +188,7 @@ export default function DashboardClientPage() {
           </CardContent>
         </Card>
 
-        <Card className="border shadow-none">
+        <Card className="border shadow-xs">
           <CardHeader>
             <CardTitle className="text-lg">Acciones Rapidas</CardTitle>
             <CardDescription>
@@ -213,7 +213,7 @@ export default function DashboardClientPage() {
       </section>
 
       <section>
-        <Card className="border shadow-none">
+        <Card className="border shadow-xs">
           <CardHeader>
             <CardTitle className="text-lg">Actividad Reciente</CardTitle>
             <CardDescription>
@@ -225,8 +225,8 @@ export default function DashboardClientPage() {
               <div key={title}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-0.5">
-                    <p className="text-sm font-medium text-zinc-900">{title}</p>
-                    <p className="text-xs text-zinc-600">{owner}</p>
+                    <p className="text-sm font-medium text-foreground">{title}</p>
+                    <p className="text-xs text-muted-foreground">{owner}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export default function DashboardClientPage() {
                     >
                       {impact}
                     </Badge>
-                    <span className="text-xs text-zinc-500">{time}</span>
+                    <span className="text-xs text-muted-foreground">{time}</span>
                   </div>
                 </div>
 

@@ -50,10 +50,10 @@ export function NavMain({ userRole }: { userRole: UserRole }) {
       <SidebarGroupLabel>Menú</SidebarGroupLabel>
       <SidebarMenu>
         {menu.map(({ title, url, items, icon }) => {
-          // const isAuthorizated = roles.some(rol => userRole == rol);
-          const isAuthorizated = true;
+          const isAuthorizated = (sidebarLinks.find((m) => m.title === title)
+            ?.roles ?? []).includes(userRole);
 
-          if (!isAuthorizated) return;
+          if (!isAuthorizated) return null;
 
           const isParentActive: boolean =
             url === location.pathname ||
@@ -95,6 +95,7 @@ export function NavMain({ userRole }: { userRole: UserRole }) {
 
 const SubMenu = ({
   items,
+  userRole,
   currentPath,
 }: {
   items: ISubMenu[];
@@ -111,11 +112,11 @@ const SubMenu = ({
 
       <CollapsibleContent>
         <SidebarMenuSub>
-          {items?.map(({ title, url }) => {
+          {items?.map(({ title, url, roles }) => {
             const className: string =
               url === currentPath ? "text-primary font-semibold" : "";
-            const isAuthorizated = true;
-            if (!isAuthorizated) return;
+            const isAuthorizated = (roles ?? []).includes(userRole);
+            if (!isAuthorizated) return null;
 
             return (
               <SidebarMenuSubItem key={title}>

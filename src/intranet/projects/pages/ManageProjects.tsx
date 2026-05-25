@@ -11,10 +11,12 @@ export function ProjectsManagementPage() {
   return (
     <>
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold text-gray-800">Gestionar Proyectos</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Gestionar Proyectos
+        </h1>
         {!showActive && (
           <Button
-            className= "font-semibold rounded-full px-5"
+            className="font-semibold rounded-full px-5"
             onClick={() => setShowActive(true)}
           >
             <PlayCircle className="w-4 h-4 mr-1" />

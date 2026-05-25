@@ -26,13 +26,22 @@ export const clearSession = () => {
   useSession.setState({ loggedUser: null, accessToken: null });
 };
 
-export const createSession = ({ user, token }: LogInResponse) => {
+export const createSession = ({
+  user,
+  token,
+  apellidos,
+  nombre,
+  nuevo,
+}: LogInResponse) => {
   useSession.setState({
     loggedUser: {
       correo: user.correo,
       rol: user.rol,
       idusuario: user.idusuario,
       dni_perfil: user.dni_perfil,
+      nombres: nombre,
+      apellidos: apellidos,
+      nuevo: nuevo !== "no",
     },
     accessToken: token,
   });

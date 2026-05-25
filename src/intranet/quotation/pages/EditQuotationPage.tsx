@@ -1,0 +1,215 @@
+import { ClientCard } from "../components/reference/ClientCard";
+import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
+import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
+import {
+  FileText,
+  DollarSign,
+  ClipboardList,
+  Eye,
+  AlertCircle,
+  ArrowLeft,
+} from "lucide-react";
+import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
+import { type FC } from "react";
+import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
+import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
+import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
+import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
+import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
+import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
+import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";
+import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
+import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
+import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
+import { PdfPreview } from "../components/visualize/PdfPreview";
+import { Button } from "@/shared/components/ui/button";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { useNavigate } from "react-router";
+import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
+import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
+
+export function EditQuotationPage() {
+  const navigate = useNavigate();
+  const { quotationId, data, isPending, isError } = useViewQuotationPage();
+
+  if (!quotationId) {
+    throw new Error("Id de cotización no especificado");
+  }
+
+  if (isPending) {
+    return <EditQuotationPageSkeleton />;
+  }
+
+  if (isError || !data) {
+    return <EditQuotationPageError />;
+  }
+
+  const baseTriggerClass =
+    "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
+
+  return (
+    <>
+      <div className="flex h-full flex-col p-6 min-h-0">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-7 w-1 rounded-full bg-primary" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Editar Cotización
+            </h1>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/intranet/cotizaciones")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Regresar
+          </Button>
+        </div>
+
+        <Tabs
+          defaultValue="reference"
+          className="w-full flex flex-col flex-1 min-h-0"
+        >
+          <QuotationConditionStoreProvider
+            initialData={{
+              emissionDate: data.condiciones.fechaEmision,
+              expirationDate: data.condiciones.fechaVigencia,
+              conditions: data.condiciones.condiciones,
+              observaciones: data.condiciones.observaciones,
+            }}
+          >
+            <QuotationExchangeRateProvider
+              initialData={{
+                rate: {
+                  buyingRate: data.tasaCambio.tasaCompra,
+                  sellingRate: data.tasaCambio.tasaVenta,
+                },
+              }}
+            >
+              <QuotationReferenceStoreProvider initialName={data.nombre}>
+                <QuotationTruckStoreProvider
+                  initialData={{ selectedTruck: data.camionEspecificado }}
+                >
+                  <QuotationProductStoreProvider
+                    initialProducts={data.productos}
+                  >
+                    <QuotationPickupStoreProvider
+                      initialData={{
+                        pickupAddress: data.costoRecojo.direccionRecojo,
+                        pickupCost: data.costoRecojo.costo,
+                        pickupDate: data.costoRecojo.fechaRecojo,
+                      }}
+                    >
+                      <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                        <TabsTrigger
+                          value="reference"
+                          className={baseTriggerClass}
+                        >
+                          <FileText className="w-4 h-4" />
+                          Datos de Referencia
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="prices"
+                          className={baseTriggerClass}
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          Precios
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="conditions"
+                          className={baseTriggerClass}
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Condiciones
+                        </TabsTrigger>
+                        <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                          <Eye className="w-4 h-4" />
+                          Visualización
+                        </VisualizeTrigger>
+                      </TabsList>
+                      <ScrollArea className="mt-2 flex-1 min-h-0">
+                        <div className="px-3 py-6">
+                          <TabsContent value="reference" className="space-y-6">
+                            <ClientCard client={data.client} />
+                            <ReferenceNameCard />
+                          </TabsContent>
+                          <TabsContent value="prices" className="space-y-6">
+                            <CreateQuotationProductsSection />
+                            <CreateQuotationTruckSelector />
+                            <CreateQuotationPickupSection />
+                            <CreateQuotationSummaryCard />
+                          </TabsContent>
+                          <TabsContent value="conditions">
+                            <CreateQuotationConditionCard />
+                          </TabsContent>
+                          <TabsContent value="visualize">
+                            <PdfPreview
+                              client={{
+                                RUC: data.client.DNI_O_RUC,
+                                nombre_comercial: data.client.nombre_comercial,
+                                razon_social: data.client.razon_social,
+                              }}
+                            />
+                          </TabsContent>
+                        </div>
+                      </ScrollArea>
+                    </QuotationPickupStoreProvider>
+                  </QuotationProductStoreProvider>
+                </QuotationTruckStoreProvider>
+              </QuotationReferenceStoreProvider>
+            </QuotationExchangeRateProvider>
+          </QuotationConditionStoreProvider>
+        </Tabs>
+      </div>
+      <NegotiationChatFloating
+        quotationId={Number(quotationId)}
+        quotationEstado={data.estado}
+        contactName={data.client.razon_social}
+        contactRole={RolesRecord.client}
+      />
+    </>
+  );
+}
+
+const EditQuotationPageSkeleton: FC = () => (
+  <div className="flex h-full flex-col p-6 min-h-0">
+    <div className="flex items-center gap-3 mb-4">
+      <Skeleton className="h-7 w-1 rounded-full" />
+      <Skeleton className="h-7 w-72" />
+    </div>
+    <div className="space-y-4 mx-3">
+      <Skeleton className="h-12 w-full rounded-lg" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Skeleton className="h-24 rounded-lg" />
+        <Skeleton className="h-24 rounded-lg" />
+        <Skeleton className="h-24 rounded-lg sm:col-span-2" />
+      </div>
+    </div>
+  </div>
+);
+
+const EditQuotationPageError: FC = () => (
+  <div className="flex h-full flex-col items-center justify-center p-6 gap-4">
+    <AlertCircle className="h-12 w-12 text-destructive" />
+    <h2 className="text-xl font-semibold text-foreground">
+      Error al cargar la cotización
+    </h2>
+    <p className="text-muted-foreground text-sm text-center max-w-md">
+      No se pudieron obtener los datos de la cotización. Intenta recargar la
+      página o verifica que el ID sea correcto.
+    </p>
+    <Button variant="outline" onClick={() => window.location.reload()}>
+      Reintentar
+    </Button>
+  </div>
+);
+
+export default EditQuotationPage;

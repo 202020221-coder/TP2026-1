@@ -5,4 +5,4 @@ export * from "./response-request.dto";
 export * from "./read-service-producs.dto";
 export * from "./query-params.dto";
 export * from "./responses.dto";
-export * from "../components/create/types";
+// export * from "../components/create/types";

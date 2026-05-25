@@ -116,16 +116,16 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 className="text-base font-semibold text-foreground">
             {mode === "create" ? "Agregar Servicio" : "Editar Servicio"}
           </h2>
           <button
             onClick={onClose}
             disabled={isPending}
-            className="rounded-full p-1.5 hover:bg-gray-100 transition-colors text-gray-400"
+            className="rounded-full p-1.5 hover:bg-accent transition-colors text-muted-foreground"
           >
             <X className="w-4 h-4" />
           </button>
@@ -141,7 +141,7 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50/60">
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-border bg-muted/50">
           <Button variant="outline" onClick={onClose} disabled={isPending}>Cancelar</Button>
           <Button
             onClick={handleSave}

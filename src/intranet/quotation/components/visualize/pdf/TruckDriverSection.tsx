@@ -30,18 +30,7 @@ const styles = StyleSheet.create({
 
 const TruckDriverSection = ({ truck }: { truck: Truck }) => (
   <View style={styles.section}>
-    <Text style={styles.title}>Camión y Conductor Asignado</Text>
-
-    {/* Datos del conductor */}
-    <View style={styles.row}>
-      <Text style={styles.label}>Conductor:</Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>DNI:</Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>Rol:</Text>
-    </View>
+    <Text style={styles.title}>Camión Asignado</Text>
 
     {/* Datos del camión */}
     <View style={styles.row}>

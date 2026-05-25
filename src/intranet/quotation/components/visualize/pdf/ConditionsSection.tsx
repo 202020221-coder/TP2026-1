@@ -1,4 +1,3 @@
-import type { ConditionState } from "@/intranet/quotation/hooks/stores/quotation.conditions.store";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -33,21 +32,37 @@ const styles = StyleSheet.create({
   },
 });
 
-const ConditionsSection = ({ conditions }: { conditions: ConditionState }) => (
+const ConditionsSection = ({
+  conditions,
+}: {
+  conditions: {
+    emissionDate: string;
+    expirationDate: string;
+    conditions: string;
+    observaciones?: string;
+  };
+}) => (
   <View style={styles.section}>
     <Text style={styles.title}>Condiciones de la Cotización</Text>
 
     <View style={styles.row}>
       <Text style={styles.label}>Fecha de Emisión:</Text>
-      <Text style={styles.value}>{conditions?.emissionDate}</Text>
+      <Text style={styles.value}>{conditions.emissionDate}</Text>
     </View>
 
     <View style={styles.row}>
       <Text style={styles.label}>Fecha de Expiración:</Text>
-      <Text style={styles.value}>{conditions?.expirationDate}</Text>
+      <Text style={styles.value}>{conditions.expirationDate}</Text>
     </View>
 
-    <Text style={styles.conditionsText}>{conditions?.conditions}</Text>
+    <Text style={styles.conditionsText}>{conditions.conditions}</Text>
+
+    {conditions.observaciones && (
+      <>
+        <Text style={{ ...styles.label, marginTop: 8 }}>Observaciones:</Text>
+        <Text style={styles.conditionsText}>{conditions.observaciones}</Text>
+      </>
+    )}
   </View>
 );
 

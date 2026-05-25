@@ -1,27 +1,19 @@
 import {
-  getExchangeRate,
-  type ExchangeRate,
-} from "@/intranet/quotation/api/exchange-rate.api";
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { ReceiptText, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { ReceiptText, TrendingUp } from "lucide-react";
 import { type FC } from "react";
 import { useSummaryCard } from "./useSummaryCard";
+import { useQuotationExchangeRate } from "@/intranet/quotation/hooks/stores/quotation.exchange.rate.store.provider";
 import { formatCurrency } from "@/shared/lib/format-currency";
 
-interface SummaryCardProps {
-  getExchangeRateFn?: () => Promise<ExchangeRate>;
-}
-export const SummaryCard: FC<SummaryCardProps> = ({ getExchangeRateFn }) => {
-  const { pickupCost, subtotal, total, rateQuery } = useSummaryCard(
-    getExchangeRateFn ?? getExchangeRate,
-  );
-  const { data, isPending, error } = rateQuery;
+export const SummaryCard: FC = () => {
+  const { pickupCost, subtotal, total } = useSummaryCard();
+  const rate = useQuotationExchangeRate((s) => s.rate);
   return (
     <Card className="sm:col-span-2 flex flex-col border shadow-none">
       <CardHeader>
@@ -45,33 +37,25 @@ export const SummaryCard: FC<SummaryCardProps> = ({ getExchangeRateFn }) => {
             </p>
           </div>
 
-          {isPending ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-xs">Cargando tasas...</span>
+          <div className="flex flex-row gap-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Compra</span>
+              <span className="text-sm font-semibold text-foreground">
+                {rate
+                  ? formatCurrency(rate.buyingRate, "PEN", 2)
+                  : "—"}
+              </span>
             </div>
-          ) : error ? (
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-xs">Error al cargar tasas</span>
+            <div className="w-px bg-border" />
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Venta</span>
+              <span className="text-sm font-semibold text-foreground">
+                {rate
+                  ? formatCurrency(rate.sellingRate, "PEN", 2)
+                  : "—"}
+              </span>
             </div>
-          ) : (
-            <div className="flex flex-row gap-4">
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">Compra</span>
-                <span className="text-sm font-semibold text-foreground">
-                  {formatCurrency(data.buyingRate, "PEN", 2)}
-                </span>
-              </div>
-              <div className="w-px bg-border" />
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">Venta</span>
-                <span className="text-sm font-semibold text-foreground">
-                  {formatCurrency(data.sellingRate, "PEN", 2)}
-                </span>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
         <div className="flex flex-row justify-between min-w-full">
           <p>Subtotal:</p>

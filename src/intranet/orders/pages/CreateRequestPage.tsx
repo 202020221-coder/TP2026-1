@@ -374,8 +374,8 @@ export function CreateRequestPage() {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-8">
-            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <div className="min-h-full p-8">
+            <div className="max-w-4xl mx-auto bg-card rounded-2xl shadow-xs border p-8">
 
                 {/* Visual Header / Stepper Progress */}
                 <div className="mb-10">

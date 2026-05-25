@@ -30,7 +30,7 @@ export const ProjectsTableControls: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-1 flex-col space-y-3">
+    <div className="flex flex-1 flex-col space-y-5 min-h-0">
       <TopControls />
       {children}
       <BottomControls />
@@ -66,7 +66,7 @@ const TopControls: FC = () => {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 items-start justify-between">
+    <div className="flex flex-wrap gap-4 items-start justify-between">
       {/* Buscar por nombre */}
       <div className="relative flex-1 min-w-[200px] max-w-sm">
         <Input

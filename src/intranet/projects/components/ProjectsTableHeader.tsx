@@ -29,7 +29,6 @@ export const ProjectsTableHeader: FC = () => {
         <TableHead className="text-center text-gray-500 font-medium">
           Editar
         </TableHead>
-        
       </TableRow>
     </TableHeader>
   );
