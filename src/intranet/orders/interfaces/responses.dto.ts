@@ -1,5 +1,9 @@
 import type { Pagination } from "@/shared/interfaces/api-response";
 import type { DetailedOrder, Order } from "./order";
 
-export type GetOrderResponse = DetailedOrder;
+export interface GetOrderErrorResponse {
+  error: string;
+}
+
 export type GetOrdersResponse = Pagination<Order[]>;
+export type GetOrderResponse = DetailedOrder;
