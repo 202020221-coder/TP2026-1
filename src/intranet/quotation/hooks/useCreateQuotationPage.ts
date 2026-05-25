@@ -1,50 +1,36 @@
-import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { getOrder } from "@/intranet/orders/api/order.api";
 import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
-import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
-import type { ExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
+
+const STALE_TIME = Infinity;
 
 export const useCreateQuotationPage = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const [orderData, setOrderData] = useState<DetailedOrder | null>(null);
-  const [isPending, setIsPending] = useState(true);
-  const [isError, setIsError] = useState(false);
-  const [exchangeRate, setExchangeRate] = useState<ExchangeRate | undefined>();
+  const enabled = !!orderId;
 
-  useEffect(() => {
-    if (!orderId) return;
+  const orderQuery = useQuery({
+    queryKey: ["order", "details", orderId],
+    queryFn: () => getOrder(Number(orderId)),
+    staleTime: STALE_TIME,
+    refetchOnWindowFocus: false,
+    enabled,
+  });
 
-    let mounted = true;
-    setIsPending(true);
-    setIsError(false);
-
-    Promise.all([getOrder(Number(orderId)), getExchangeRate()])
-      .then(([order, rate]) => {
-        if (mounted) {
-          setOrderData(order);
-          setExchangeRate(rate);
-          setIsPending(false);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setIsError(true);
-          setIsPending(false);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [orderId]);
+  const rateQuery = useQuery({
+    queryKey: ["exchange-rate"],
+    queryFn: () => getExchangeRate(),
+    staleTime: STALE_TIME,
+    refetchOnWindowFocus: false,
+    enabled,
+  });
 
   return {
     orderId,
-    orderData,
-    exchangeRate,
-    isPending,
-    isError,
+    orderData: orderQuery.data ?? null,
+    exchangeRate: rateQuery.data,
+    isPending: orderQuery.isPending || rateQuery.isPending,
+    isError: orderQuery.isError || rateQuery.isError,
   };
 };
