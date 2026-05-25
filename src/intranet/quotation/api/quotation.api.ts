@@ -1,8 +1,5 @@
-import type {
-  Quotation,
-  QuotationProduct,
-  ServiceItem,
-} from "../interfaces/quotation";
+import type { Quotation, QuotationProduct, ServiceItem } from "../interfaces/quotation";
+import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
 import axiosInstance from "@/shared/api/axios.config";
 import type {
   CreateQuotationBody,
@@ -65,7 +62,7 @@ export const getQuotationForClient = async (
 
 export const getQuotationForAdmin = async (
   id: Quotation["ID"],
-): Promise<AdminQuotationDetailsData> => {
+): Promise<QuotationAdminDetailData> => {
   const response = await axiosInstance.get<QuotationDetailsData>(
     `/cotizaciones/${id}/detalles-franco`,
   );
@@ -182,66 +179,3 @@ const normalizeTruck = (t: BadDefinedTruck): Truck => ({
   Placa: t.placa,
   fecha_prox_revision: t.fechaProximaRevision,
 });
-
-// const ADMIN_QUOTATION: AdminQuotationDetailsData = {
-//   ID: 1,
-//   nombre: `Cotización de prueba #${1}`,
-//   estado: "pendiente",
-//   version: 1,
-//   client: {
-//     DNI_O_RUC: "20501234567",
-//     nombre_comercial: "Mall Aventura Plaza",
-//     razon_social: "Aventura Plaza S.A.",
-//   },
-//   productos: [
-//     {
-//       id: "1",
-//       nombre: "Extintor ABC 10kg",
-//       cantidad: 5,
-//       precio_unitario: 120,
-//       intencion: "comprar",
-//       dias_alquilados: null,
-//     },
-//     {
-//       id: "2",
-//       nombre: "Manguera contra incendios 30m",
-//       cantidad: 2,
-//       precio_unitario: 250,
-//       intencion: "alquilar",
-//       dias_alquilados: 30,
-//     },
-//   ],
-//   camionEspecificado: {
-//     Placa: "ABC-123",
-//     nombre: "Camión de prueba",
-//     ano_fabricacion: 2020,
-//     modelo: "Model X",
-//     color: "Blanco",
-//     caracteristicas: "Capacidad 5 toneladas",
-//     revision_tecnica: "2026-01-01",
-//     fecha_prox_revision: "2026-06-01",
-//     ID_Fabricante: null,
-//     tarjeta_propiedad: "TP-12345",
-//     vencimiento_tarjeta: "2026-12-31",
-//     soat_n_poliza: "SOAT-123",
-//     soat_empresa: "Seguros ABC",
-//     soat_precio: "500",
-//     soat_dia_pago: "15",
-//   },
-//   costoRecojo: {
-//     costo: 100,
-//     fechaRecojo: "2026-05-25",
-//     direccionRecojo: "Av. Principal 123, Lima",
-//   },
-//   condiciones: {
-//     fechaEmision: "2026-05-23",
-//     fechaVigencia: "2026-06-23",
-//     condiciones:
-//       "Pago contra entrega. Se aplican términos y condiciones estándar.",
-//     observaciones: "Cliente solicita factura electrónica.",
-//   },
-//   tasaCambio: {
-//     tasaCompra: 3.75,
-//     tasaVenta: 3.85,
-//   },
-// };

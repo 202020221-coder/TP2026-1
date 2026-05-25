@@ -22,8 +22,6 @@ import {
 import { cn } from "@/shared/lib/utils";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
-import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
-import { toast } from "sonner";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
@@ -54,21 +52,6 @@ export const QuotationTableRow: FC<{
 
   const handleModalSend = () => {
     setOrderPurchaseModalOpen(true);
-  };
-
-  const handleDownloadOrder = async () => {
-    try {
-      await toast.promise(
-        async () => downloadPurchaseOrder(quotation.ID),
-        {
-          loading: "Descargando orden de compra...",
-          success: "Descarga iniciada.",
-          error: "No se pudo descargar la orden de compra.",
-        },
-      );
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   const handleNavigateDetails = () => {

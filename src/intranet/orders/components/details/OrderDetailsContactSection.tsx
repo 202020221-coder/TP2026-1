@@ -1,9 +1,16 @@
 import type { FC } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Mail, Phone } from "lucide-react";
-import type { GetOrderMedio } from "../../interfaces/responses.dto";
+import type { DetailedOrder } from "../../interfaces/order";
 
-export const OrderDetailsContactSection: FC<{ medios: GetOrderMedio[] }> = ({ medios }) => {
+export const OrderDetailsContactSection: FC<{
+  medios: DetailedOrder["medios"];
+}> = ({ medios }) => {
   if (medios.length === 0) return null;
 
   return (
@@ -27,7 +34,9 @@ export const OrderDetailsContactSection: FC<{ medios: GetOrderMedio[] }> = ({ me
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="text-foreground">{medio.cliente_telefono}</span>
+                <span className="text-foreground">
+                  {medio.cliente_telefono}
+                </span>
               </div>
             </div>
           ))}
