@@ -10,9 +10,22 @@ import { toSearchParams } from "@/shared/lib/to-search-params";
 export const getAllOrders = async ({
   page,
   limit,
+  status,
+  order_name,
 }: GetOrdersQP): Promise<GetOrdersResponse> => {
+  // Enviamos varios alias de búsqueda para cubrir contratos de backend distintos.
   const response = axiosInstance.get<GetOrdersResponse>(
-    `/solicitudes?${toSearchParams({ page, limit })}`,
+    `/solicitudes?${toSearchParams({
+      page,
+      limit,
+      estado: status,
+      order_name,
+      cliente_nombre: order_name,
+      nombre_comercial: order_name,
+      nombre: order_name,
+      search: order_name,
+      sort: "desc",
+    })}`,
   );
   return (await response).data;
 };
@@ -24,13 +37,17 @@ export const getOrder = async (id: Order["ID"]): Promise<GetOrderResponse> => {
   return response.data;
 };
 
-import type { GetProductDTO, GetServiceDTO,UpdateRequestDTO } from "../interfaces";
+import type {
+  GetProductDTO,
+  GetServiceDTO,
+  UpdateRequestDTO,
+} from "../interfaces";
 import { safePagination } from "@/shared/api/safe-request";
 
 export const UpdateRequest = async (id: number, data: UpdateRequestDTO) => {
-  const response = await axiosInstance.put(`/solicitudes/${id}`, data)
+  const response = await axiosInstance.put(`/solicitudes/${id}`, data);
   return response.data;
-}
+};
 // export const DeleteRequest = async (id: number) =>
 //   safeRequest<DeleteRequestDTO>({
 //     url: `/solicitudes/${id}`,
@@ -44,14 +61,14 @@ export const UpdateRequest = async (id: number, data: UpdateRequestDTO) => {
 //   });
 
 //------------------------------------------------
-export const GetAllProducts = async (page:number, limit:number) =>
+export const GetAllProducts = async (page: number, limit: number) =>
   safePagination<GetProductDTO[]>({
     url: `/inventario`,
     method: "GET",
     params: { page, limit },
   });
 
-export const GetAllServices = async (page:number, limit:number) =>
+export const GetAllServices = async (page: number, limit: number) =>
   safePagination<GetServiceDTO[]>({
     url: `/servicios`,
     method: "GET",

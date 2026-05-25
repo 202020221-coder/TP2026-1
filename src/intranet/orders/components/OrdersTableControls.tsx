@@ -31,11 +31,31 @@ export const OrdersTableControls: FC<{ children: ReactNode }> = ({
 };
 
 const TopControls: FC = () => {
-  const { query, queryParams, result } = useOrders();  
+  const { query, queryParams, result } = useOrders();
+  const [searchText, setSearchText] = useState(queryParams.order_name ?? "");
+
+  // Mantener el texto del input sincronizado con los queryParams (por ejemplo al limpiar filtros)
+  useEffect(() => {
+    setSearchText(queryParams.order_name ?? "");
+  }, [queryParams.order_name]);
+
+  const debouncedSearch = useDebounced((value: string) => {
+    query({ ...queryParams, page: 1, order_name: value || undefined });
+  }, 600);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       <div className="col-span-1 md:col-span-3 relative">
-        <Input placeholder="Buscar por nombre" className="pl-8" disabled={result.isFetching}/>
+        <Input
+          placeholder="Buscar por nombre"
+          className="pl-8"
+          disabled={result.isFetching}
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            debouncedSearch(e.target.value);
+          }}
+        />
         <Search
           className="absolute top-1/2 -translate-y-1/2 w-8 text-gray-400"
           size={20}
@@ -54,7 +74,7 @@ const TopControls: FC = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Estados</SelectLabel>
-              {Object.values(OrderStatesRecord).map((status,i) => (
+              {Object.values(OrderStatesRecord).map((status, i) => (
                 <SelectItem key={`${i}-${status}`} value={status}>
                   {status}
                 </SelectItem>
@@ -177,7 +197,7 @@ const BottomControls: FC = () => {
             disabled={result.data.pagination.totalPages === 1}
           />
           <p>de</p>
-          <p>{Math.max(result.data.pagination.totalPages,1)}</p>
+          <p>{Math.max(result.data.pagination.totalPages, 1)}</p>
         </div>
       </div>
     )
