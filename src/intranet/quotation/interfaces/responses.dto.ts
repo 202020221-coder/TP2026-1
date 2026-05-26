@@ -29,4 +29,5 @@ export type CreateQuotationBody = {
   costoRecojo: QuotationPickUpCosts;
   tasaCambio: QuotationExchangeRate;
   condiciones: QuotationConditions;
+  servicios: any[]
 };

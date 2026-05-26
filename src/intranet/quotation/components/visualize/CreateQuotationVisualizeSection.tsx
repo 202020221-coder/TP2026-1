@@ -59,6 +59,7 @@ export const CreateQuotationVisualizeSection = ({
             },
             id_camion: trucks[0]?.Placa ?? "",
             productos: Object.values(inventory),
+            servicios:[],
             tasaCambio: {
               tasaCompra: rate?.buyingRate ?? 0.0,
               tasaVenta: rate?.sellingRate ?? 0.0,
