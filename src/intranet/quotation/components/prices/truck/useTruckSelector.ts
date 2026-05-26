@@ -1,4 +1,4 @@
-import { getAvailableTrucks } from "@/intranet/quotation/api/order.api";
+import { getAvailableTrucks } from "@/intranet/quotation/api/quotation.api";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 

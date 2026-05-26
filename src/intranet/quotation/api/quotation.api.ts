@@ -179,3 +179,32 @@ const normalizeTruck = (t: BadDefinedTruck): Truck => ({
   Placa: t.placa,
   fecha_prox_revision: t.fechaProximaRevision,
 });
+
+
+import type { GetAvailableTrucksResponse } from "../interfaces/responses.dto";
+import type { GetAvailableTrucksQP } from "../interfaces/query-params.dto";
+
+//camiones
+export const getAvailableTrucks = async ({
+  page = 1,
+  limit = 10,
+}: GetAvailableTrucksQP) => {
+  const response = await axiosInstance.get<GetAvailableTrucksResponse>(
+    `/camiones?${toSearchParams({ page, limit })}`,
+  );
+  return response.data;
+};
+
+//items de inventario
+import type { GetInventoryItemsResponse } from "../interfaces/responses.dto";
+import type { GetInventoryItemsQP } from "../interfaces/query-params.dto";
+
+export const getInventoryItems = async ({
+  limit = 6,
+  page = 1,
+}: GetInventoryItemsQP) => {
+  const response = await axiosInstance.get<GetInventoryItemsResponse>(
+    `/inventario?${toSearchParams({ limit, page })}`,
+  );
+  return response.data;
+};

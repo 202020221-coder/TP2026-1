@@ -1,4 +1,4 @@
-import { getInventoryItems } from "@/intranet/quotation/api/inventory.api";
+import { getInventoryItems } from "@/intranet/quotation/api/quotation.api";
 import type { InventoryItem } from "@/intranet/quotation/interfaces/create/order-inventory";
 import {
   SelectInventoryFormSchema,
@@ -45,37 +45,40 @@ export const useAddProductsDialog = (
     }
   }, [isDialogOpen]);
 
-  const toggleItem = useCallback((item: InventoryItem, selected: boolean) => {
-    setPreSelectedIds((prev) => {
-      const newSet = new Set(prev);
-      const ItemID = item.Id_Objeto.toString();
-      if (selected) {
-        newSet.delete(ItemID);
-      } else {
-        newSet.add(ItemID);
-      }
-      return newSet;
-    });
-
-    if (selected) {
-      const deleteFieldIndex = fields.findIndex(
-        (field) => field.idInventario === item.Id_Objeto.toString(),
-      );
-
-      if (deleteFieldIndex !== -1) {
-        remove(deleteFieldIndex);
-      }
-    } else {
-      append({
-        idInventario: item.Id_Objeto.toString(),
-        precio_comercial: Number(item.precio_comercial),
-        nombre: item.nombre_objeto,
-        intencion: "comprar",
-        cantidad: 1,
-        precio_unitario: Number(item.precio_comercial),
+  const toggleItem = useCallback(
+    (item: InventoryItem, selected: boolean) => {
+      setPreSelectedIds((prev) => {
+        const newSet = new Set(prev);
+        const ItemID = item.Id_Objeto.toString();
+        if (selected) {
+          newSet.delete(ItemID);
+        } else {
+          newSet.add(ItemID);
+        }
+        return newSet;
       });
-    }
-  }, [fields]);
+
+      if (selected) {
+        const deleteFieldIndex = fields.findIndex(
+          (field) => field.idInventario === item.Id_Objeto.toString(),
+        );
+
+        if (deleteFieldIndex !== -1) {
+          remove(deleteFieldIndex);
+        }
+      } else {
+        append({
+          idInventario: item.Id_Objeto.toString(),
+          precio_comercial: Number(item.precio_comercial),
+          nombre: item.nombre_objeto,
+          intencion: "comprar",
+          cantidad: 1,
+          precio_unitario: Number(item.precio_comercial),
+        });
+      }
+    },
+    [fields],
+  );
 
   const removeItem = useCallback((itemId: string, deleteFieldIndex: number) => {
     setPreSelectedIds((prev) => {
