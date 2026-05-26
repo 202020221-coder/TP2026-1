@@ -44,14 +44,14 @@ const TopControls: FC = () => {
   const { query, queryParams, result } = useOrders();
   const onNameChange = useDebounced((nameSearch: string) => {
     query({ ...queryParams, page: 1, nombre: nameSearch });
-  }, 500);
+  }, 1000);
   return (
     <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
       <div className="col-span-1 md:col-span-3 relative">
         <Input
           placeholder="Buscar por nombre"
           className="pl-8"
-          disabled={result.isFetching}
+          readOnly={result.isFetching}
           onChange={(e) => onNameChange(e.target.value)}
         />
         <Search

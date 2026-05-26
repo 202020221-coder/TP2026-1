@@ -43,7 +43,7 @@ export const OrdersTable: FC = () => {
             <OrdersTablePlaceholder rows={queryParams.limit ?? 10} />
           ) : isError ? (
             <TableRow className="">
-              <TableCell colSpan={5}>{error.message}</TableCell>
+              <TableCell colSpan={6}>{error.message}</TableCell>
             </TableRow>
           ) : (
             <>
@@ -51,31 +51,42 @@ export const OrdersTable: FC = () => {
                 data.data.map((o) => <OrderTableRow order={o} key={o.ID} />)}
               {data.data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5}>
-                    <span className="flex flex-col justify-center items-center">
+                  <TableCell colSpan={6} className="py-16">
+                    <div className="flex flex-col justify-center items-center text-center">
                       <PackageOpen
                         strokeWidth={1}
-                        size={200}
-                        className="text-gray-300"
+                        size={80}
+                        className="text-gray-300 mb-4"
                       />
                       {user?.rol === RolesRecord.client && (
-                        <p className="text-gray-400">
-                          Sin resultados, no olvide que puede crear una
-                          solicitud{" "}
-                          <Link
-                            to={"/intranet/solicitudes/crear"}
-                            className="text-primary"
-                          >
-                            aquí
-                          </Link>
-                          .
-                        </p>
+                        <div className="space-y-2">
+                          <p className="text-lg font-medium text-gray-700">
+                            No hay solicitudes aún
+                          </p>
+                          <p className="text-gray-500">
+                            Puedes crear tu primera solicitud{" "}
+                            <Link
+                              to={"/intranet/solicitudes/crear"}
+                              className="text-primary font-medium hover:underline"
+                            >
+                              aquí
+                            </Link>
+                          </p>
+                        </div>
                       )}
 
                       {user?.rol === RolesRecord.projectAdmin && (
-                        <p>Sin resultados.</p>
+                        <div className="space-y-2">
+                          <p className="text-lg font-medium text-gray-700">
+                            No hay solicitudes
+                          </p>
+                          <p className="text-gray-500">
+                            No se encontraron resultados para los filtros
+                            seleccionados.
+                          </p>
+                        </div>
                       )}
-                    </span>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
