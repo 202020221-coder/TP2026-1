@@ -1,9 +1,16 @@
 import type { FC } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { MessageSquare, Truck, Package, ClipboardList } from "lucide-react";
-import type { GetOrderResponse } from "../../interfaces/responses.dto";
+import type { DetailedOrder } from "../../interfaces/order";
 
-export const OrderDetailsObservationsSection: FC<{ order: GetOrderResponse }> = ({ order }) => {
+export const OrderDetailsObservationsSection: FC<{ order: DetailedOrder }> = ({
+  order,
+}) => {
   const hasObservations =
     order.ProductoEnvio ||
     order.CamionesEnvio ||

@@ -1,33 +1,27 @@
-import { useNavigate, useParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import { getOrder } from "../api/order.api";
 import { OrderDetailsInfoSection } from "../components/details/OrderDetailsInfoSection";
 import { OrderDetailsContactSection } from "../components/details/OrderDetailsContactSection";
 import { OrderDetailsServicesSection } from "../components/details/OrderDetailsServicesSection";
 import { OrderDetailsInventorySection } from "../components/details/OrderDetailsInventorySection";
 import { OrderDetailsObservationsSection } from "../components/details/OrderDetailsObservationsSection";
+import { useOrderDetails } from "./useOrderDetails";
 
 export function OrderDetailsPage() {
-  const navigate = useNavigate();
-  const params = useParams();
-  const orderId = Number(params["orderId"]);
-
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["order", "details", orderId],
-    queryFn: () => getOrder(orderId),
-    enabled: !Number.isNaN(orderId),
-  });
-
-  if (Number.isNaN(orderId)) {
+  const { idValid, navigate, orderDetailsQuery } = useOrderDetails();
+  const { isError, isPending, data } = orderDetailsQuery;
+  
+  if (!idValid) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6 gap-4">
         <h2 className="text-xl font-semibold">ID de solicitud inválido</h2>
-        <Button variant="outline" onClick={() => navigate("/intranet/solicitudes")}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/intranet/solicitudes")}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al listado
         </Button>
@@ -40,10 +34,14 @@ export function OrderDetailsPage() {
       <div className="flex h-full flex-col items-center justify-center p-6 gap-4">
         <h2 className="text-xl font-semibold">Error al cargar la solicitud</h2>
         <p className="text-muted-foreground text-sm text-center max-w-md">
-          No se pudieron obtener los datos de la solicitud. Intenta de nuevo más tarde.
+          No se pudieron obtener los datos de la solicitud. Intenta de nuevo más
+          tarde.
         </p>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate("/intranet/solicitudes")}>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/intranet/solicitudes")}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al listado
           </Button>

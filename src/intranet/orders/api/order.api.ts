@@ -1,5 +1,5 @@
 import type {
-  GetOrderResponse,
+  GetOrderResponseDTO,
   GetOrdersResponse,
 } from "../interfaces/responses.dto";
 import type { Order } from "../interfaces/order";
@@ -19,8 +19,8 @@ export const getAllOrders = async ({
   return (await response).data;
 };
 
-export const getOrder = async (id: Order["ID"]): Promise<GetOrderResponse> => {
-  const response = await axiosInstance.get<GetOrderResponse>(
+export const getOrder = async (id: Order["ID"]): Promise<GetOrderResponseDTO> => {
+  const response = await axiosInstance.get<GetOrderResponseDTO>(
     `/solicitudes/${id}`,
   );
   return response.data;

@@ -11,12 +11,12 @@ import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.sto
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
-import type { GetOrderResponse } from "@/intranet/orders/interfaces/responses.dto";
+import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
 
 export const CreateQuotationVisualizeSection = ({
   detailedOrder,
 }: {
-  detailedOrder: GetOrderResponse;
+  detailedOrder: DetailedOrder;
 }) => {
   const [isSending, setIsSending] = useState(false);
   const Navigate = useNavigate();
@@ -33,7 +33,9 @@ export const CreateQuotationVisualizeSection = ({
     (state) => state.expirationDate,
   );
   const conditions = useQuotationConditionStore((state) => state.conditions);
-  const observaciones = useQuotationConditionStore((state) => state.observaciones);
+  const observaciones = useQuotationConditionStore(
+    (state) => state.observaciones,
+  );
   const rate = useQuotationExchangeRate((s) => s.rate);
   const handleSend = async () => {
     try {

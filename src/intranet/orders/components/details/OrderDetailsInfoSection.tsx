@@ -1,15 +1,28 @@
 import type { FC } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
-import { CalendarDays, FileText, MapPin, Building2, Fingerprint, UserRound } from "lucide-react";
-import type { GetOrderResponse } from "../../interfaces/responses.dto";
+import {
+  CalendarDays,
+  FileText,
+  MapPin,
+  Building2,
+  Fingerprint,
+  UserRound,
+} from "lucide-react";
 import { OrderStatesRecord } from "../../enum/order-state.record";
+import type { DetailedOrder } from "../../interfaces/order";
 
 const statusStyles: Record<string, string> = {
   [OrderStatesRecord.approved]: "bg-green-100 text-green-700 border-green-300",
   [OrderStatesRecord.rejected]: "bg-red-100 text-red-700 border-red-300",
-  [OrderStatesRecord.pending]: "bg-yellow-100 text-yellow-700 border-yellow-300",
+  [OrderStatesRecord.pending]:
+    "bg-yellow-100 text-yellow-700 border-yellow-300",
 };
 
 const statusLabels: Record<string, string> = {
@@ -18,7 +31,9 @@ const statusLabels: Record<string, string> = {
   [OrderStatesRecord.pending]: "Pendiente",
 };
 
-export const OrderDetailsInfoSection: FC<{ order: GetOrderResponse }> = ({ order }) => {
+export const OrderDetailsInfoSection: FC<{ order: DetailedOrder }> = ({
+  order,
+}) => {
   return (
     <Card className="border shadow-none">
       <CardHeader className="pb-4">
@@ -41,21 +56,27 @@ export const OrderDetailsInfoSection: FC<{ order: GetOrderResponse }> = ({ order
               <Building2 className="h-3.5 w-3.5" />
               Cliente
             </span>
-            <p className="text-sm font-medium text-foreground">{order.Cliente_Nombre}</p>
+            <p className="text-sm font-medium text-foreground">
+              {order.Cliente_Nombre}
+            </p>
           </div>
           <div className="space-y-1.5">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <UserRound className="h-3.5 w-3.5" />
               Razón Social
             </span>
-            <p className="text-sm text-muted-foreground">{order.Razon_Social}</p>
+            <p className="text-sm text-muted-foreground">
+              {order.Razon_Social}
+            </p>
           </div>
           <div className="space-y-1.5">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Fingerprint className="h-3.5 w-3.5" />
               RUC / DNI
             </span>
-            <p className="text-sm text-muted-foreground font-mono">{order.Id_Cliente}</p>
+            <p className="text-sm text-muted-foreground font-mono">
+              {order.Id_Cliente}
+            </p>
           </div>
           <div className="space-y-1.5">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -79,7 +100,9 @@ export const OrderDetailsInfoSection: FC<{ order: GetOrderResponse }> = ({ order
             <FileText className="h-3.5 w-3.5" />
             Descripción
           </span>
-          <p className="text-sm text-foreground leading-relaxed">{order.descripcion}</p>
+          <p className="text-sm text-foreground leading-relaxed">
+            {order.descripcion}
+          </p>
         </div>
 
         <div className="space-y-1.5">
