@@ -2,7 +2,14 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, Pencil, Trash2, Send } from "lucide-react";
+import {
+  Eye,
+  Mail,
+  Pencil,
+  Trash2,
+  Send,
+  MessageCircle,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,17 +22,13 @@ import {
   QuotationStatesRecord,
   type QuotationState,
 } from "../../enum/quotation-state.record";
-import {
-  getQuotationMessageStateBadgeClass,
-  getQuotationMessageStateLabel,
-} from "../../enum/quotation-message-state.record";
-import { cn } from "@/shared/lib/utils";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { canNegotiateQuotation } from "../../lib/can-negotiate-quotation";
+import { cn } from "@/shared/lib/utils";
 
 export const QuotationTableRow: FC<{
   quotation: Quotation;
@@ -71,11 +74,17 @@ export const QuotationTableRow: FC<{
   };
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
-  const messageLabel = getQuotationMessageStateLabel(quotation.mensajes);
-  const messageBadgeClass = getQuotationMessageStateBadgeClass(
-    quotation.mensajes,
-  );
-
+  
+  type ChatStatus = "first_time" | "active" | "closed";
+  
+  let chatStatus: ChatStatus;
+  if (!canNegotiate) {
+    chatStatus = "closed";
+  } else if (quotation.chat === "no") {
+    chatStatus = "first_time";
+  } else {
+    chatStatus = "active";
+  }
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -217,37 +226,38 @@ export const QuotationTableRow: FC<{
         </TableCell>
 
         <TableCell className="text-center">
-          {canNegotiate ? (
+          {chatStatus !== "closed" ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
                   onClick={handleNegotiateClick}
                   className={cn(
-                    "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors",
-                    messageBadgeClass,
-                    "cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
+                    "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2",
+                    chatStatus === "first_time" 
+                      ? "border-sky-300 bg-sky-50 text-sky-800 focus-visible:ring-sky-400" 
+                      : "border-green-300 bg-green-50 text-green-700 focus-visible:ring-green-400"
                   )}
                 >
-                  {messageLabel}
+                  <MessageCircle className="w-3 h-3 mr-1" />
+                  {chatStatus === "first_time" ? "Iniciar negociación" : "Abrir chat"}
                 </button>
               </TooltipTrigger>
               <TooltipContent
-                className="bg-white border-[1.5px] border-sky-500 text-sky-600 font-normal text-center"
+                className={`bg-white border-[1.5px] ${
+                  chatStatus === "first_time" ? "border-sky-500 text-sky-600" : "border-green-500 text-green-600"
+                } font-normal text-center`}
                 align="center"
               >
-                Abrir chat de negociación
+                {chatStatus === "first_time" ? "Abrir chat por primera vez" : "Abrir chat de negociación"}
               </TooltipContent>
             </Tooltip>
           ) : (
             <Badge
               variant="outline"
-              className={cn(
-                "mx-auto max-w-[200px] whitespace-normal text-center text-xs font-medium leading-snug",
-                messageBadgeClass,
-              )}
+              className="mx-auto max-w-[200px] whitespace-normal text-center text-xs font-medium leading-snug bg-gray-100 text-gray-500 border-gray-300"
             >
-              {messageLabel}
+              Negociación cerrada
             </Badge>
           )}
         </TableCell>
