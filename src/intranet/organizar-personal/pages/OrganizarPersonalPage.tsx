@@ -119,6 +119,8 @@ export default function OrganizarPersonalPage() {
               jornadas={jornadas}
               personalRequerido={personalRequerido}
               onRefresh={loadJornadas}
+              fechaInicio={proyecto?.fecha_inicio ?? null}
+              fechaFin={proyecto?.fecha_fin ?? null}
             />
           </aside>
         </TabsContent>
