@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizarRecursosApi } from "../api/organizarRecursos.api";
-import type { InventarioRequestPayload } from "../interfaces/proyecto";
+import type { InventarioRequestPayload, Incidencia } from "../interfaces/proyecto";
 import { toast } from "sonner";
 
 export const useInventarioDelProyecto = (projectId: number) => {
@@ -71,6 +71,21 @@ export const useIncidenciasByProyecto = (projectId: number) => {
     queryFn: () => organizarRecursosApi.getIncidenciasByProyecto(projectId),
     select: (data) => data.data,
     enabled: !!projectId,
+  });
+};
+
+export const useAllIncidencias = () => {
+  return useQuery({
+    queryKey: ["all-incidencias"],
+    queryFn: () => organizarRecursosApi.getAllIncidencias(),
+    select: (data): Incidencia[] => {
+      const raw = data.data as unknown;
+      if (Array.isArray(raw)) return raw as Incidencia[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: Incidencia[] }).data;
+      return [];
+    },
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -163,5 +178,48 @@ export const useRemoveCamionFromProyecto = () => {
     onSuccess: () => {
       toast.success("Camión eliminado exitosamente");
     },
+  });
+};
+
+export const useUpdateInventarioFromProyecto = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      inventoryId,
+      idObjeto,
+      payload,
+    }: {
+      projectId: number;
+      inventoryId: number;
+      idObjeto: number;
+      payload: Omit<InventarioRequestPayload, "Id_Objeto">;
+    }) => organizarRecursosApi.updateInventarioFromProyecto(projectId, inventoryId, idObjeto, payload),
+    onSettled: (_, __, { projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ["inventario-del-proyecto", projectId] });
+    },
+    onSuccess: () => toast.success("Objeto actualizado"),
+  });
+};
+
+export const useUpdateCamionFromProyecto = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      camionId,
+      payload,
+    }: {
+      projectId: number;
+      camionId: number;
+      payload: import("../interfaces/proyecto").CamionRequest;
+    }) => organizarRecursosApi.updateCamionFromProyecto(projectId, camionId, payload),
+    onSettled: (_, __, { projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ["camiones-proyecto", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["proyecto-todo", projectId] });
+    },
+    onSuccess: () => toast.success("Camión actualizado"),
+    onError: () =>
+      toast.warning("No se pudo confirmar la actualización. Verifique si los cambios se guardaron."),
   });
 };

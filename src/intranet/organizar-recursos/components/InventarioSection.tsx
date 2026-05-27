@@ -24,14 +24,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Loader2 } from "lucide-react";
 import {
   useAddInventarioToProyecto,
-  useRemoveInventarioFromProyecto,
+  useUpdateInventarioFromProyecto,
   useInventarioList,
   useInventarioDelProyecto,
-  useIncidenciasByProyecto,
+  useAllIncidencias,
 } from "../hooks/useOrganizarRecursos";
+import type { InventarioDelProyectoItem } from "../interfaces/proyecto";
 import { formatDate } from "@/shared/lib/utils";
 import { ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
 
@@ -41,16 +42,17 @@ interface InventarioSectionProps {
 
 export function InventarioSection({ projectId }: InventarioSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventarioDelProyectoItem | null>(null);
 
   const { data: inventarioDisponible, isLoading: loadingCatalogo } = useInventarioList();
   const { data: inventarioAsignado, isLoading: loadingAsignado } =
     useInventarioDelProyecto(projectId);
-  const { data: incidencias } = useIncidenciasByProyecto(projectId);
+  const { data: incidencias } = useAllIncidencias();
 
   const { mutate: addInventario, isPending: isAddingInventario } =
     useAddInventarioToProyecto();
-  const { mutate: removeInventario, isPending: isRemovingInventario } =
-    useRemoveInventarioFromProyecto();
+  const { mutate: updateInventario, isPending: isUpdatingInventario } =
+    useUpdateInventarioFromProyecto();
 
   const today = new Date().toISOString().split("T")[0];
   const {
@@ -70,6 +72,49 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
       estado: "aceptable",
       razon: "entrada",
     },
+  });
+
+  const editForm = useForm({
+    defaultValues: {
+      cantidad: 1,
+      fecha_salida: today,
+      fecha_retorno: today,
+      metodo_traslado: "",
+      estado: "aceptable",
+      razon: "entrada",
+    },
+  });
+
+  const openEdit = (item: InventarioDelProyectoItem) => {
+    setEditingItem(item);
+    editForm.reset({
+      cantidad: item.cantidad_objeto,
+      fecha_salida: item.fecha_salida?.split("T")[0] ?? today,
+      fecha_retorno: item.fecha_retorno?.split("T")[0] ?? today,
+      metodo_traslado: item.metodo_traslado ?? "",
+      estado: item.estado ?? "aceptable",
+      razon: item.razon ?? "entrada",
+    });
+  };
+
+  const onEditSubmit = editForm.handleSubmit((data) => {
+    if (!editingItem) return;
+    updateInventario(
+      {
+        projectId,
+        inventoryId: editingItem.id,
+        idObjeto: editingItem.Id_Objeto,
+        payload: {
+          cantidad_objeto: Number(data.cantidad),
+          estado: data.estado,
+          razon: data.razon,
+          fecha_salida: data.fecha_salida,
+          fecha_retorno: data.fecha_retorno,
+          metodo_traslado: data.metodo_traslado,
+        },
+      },
+      { onSettled: () => setEditingItem(null) }
+    );
   });
 
   const objetoSeleccionado = watch("objeto");
@@ -138,7 +183,9 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                         Cargando objetos...
                       </SelectItem>
                     ) : inventarioDisponible?.data ? (
-                      inventarioDisponible.data.map((item) => (
+                      inventarioDisponible.data
+                        .filter((item) => item.nombre_objeto?.toLowerCase() !== "string")
+                        .map((item) => (
                         <SelectItem
                           key={item.Id_Objeto}
                           value={item.Id_Objeto.toString()}
@@ -265,6 +312,62 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
         </Dialog>
       </div>
 
+      {/* Dialog edición */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Editar Objeto — {editingItem?.Objeto_Nombre}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={onEditSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Cantidad *</label>
+              <Input type="number" min="1" {...editForm.register("cantidad", { required: "Requerida" })} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Fecha Salida *</label>
+                <Input type="date" {...editForm.register("fecha_salida", { required: "Requerida" })} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Fecha Retorno *</label>
+                <Input type="date" {...editForm.register("fecha_retorno", { required: "Requerida" })} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Método Traslado *</label>
+              <Input placeholder="Ej: Camión, Automóvil, A pie..."
+                {...editForm.register("metodo_traslado", { required: "Requerido" })} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Razón *</label>
+              <Select onValueChange={(v) => editForm.setValue("razon", v)} value={editForm.watch("razon")}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entrada">Entrada</SelectItem>
+                  {incidencias?.map((inc) => (
+                    <SelectItem key={inc.id_incidencia} value={inc.comentario}>
+                      #{inc.id_incidencia} — {inc.comentario}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Estado *</label>
+              <Select onValueChange={(v) => editForm.setValue("estado", v)} value={editForm.watch("estado")}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aceptable">{ORGANIZAR_RECURSOS_DEFAULTS.ESTADOS_OBJETO[0].label}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={isUpdatingInventario} className="w-full">
+              {isUpdatingInventario ? "Guardando..." : "Guardar Cambios"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <div className="rounded-lg border border-border">
         <Table>
           <TableHeader className="bg-muted/50">
@@ -315,16 +418,10 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled={isRemovingInventario}
-                      onClick={() =>
-                        removeInventario({
-                          projectId,
-                          inventoryId: item.id,
-                        })
-                      }
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => openEdit(item)}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>

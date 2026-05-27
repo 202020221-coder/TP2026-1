@@ -42,6 +42,17 @@ export const organizarRecursosApi = {
   removeInventarioFromProyecto: (projectId: number, inventoryId: number) =>
     axiosInstance.delete(`/proyectos/${projectId}/inventario/${inventoryId}`),
 
+  updateInventarioFromProyecto: (
+    projectId: number,
+    inventoryId: number,
+    idObjeto: number,
+    payload: Omit<InventarioRequestPayload, "Id_Objeto">
+  ) =>
+    axiosInstance.put(`/proyectos/${projectId}/inventario/${inventoryId}`, {
+      Id_Objeto: idObjeto,
+      ...payload,
+    }),
+
   // Camiones del proyecto
   getCamionesByProyecto: (projectId: number) =>
     axiosInstance.get<Camion[]>(`/proyectos/${projectId}/camiones`),
@@ -61,6 +72,13 @@ export const organizarRecursosApi = {
   removeCamionFromProyecto: (projectId: number, camionId: number) =>
     axiosInstance.delete(`/proyectos/${projectId}/camiones/${camionId}`),
 
+  updateCamionFromProyecto: (
+    projectId: number,
+    camionId: number,
+    payload: import("../interfaces/proyecto").CamionRequest
+  ) =>
+    axiosInstance.put(`/proyectos/${projectId}/camiones/${camionId}`, payload),
+
   // Conductores disponibles — devuelve array plano de Conductor[]
   getConductoresDisponibles: (fecha: string) =>
     axiosInstance.get<Conductor[]>("/perfiles/conductores/disponibles", {
@@ -70,4 +88,8 @@ export const organizarRecursosApi = {
   // Incidencias por proyecto
   getIncidenciasByProyecto: (projectId: number) =>
     axiosInstance.get<Incidencia[]>(`/incidencias/proyecto/${projectId}`),
+
+  // Todas las incidencias del sistema
+  getAllIncidencias: () =>
+    axiosInstance.get<Incidencia[]>("/incidencias"),
 };
