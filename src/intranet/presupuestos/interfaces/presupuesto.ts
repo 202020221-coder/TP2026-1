@@ -45,6 +45,13 @@ export interface PresupuestoItem {
   costo_x_hora?: string;
   hora_total?: string;
   dias_trabajados?: number;
+  // Campos de comparación con gasto real
+  gasto_real?: string;
+  precio_real?: string;
+  aumentos?: string;
+  razon_gasto_real?: string;
+  involucra_incidencia?: string;
+  evidencia_url?: string;
 }
 
 export interface AddPresupuestoItemPayload {
@@ -59,4 +66,18 @@ export interface AddPresupuestoItemPayload {
   costo_x_hora?: string;
   hora_total?: string;
   dias_trabajados?: number;
+}
+
+export interface GastoRealPayload {
+  gasto_real?: string;
+  precio_real?: string;
+  aumentos?: string;
+  razon_gasto_real?: string;
+  involucra_incidencia?: string;
+}
+
+export interface IncidenciaPresupuesto {
+  id_incidencia: number;
+  comentario: string;
+  estado?: string;
 }

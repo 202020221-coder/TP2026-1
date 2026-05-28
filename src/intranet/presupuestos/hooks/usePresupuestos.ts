@@ -1,7 +1,34 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { presupuestosApi } from "../api/presupuestos.api";
-import type { AddPresupuestoItemPayload, TipoPresupuesto } from "../interfaces/presupuesto";
+import type { AddPresupuestoItemPayload, GastoRealPayload, TipoPresupuesto } from "../interfaces/presupuesto";
 import { toast } from "sonner";
+
+export const useIncidencias = () =>
+  useQuery({
+    queryKey: ["incidencias-presupuesto"],
+    queryFn: () => presupuestosApi.getIncidencias(),
+    select: (d) => {
+      const raw = d.data as unknown;
+      if (Array.isArray(raw)) return raw;
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: unknown[] }).data;
+      return [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+export const useUpdateGastoReal = (cotizacionId: number, tipo: TipoPresupuesto) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, payload, file }: { itemId: number; payload: GastoRealPayload; file?: File }) =>
+      presupuestosApi.updateGastoReal(itemId, payload, file),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
+    },
+    onSuccess: () => toast.success("Gasto real guardado"),
+    onError: () => toast.error("Error al guardar"),
+  });
+};
 
 export const useCotizacionesList = (page = 1, limit = 10) =>
   useQuery({

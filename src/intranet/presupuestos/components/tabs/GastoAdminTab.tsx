@@ -25,7 +25,8 @@ interface Props { cotizacionId: number; }
 
 type FormData = {
   nombre_gasto: string;
-  costo_total: number;
+  costo_unitario: number;
+  cantidad: number;
   realizacion_gastos: RealizacionGastos;
   moneda: Moneda;
 };
@@ -36,7 +37,7 @@ const DEFAULT_VALUES = {
 };
 
 function ItemForm({
-  onSubmit, isPending, submitLabel, control, register, errors,
+  onSubmit, isPending, submitLabel, control, register, errors, total,
 }: {
   onSubmit: () => void;
   isPending: boolean;
@@ -44,6 +45,7 @@ function ItemForm({
   control: ReturnType<typeof useForm<FormData>>["control"];
   register: ReturnType<typeof useForm<FormData>>["register"];
   errors: ReturnType<typeof useForm<FormData>>["formState"]["errors"];
+  total: string;
 }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -53,11 +55,22 @@ function ItemForm({
           {...register("nombre_gasto", { required: "La razón es requerida" })} className="mt-1" />
         {errors.nombre_gasto && <p className="text-sm text-destructive mt-1">{errors.nombre_gasto.message}</p>}
       </div>
-      <div>
-        <label className="text-sm font-medium">Total (S/.) *</label>
-        <Input type="number" step="0.01" min="0" placeholder="Ej: 3200.00"
-          {...register("costo_total", { required: "El costo es requerido" })} className="mt-1" />
-        {errors.costo_total && <p className="text-sm text-destructive mt-1">{errors.costo_total.message}</p>}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium">Costo Unitario (S/.) *</label>
+          <Input type="number" step="0.01" min="0" placeholder="Ej: 3200.00"
+            {...register("costo_unitario", { required: "Requerido" })} className="mt-1" />
+          {errors.costo_unitario && <p className="text-sm text-destructive mt-1">{errors.costo_unitario.message}</p>}
+        </div>
+        <div>
+          <label className="text-sm font-medium">Cantidad *</label>
+          <Input type="number" min="1" placeholder="Ej: 1"
+            {...register("cantidad", { required: "Requerido" })} className="mt-1" />
+          {errors.cantidad && <p className="text-sm text-destructive mt-1">{errors.cantidad.message}</p>}
+        </div>
+      </div>
+      <div className="rounded-md bg-muted/50 px-3 py-2 text-sm">
+        Total estimado: <span className="font-semibold">S/. {total}</span>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -106,9 +119,12 @@ export function GastoAdminTab({ cotizacionId }: Props) {
   const addForm = useForm<FormData>({ defaultValues: DEFAULT_VALUES });
   const editForm = useForm<FormData>({ defaultValues: DEFAULT_VALUES });
 
+  const addTotal = ((Number(addForm.watch("costo_unitario")) || 0) * (Number(addForm.watch("cantidad")) || 0)).toFixed(2);
+  const editTotal = ((Number(editForm.watch("costo_unitario")) || 0) * (Number(editForm.watch("cantidad")) || 0)).toFixed(2);
+
   const onAdd = addForm.handleSubmit((data) => {
     add(
-      { cotizacionId, payload: { tipo: TIPO, nombre_gasto: data.nombre_gasto, costo_total: String(data.costo_total), realizacion_gastos: data.realizacion_gastos, moneda: data.moneda } },
+      { cotizacionId, payload: { tipo: TIPO, nombre_gasto: data.nombre_gasto, costo_unitario: String(data.costo_unitario), cantidad: String(data.cantidad), costo_total: addTotal, realizacion_gastos: data.realizacion_gastos, moneda: data.moneda } },
       { onSettled: () => { setIsAddOpen(false); addForm.reset(DEFAULT_VALUES); } }
     );
   });
@@ -117,7 +133,8 @@ export function GastoAdminTab({ cotizacionId }: Props) {
     setEditingItem(item);
     editForm.reset({
       nombre_gasto: item.nombre_gasto,
-      costo_total: parseFloat(item.costo_total),
+      costo_unitario: parseFloat(item.costo_unitario || "0"),
+      cantidad: parseFloat(item.cantidad || "1"),
       realizacion_gastos: item.realizacion_gastos,
       moneda: item.moneda,
     });
@@ -126,7 +143,7 @@ export function GastoAdminTab({ cotizacionId }: Props) {
   const onEdit = editForm.handleSubmit((data) => {
     if (!editingItem) return;
     update(
-      { itemId: editingItem.ID, payload: { nombre_gasto: data.nombre_gasto, costo_total: String(data.costo_total), realizacion_gastos: data.realizacion_gastos, moneda: data.moneda } },
+      { itemId: editingItem.ID, payload: { nombre_gasto: data.nombre_gasto, costo_unitario: String(data.costo_unitario), cantidad: String(data.cantidad), costo_total: editTotal, realizacion_gastos: data.realizacion_gastos, moneda: data.moneda } },
       { onSettled: () => setEditingItem(null) }
     );
   });
@@ -141,7 +158,7 @@ export function GastoAdminTab({ cotizacionId }: Props) {
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Agregar Gasto Administrativo</DialogTitle></DialogHeader>
             <ItemForm onSubmit={onAdd} isPending={isAdding} submitLabel="Agregar Gasto"
-              control={addForm.control} register={addForm.register} errors={addForm.formState.errors} />
+              control={addForm.control} register={addForm.register} errors={addForm.formState.errors} total={addTotal} />
           </DialogContent>
         </Dialog>
       </div>
@@ -150,7 +167,7 @@ export function GastoAdminTab({ cotizacionId }: Props) {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Editar Gasto Administrativo</DialogTitle></DialogHeader>
           <ItemForm onSubmit={onEdit} isPending={isUpdating} submitLabel="Guardar Cambios"
-            control={editForm.control} register={editForm.register} errors={editForm.formState.errors} />
+            control={editForm.control} register={editForm.register} errors={editForm.formState.errors} total={editTotal} />
         </DialogContent>
       </Dialog>
 
@@ -160,6 +177,8 @@ export function GastoAdminTab({ cotizacionId }: Props) {
             <TableRow className="hover:bg-transparent">
               <TableHead className="font-semibold w-14">ID</TableHead>
               <TableHead className="font-semibold">Razón del Gasto</TableHead>
+              <TableHead className="font-semibold text-right">Costo Unit.</TableHead>
+              <TableHead className="font-semibold text-right">Cant.</TableHead>
               <TableHead className="font-semibold text-right">Total (S/.)</TableHead>
               <TableHead className="font-semibold">Moneda</TableHead>
               <TableHead className="font-semibold">Realización</TableHead>
@@ -169,19 +188,21 @@ export function GastoAdminTab({ cotizacionId }: Props) {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   <div className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /><span>Cargando...</span></div>
                 </TableCell>
               </TableRow>
             ) : !items || items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Sin gastos administrativos registrados</TableCell>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Sin gastos administrativos registrados</TableCell>
               </TableRow>
             ) : (
               items.map((item) => (
                 <TableRow key={item.ID}>
                   <TableCell className="text-muted-foreground">{item.ID}</TableCell>
                   <TableCell className="font-medium">{item.nombre_gasto}</TableCell>
+                  <TableCell className="text-right">{item.costo_unitario ? parseFloat(item.costo_unitario).toFixed(2) : "—"}</TableCell>
+                  <TableCell className="text-right">{item.cantidad ?? "—"}</TableCell>
                   <TableCell className="text-right">{parseFloat(item.costo_total).toFixed(2)}</TableCell>
                   <TableCell className="capitalize">{item.moneda ?? "—"}</TableCell>
                   <TableCell className="text-sm">{item.realizacion_gastos ?? "—"}</TableCell>

@@ -4,6 +4,8 @@ import type {
   PresupuestoItem,
   TipoPresupuesto,
   AddPresupuestoItemPayload,
+  GastoRealPayload,
+  IncidenciaPresupuesto,
 } from "../interfaces/presupuesto";
 
 export const presupuestosApi = {
@@ -26,4 +28,24 @@ export const presupuestosApi = {
 
   updateItem: (itemId: number, payload: Partial<AddPresupuestoItemPayload>) =>
     axiosInstance.put(`/presupuestos/item/${itemId}`, payload),
+
+  updateGastoReal: (itemId: number, payload: GastoRealPayload, file?: File) => {
+    const formData = new FormData();
+    if (payload.gasto_real !== undefined) formData.append("costo_real", payload.gasto_real);
+    if (payload.precio_real !== undefined) formData.append("precio_real", payload.precio_real);
+    if (payload.aumentos !== undefined) formData.append("aumentos", payload.aumentos);
+    if (payload.razon_gasto_real !== undefined) formData.append("razon", payload.razon_gasto_real);
+    if (payload.involucra_incidencia && payload.involucra_incidencia !== "NO")
+      formData.append("ID_Incidencia", payload.involucra_incidencia);
+    if (file) formData.append("prueba", file);
+    return axiosInstance.put(`/presupuestos/item/${itemId}/gasto-real`, formData);
+  },
+
+  getIncidencias: () =>
+    axiosInstance.get<IncidenciaPresupuesto[]>("/incidencias"),
+
+  getOrdenCompraPdf: (cotizacionId: number) =>
+    axiosInstance.get(`/cotizaciones/${cotizacionId}/orden-compra`, {
+      responseType: "blob",
+    }),
 };

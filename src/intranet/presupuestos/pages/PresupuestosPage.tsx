@@ -9,9 +9,10 @@ import {
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { Edit2, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Edit2, Eye, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useCotizacionesList } from "../hooks/usePresupuestos";
 import { PresupuestoEditModal } from "../components/PresupuestoEditModal";
+import { GastoRealModal } from "../components/GastoRealModal";
 import type { Cotizacion } from "../interfaces/presupuesto";
 
 export function PresupuestosPage() {
@@ -19,6 +20,7 @@ export function PresupuestosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState<Cotizacion | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isVerOpen, setIsVerOpen] = useState(false);
 
   const { data, isLoading } = useCotizacionesList(page, 10);
 
@@ -38,6 +40,11 @@ export function PresupuestosPage() {
   const handleEdit = (c: Cotizacion) => {
     setSelected(c);
     setIsEditOpen(true);
+  };
+
+  const handleVer = (c: Cotizacion) => {
+    setSelected(c);
+    setIsVerOpen(true);
   };
 
   return (
@@ -96,15 +103,26 @@ export function PresupuestosPage() {
                     S/. {parseFloat(c.precioTotal).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(c)}
-                      className="gap-1"
-                    >
-                      <Edit2 className="h-3 w-3" />
-                      Editar
-                    </Button>
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(c)}
+                        className="gap-1"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleVer(c)}
+                        className="gap-1"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Ver
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -159,6 +177,12 @@ export function PresupuestosPage() {
         cotizacion={selected}
         isOpen={isEditOpen}
         onClose={() => { setIsEditOpen(false); setSelected(null); }}
+      />
+
+      <GastoRealModal
+        cotizacion={selected}
+        isOpen={isVerOpen}
+        onClose={() => { setIsVerOpen(false); setSelected(null); }}
       />
     </div>
   );
