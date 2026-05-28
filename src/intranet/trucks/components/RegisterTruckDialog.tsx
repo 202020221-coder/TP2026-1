@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -23,10 +23,8 @@ type RegisterTruckFormState = {
   modelo: string;
   color: string;
   caracteristicas: string;
-  revision_tecnica: string;
   fecha_prox_revision: string;
   ID_Fabricante: string;
-  tarjeta_propiedad: string;
   vencimiento_tarjeta: string;
   soat_n_poliza: string;
   soat_empresa: string;
@@ -41,10 +39,8 @@ const INITIAL_FORM: RegisterTruckFormState = {
   modelo: "",
   color: "",
   caracteristicas: "",
-  revision_tecnica: "",
   fecha_prox_revision: "",
   ID_Fabricante: "",
-  tarjeta_propiedad: "",
   vencimiento_tarjeta: "",
   soat_n_poliza: "",
   soat_empresa: "",
@@ -63,12 +59,26 @@ const hasValidNumber = (value: string, min = 0) => {
   return Number.isFinite(parsed) && parsed >= min;
 };
 
+const isPdfFile = (file: File) => {
+  if (file.type === "application/pdf") {
+    return true;
+  }
+
+  return file.name.toLowerCase().endsWith(".pdf");
+};
+
 export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<RegisterTruckFormState>(INITIAL_FORM);
+  const [revisionFile, setRevisionFile] = useState<File | null>(null);
+  const [tarjetaFile, setTarjetaFile] = useState<File | null>(null);
+  const [revisionError, setRevisionError] = useState<string | null>(null);
+  const [tarjetaError, setTarjetaError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const revisionInputRef = useRef<HTMLInputElement>(null);
+  const tarjetaInputRef = useRef<HTMLInputElement>(null);
 
   const isFormValid = useMemo(() => {
     const requiredText = [
@@ -77,8 +87,6 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
       form.modelo,
       form.color,
       form.caracteristicas,
-      form.revision_tecnica,
-      form.tarjeta_propiedad,
       form.soat_n_poliza,
       form.soat_empresa,
     ];
@@ -89,17 +97,26 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
       form.soat_dia_pago,
     ];
 
+    const hasRequiredFiles = Boolean(revisionFile) && Boolean(tarjetaFile);
+
     return (
       requiredText.every(hasText) &&
       requiredDates.every(hasText) &&
       hasValidNumber(form.ano_fabricacion, 1) &&
       hasValidNumber(form.ID_Fabricante, 1) &&
-      hasValidNumber(form.soat_precio, 0)
+      hasValidNumber(form.soat_precio, 0) &&
+      hasRequiredFiles &&
+      !revisionError &&
+      !tarjetaError
     );
-  }, [form]);
+  }, [form, revisionFile, tarjetaFile, revisionError, tarjetaError]);
 
   const resetForm = () => {
     setForm(INITIAL_FORM);
+    setRevisionFile(null);
+    setTarjetaFile(null);
+    setRevisionError(null);
+    setTarjetaError(null);
     setErrorMessage(null);
     setIsSubmitting(false);
   };
@@ -109,6 +126,46 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
     if (!nextOpen) {
       resetForm();
     }
+  };
+
+  const handleRevisionFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setRevisionFile(null);
+      setRevisionError(null);
+      return;
+    }
+
+    if (!isPdfFile(file)) {
+      setRevisionFile(null);
+      setRevisionError("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setRevisionFile(file);
+    setRevisionError(null);
+  };
+
+  const handleTarjetaFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setTarjetaFile(null);
+      setTarjetaError(null);
+      return;
+    }
+
+    if (!isPdfFile(file)) {
+      setTarjetaFile(null);
+      setTarjetaError("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setTarjetaFile(file);
+    setTarjetaError(null);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -121,18 +178,18 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
     setIsSubmitting(true);
     setErrorMessage(null);
 
+    const placa = form.Placa.trim();
+
     const payload: RegisterTruckPayload = {
-      Placa: form.Placa.trim(),
+      Placa: placa,
       nombre: form.nombre.trim(),
       ano_fabricacion: Number(form.ano_fabricacion),
       modelo: form.modelo.trim(),
       color: form.color.trim(),
       Estado: "Operacional" as TruckEstado,
       caracteristicas: form.caracteristicas.trim(),
-      revision_tecnica: form.revision_tecnica.trim(),
       fecha_prox_revision: form.fecha_prox_revision,
       ID_Fabricante: Number(form.ID_Fabricante),
-      tarjeta_propiedad: form.tarjeta_propiedad.trim(),
       vencimiento_tarjeta: form.vencimiento_tarjeta,
       soat_n_poliza: form.soat_n_poliza.trim(),
       soat_empresa: form.soat_empresa.trim(),
@@ -142,8 +199,31 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
 
     try {
       await trucksBaseApi.registerTruck(payload);
+      let uploadFailed = false;
+      const uploadTasks: Array<Promise<unknown>> = [];
+
+      if (revisionFile) {
+        uploadTasks.push(trucksBaseApi.uploadRevisionTecnica(placa, revisionFile));
+      }
+
+      if (tarjetaFile) {
+        uploadTasks.push(trucksBaseApi.uploadTarjetaPropiedad(placa, tarjetaFile));
+      }
+
+      if (uploadTasks.length > 0) {
+        try {
+          await Promise.all(uploadTasks);
+        } catch {
+          uploadFailed = true;
+        }
+      }
+
       await queryClient.invalidateQueries({ queryKey: ["trucks", "list"] });
-      toast.success("Camion registrado correctamente.");
+      if (uploadFailed) {
+        toast.error("Camion creado, pero no se pudieron subir los PDFs.");
+      } else {
+        toast.success("Camion registrado correctamente.");
+      }
       handleOpenChange(false);
     } catch {
       setErrorMessage("No se pudo registrar el camion. Intentalo nuevamente.");
@@ -291,18 +371,31 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="truck-tarjeta">Tarjeta de propiedad</Label>
-              <Input
-                id="truck-tarjeta"
-                value={form.tarjeta_propiedad}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    tarjeta_propiedad: event.target.value,
-                  }))
-                }
-                placeholder="Codigo o referencia"
-                required
+              <Label>Tarjeta de propiedad (PDF)</Label>
+              <div className="flex flex-col gap-2 rounded-md border border-dashed border-gray-200 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => tarjetaInputRef.current?.click()}
+                    disabled={isSubmitting}
+                  >
+                    Subir PDF
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {tarjetaFile ? tarjetaFile.name : "Sin archivo seleccionado"}
+                  </span>
+                </div>
+                {tarjetaError && (
+                  <p className="text-xs text-destructive">{tarjetaError}</p>
+                )}
+              </div>
+              <input
+                ref={tarjetaInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleTarjetaFileChange}
                 disabled={isSubmitting}
               />
             </div>
@@ -413,18 +506,31 @@ export const RegisterTruckDialog = ({ disabled = false }: { disabled?: boolean }
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="truck-revision">Revision tecnica</Label>
-              <Textarea
-                id="truck-revision"
-                value={form.revision_tecnica}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    revision_tecnica: event.target.value,
-                  }))
-                }
-                placeholder="Detalle de revision tecnica"
-                required
+              <Label>Revision tecnica (PDF)</Label>
+              <div className="flex flex-col gap-2 rounded-md border border-dashed border-gray-200 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => revisionInputRef.current?.click()}
+                    disabled={isSubmitting}
+                  >
+                    Subir PDF
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {revisionFile ? revisionFile.name : "Sin archivo seleccionado"}
+                  </span>
+                </div>
+                {revisionError && (
+                  <p className="text-xs text-destructive">{revisionError}</p>
+                )}
+              </div>
+              <input
+                ref={revisionInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleRevisionFileChange}
                 disabled={isSubmitting}
               />
             </div>

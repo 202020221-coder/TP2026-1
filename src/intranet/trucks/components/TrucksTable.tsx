@@ -26,9 +26,7 @@ export const TrucksTable: FC = () => {
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   const [maintenanceError, setMaintenanceError] = useState<string | null>(null);
 
-  const openMaintenance = useCallback(async (placa: string) => {
-    setMaintenancePlaca(placa);
-    setMaintenanceOpen(true);
+  const fetchMaintenance = useCallback(async (placa: string) => {
     setMaintenanceError(null);
     setMaintenanceLoading(true);
 
@@ -42,6 +40,23 @@ export const TrucksTable: FC = () => {
       setMaintenanceLoading(false);
     }
   }, []);
+
+  const openMaintenance = useCallback(
+    async (placa: string) => {
+      setMaintenancePlaca(placa);
+      setMaintenanceOpen(true);
+      await fetchMaintenance(placa);
+    },
+    [fetchMaintenance],
+  );
+
+  const refreshMaintenance = useCallback(async () => {
+    if (!maintenancePlaca) {
+      return;
+    }
+
+    await fetchMaintenance(maintenancePlaca);
+  }, [fetchMaintenance, maintenancePlaca]);
 
   const onMaintenanceOpenChange = useCallback((open: boolean) => {
     setMaintenanceOpen(open);
@@ -98,6 +113,7 @@ export const TrucksTable: FC = () => {
         mantenimientos={mantenimientos}
         isLoading={maintenanceLoading}
         error={maintenanceError}
+        onRefresh={refreshMaintenance}
       />
     </>
   );

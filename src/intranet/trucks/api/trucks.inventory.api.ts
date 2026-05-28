@@ -1,4 +1,5 @@
 import axiosInstance from "@/shared/api/axios.config";
+import type { Pagination } from "@/shared/interfaces/api-response";
 import type {
   TruckInventoryDetail,
   TruckInventoryItem,
@@ -8,6 +9,8 @@ import {
   normalizeTruckInventoryDetail,
   normalizeTruckInventoryItem,
   normalizeTruckInventoryRow,
+  unwrapPagination,
+  type PaginatedResponse,
   type RawInventoryDetail,
   type RawInventoryItem,
   type RawInventoryRow,
@@ -20,6 +23,32 @@ export const trucksInventoryApi = {
       `/camiones/${encodedPlaca}/inventario`,
     );
     return response.data.map(normalizeTruckInventoryRow);
+  },
+
+  async getInventarioCatalog(
+    params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    } = {},
+  ): Promise<Pagination<TruckInventoryDetail[]>> {
+    const { page = 1, limit = 200, search } = params;
+    const response = await axiosInstance.get<PaginatedResponse<RawInventoryDetail[]>>(
+      "/inventario",
+      {
+        params: {
+          page,
+          limit,
+          search,
+        },
+      },
+    );
+
+    const pagination = unwrapPagination(response.data);
+    return {
+      ...pagination,
+      data: pagination.data.map(normalizeTruckInventoryDetail),
+    };
   },
 
   async asignarItem(placa: string, payload: TruckInventoryItem): Promise<TruckInventoryItem> {

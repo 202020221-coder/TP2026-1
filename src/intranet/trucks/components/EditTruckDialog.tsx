@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { trucksBaseApi } from "../api/trucks.base.api";
 import type { Truck, TruckEstado } from "../interfaces/truck.interface";
+import { resolveBackendFileUrl } from "../lib/maintenance-pdf";
 import { normalizeTruckEstado } from "../lib/trucks-table.utils";
 
 type EditTruckFormState = {
@@ -29,10 +30,8 @@ type EditTruckFormState = {
   color: string;
   Estado: TruckEstado | "";
   caracteristicas: string;
-  revision_tecnica: string;
   fecha_prox_revision: string;
   ID_Fabricante: string;
-  tarjeta_propiedad: string;
   vencimiento_tarjeta: string;
   soat_n_poliza: string;
   soat_empresa: string;
@@ -68,6 +67,23 @@ const toStringValue = (value: number | string | null | undefined) => {
   return "";
 };
 
+const isPdfFile = (file: File) => {
+  if (file.type === "application/pdf") {
+    return true;
+  }
+
+  return file.name.toLowerCase().endsWith(".pdf");
+};
+
+const openPdfUrl = (url: string) => {
+  const resolved = resolveBackendFileUrl(url);
+  if (!resolved) {
+    return;
+  }
+
+  window.open(resolved, "_blank", "noopener,noreferrer");
+};
+
 const mapTruckToForm = (camion: Truck): EditTruckFormState => ({
   Placa: camion.Placa ?? "",
   nombre: camion.nombre ?? "",
@@ -76,10 +92,8 @@ const mapTruckToForm = (camion: Truck): EditTruckFormState => ({
   color: camion.color ?? "",
   Estado: normalizeTruckEstado(camion.Estado) ?? "",
   caracteristicas: camion.caracteristicas ?? "",
-  revision_tecnica: camion.revision_tecnica ?? "",
   fecha_prox_revision: camion.fecha_prox_revision ?? "",
   ID_Fabricante: toStringValue(camion.ID_Fabricante),
-  tarjeta_propiedad: camion.tarjeta_propiedad ?? "",
   vencimiento_tarjeta: camion.vencimiento_tarjeta ?? "",
   soat_n_poliza: camion.soat_n_poliza ?? "",
   soat_empresa: camion.soat_empresa ?? "",
@@ -96,8 +110,17 @@ export const EditTruckDialog = ({
   const [form, setForm] = useState<EditTruckFormState>(() =>
     mapTruckToForm(camion),
   );
+  const [revisionFile, setRevisionFile] = useState<File | null>(null);
+  const [tarjetaFile, setTarjetaFile] = useState<File | null>(null);
+  const [revisionError, setRevisionError] = useState<string | null>(null);
+  const [tarjetaError, setTarjetaError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const revisionInputRef = useRef<HTMLInputElement>(null);
+  const tarjetaInputRef = useRef<HTMLInputElement>(null);
+
+  const currentRevisionUrl = camion.revision_tecnica?.trim() ?? "";
+  const currentTarjetaUrl = camion.tarjeta_propiedad?.trim() ?? "";
 
   const isFormValid = useMemo(() => {
     const requiredText = [
@@ -107,8 +130,6 @@ export const EditTruckDialog = ({
       form.color,
       form.Estado,
       form.caracteristicas,
-      form.revision_tecnica,
-      form.tarjeta_propiedad,
       form.soat_n_poliza,
       form.soat_empresa,
     ];
@@ -119,14 +140,29 @@ export const EditTruckDialog = ({
       form.soat_dia_pago,
     ];
 
+    const hasRevisionPdf = Boolean(currentRevisionUrl) || Boolean(revisionFile);
+    const hasTarjetaPdf = Boolean(currentTarjetaUrl) || Boolean(tarjetaFile);
+
     return (
       requiredText.every(hasText) &&
       requiredDates.every(hasText) &&
       hasValidNumber(form.ano_fabricacion, 1) &&
       hasValidNumber(form.ID_Fabricante, 1) &&
-      hasValidNumber(form.soat_precio, 0)
+      hasValidNumber(form.soat_precio, 0) &&
+      hasRevisionPdf &&
+      hasTarjetaPdf &&
+      !revisionError &&
+      !tarjetaError
     );
-  }, [form]);
+  }, [
+    form,
+    currentRevisionUrl,
+    currentTarjetaUrl,
+    revisionFile,
+    tarjetaFile,
+    revisionError,
+    tarjetaError,
+  ]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -135,7 +171,51 @@ export const EditTruckDialog = ({
 
     if (nextOpen) {
       setForm(mapTruckToForm(camion));
+      setRevisionFile(null);
+      setTarjetaFile(null);
+      setRevisionError(null);
+      setTarjetaError(null);
     }
+  };
+
+  const handleRevisionFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setRevisionFile(null);
+      setRevisionError(null);
+      return;
+    }
+
+    if (!isPdfFile(file)) {
+      setRevisionFile(null);
+      setRevisionError("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setRevisionFile(file);
+    setRevisionError(null);
+  };
+
+  const handleTarjetaFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      setTarjetaFile(null);
+      setTarjetaError(null);
+      return;
+    }
+
+    if (!isPdfFile(file)) {
+      setTarjetaFile(null);
+      setTarjetaError("Solo se permiten archivos PDF.");
+      return;
+    }
+
+    setTarjetaFile(file);
+    setTarjetaError(null);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -154,10 +234,8 @@ export const EditTruckDialog = ({
         modelo: form.modelo.trim(),
         color: form.color.trim(),
         caracteristicas: form.caracteristicas.trim(),
-        revision_tecnica: form.revision_tecnica.trim(),
         fecha_prox_revision: form.fecha_prox_revision,
         ID_Fabricante: Number(form.ID_Fabricante),
-        tarjeta_propiedad: form.tarjeta_propiedad.trim(),
         vencimiento_tarjeta: form.vencimiento_tarjeta,
         Estado: form.Estado as TruckEstado,
         soat_n_poliza: form.soat_n_poliza.trim(),
@@ -167,6 +245,37 @@ export const EditTruckDialog = ({
       };
 
       await trucksBaseApi.updateTruck(camion.Placa, payload);
+      await queryClient.invalidateQueries({ queryKey: ["trucks", "list"] });
+      let uploadFailed = false;
+      const uploadTasks: Array<Promise<unknown>> = [];
+
+      if (revisionFile) {
+        uploadTasks.push(
+          trucksBaseApi.uploadRevisionTecnica(camion.Placa, revisionFile),
+        );
+      }
+
+      if (tarjetaFile) {
+        uploadTasks.push(
+          trucksBaseApi.uploadTarjetaPropiedad(camion.Placa, tarjetaFile),
+        );
+      }
+
+      if (uploadTasks.length > 0) {
+        try {
+          await Promise.all(uploadTasks);
+        } catch {
+          uploadFailed = true;
+        }
+      }
+
+      if (uploadFailed) {
+        const message = "Camion actualizado, pero no se pudieron subir los PDFs.";
+        setErrorMessage(message);
+        toast.error(message);
+        setIsSubmitting(false);
+        return;
+      }
     } catch (error: unknown) {
       const err = error as any;
       const rawMessage =
@@ -180,7 +289,6 @@ export const EditTruckDialog = ({
     }
 
     toast.success("Camion actualizado correctamente.");
-    queryClient.invalidateQueries({ queryKey: ["trucks", "list"] });
     handleOpenChange(false);
     setIsSubmitting(false);
   };
@@ -346,18 +454,42 @@ export const EditTruckDialog = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="edit-truck-tarjeta">Tarjeta de propiedad</Label>
-                <Input
-                  id="edit-truck-tarjeta"
-                  value={form.tarjeta_propiedad}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      tarjeta_propiedad: event.target.value,
-                    }))
-                  }
-                  placeholder="Codigo o referencia"
-                  required
+                <Label>Tarjeta de propiedad (PDF)</Label>
+                <div className="flex flex-col gap-2 rounded-md border border-dashed border-gray-200 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => tarjetaInputRef.current?.click()}
+                      disabled={isSubmitting}
+                    >
+                      Subir PDF
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {tarjetaFile ? tarjetaFile.name : "Sin archivo seleccionado"}
+                    </span>
+                    {currentTarjetaUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-8 px-2 text-blue-600"
+                        onClick={() => openPdfUrl(currentTarjetaUrl)}
+                        disabled={isSubmitting}
+                      >
+                        Ver PDF actual
+                      </Button>
+                    )}
+                  </div>
+                  {tarjetaError && (
+                    <p className="text-xs text-destructive">{tarjetaError}</p>
+                  )}
+                </div>
+                <input
+                  ref={tarjetaInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={handleTarjetaFileChange}
                   disabled={isSubmitting}
                 />
               </div>
@@ -468,18 +600,42 @@ export const EditTruckDialog = ({
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="edit-truck-revision">Revision tecnica</Label>
-                <Textarea
-                  id="edit-truck-revision"
-                  value={form.revision_tecnica}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      revision_tecnica: event.target.value,
-                    }))
-                  }
-                  placeholder="Detalle de revision tecnica"
-                  required
+                <Label>Revision tecnica (PDF)</Label>
+                <div className="flex flex-col gap-2 rounded-md border border-dashed border-gray-200 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => revisionInputRef.current?.click()}
+                      disabled={isSubmitting}
+                    >
+                      Subir PDF
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {revisionFile ? revisionFile.name : "Sin archivo seleccionado"}
+                    </span>
+                    {currentRevisionUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-8 px-2 text-blue-600"
+                        onClick={() => openPdfUrl(currentRevisionUrl)}
+                        disabled={isSubmitting}
+                      >
+                        Ver PDF actual
+                      </Button>
+                    )}
+                  </div>
+                  {revisionError && (
+                    <p className="text-xs text-destructive">{revisionError}</p>
+                  )}
+                </div>
+                <input
+                  ref={revisionInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={handleRevisionFileChange}
                   disabled={isSubmitting}
                 />
               </div>

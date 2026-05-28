@@ -35,4 +35,32 @@ export const trucksBaseApi = {
     const encodedPlaca = encodeURIComponent(placa);
     await axiosInstance.put(`/camiones/${encodedPlaca}`, payload);
   },
+
+  async uploadRevisionTecnica(placa: string, file: File): Promise<string | null> {
+    const encodedPlaca = encodeURIComponent(placa);
+    const formData = new FormData();
+    formData.append("revision_tecnica", file);
+    const response = await axiosInstance.post<{ url?: string }>(
+      `/camiones/${encodedPlaca}/revision-tecnica`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data?.url ?? null;
+  },
+
+  async uploadTarjetaPropiedad(placa: string, file: File): Promise<string | null> {
+    const encodedPlaca = encodeURIComponent(placa);
+    const formData = new FormData();
+    formData.append("tarjeta_propiedad", file);
+    const response = await axiosInstance.post<{ url?: string }>(
+      `/camiones/${encodedPlaca}/tarjeta-propiedad`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return response.data?.url ?? null;
+  },
 };
