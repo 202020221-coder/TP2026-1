@@ -18,7 +18,16 @@ interface Props {
   jornadas: Jornada[];
   personalRequerido: number;
   onRefresh: () => void;
+  fechaInicio: string | null;
+  fechaFin: string | null;
 }
+
+const parseISODateOnly = (iso: string | null): Date | null => {
+  if (!iso) return null;
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
 
 const friendlyError = (err: unknown, fallback: string): string => {
   if (axios.isAxiosError(err)) {
@@ -52,6 +61,8 @@ export function DailyStaffPanel({
   jornadas,
   personalRequerido,
   onRefresh,
+  fechaInicio,
+  fechaFin,
 }: Props) {
   const [adding, setAdding] = useState(false);
   const [disponibles, setDisponibles] = useState<TrabajadorDisponible[]>([]);
@@ -66,6 +77,14 @@ export function DailyStaffPanel({
   const [error, setError] = useState<string | null>(null);
 
   const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+  const projectStart = useMemo(() => parseISODateOnly(fechaInicio), [fechaInicio]);
+  const projectEnd = useMemo(() => parseISODateOnly(fechaFin), [fechaFin]);
+  const isWithinProject = useMemo(() => {
+    if (!selectedDate) return false;
+    if (projectStart && selectedDate < projectStart) return false;
+    if (projectEnd && selectedDate > projectEnd) return false;
+    return true;
+  }, [selectedDate, projectStart, projectEnd]);
   const dayJornadas = useMemo(
     () => jornadas.filter((j) => j.dia?.slice(0, 10) === dateStr),
     [jornadas, dateStr],
@@ -121,6 +140,12 @@ export function DailyStaffPanel({
 
   const handleAdd = async () => {
     if (!idTrabajo || !dateStr) return;
+    if (!isWithinProject) {
+      const msg = 'No puedes asignar personal fuera del rango del proyecto';
+      setError(msg);
+      toast.warning(msg);
+      return;
+    }
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -157,6 +182,10 @@ export function DailyStaffPanel({
 
   const handleDelete = async (jornada: Jornada) => {
     if (!idTrabajo) return;
+    if (!jornada.Id_Jornada) {
+      toast.error('No se puede eliminar: la jornada no tiene un identificador válido');
+      return;
+    }
     if (
       !window.confirm(
         `¿Eliminar a ${jornada.Trabajador_Nombre} ${jornada.Trabajador_Apellido} de este día?`,
@@ -223,12 +252,19 @@ export function DailyStaffPanel({
         <span className="text-sm font-medium">
           Personal ({dayJornadas.length})
         </span>
-        {!adding && (
+        {!adding && isWithinProject && (
           <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
             <Plus className="w-3 h-3 mr-1" /> Agregar
           </Button>
         )}
       </div>
+
+      {!isWithinProject && (
+        <div className="mx-4 mb-3 p-3 border border-amber-300 rounded-xl bg-amber-50 text-xs text-amber-800 shrink-0">
+          Este día está fuera del rango del proyecto. No se puede asignar
+          personal.
+        </div>
+      )}
 
       {adding && (
         <div className="mx-4 mb-3 p-3 border rounded-xl bg-orange-50 space-y-2 shrink-0">

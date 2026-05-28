@@ -3,9 +3,34 @@ import type {
   Proyecto,
   PaginatedResponse,
   Jornada,
+  JornadaRaw,
   TrabajadorDisponible,
   CreateJornadaBody,
 } from "../types";
+
+const toNumber = (v: unknown): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const normalizeJornada = (raw: JornadaRaw): Jornada => ({
+  Id_Jornada: toNumber(raw.Id_Jornada ?? raw.id_jornada ?? raw.id),
+  Id_Trabajo: toNumber(raw.Id_Trabajo ?? raw.id_trabajo),
+  DNI_Trabajador: String(raw.DNI_Trabajador ?? raw.dni_trabajador ?? ""),
+  dia: String(raw.dia ?? raw.fecha ?? ""),
+  horario_entrada: String(raw.horario_entrada ?? ""),
+  horario_salida: String(raw.horario_salida ?? ""),
+  Trabajador_Nombre: String(
+    raw.Trabajador_Nombre ?? raw.trabajador_nombre ?? raw.nombre ?? "",
+  ),
+  Trabajador_Apellido: String(
+    raw.Trabajador_Apellido ??
+      raw.trabajador_apellido ??
+      raw.apellidos ??
+      raw.apellido ??
+      "",
+  ),
+});
 
 export const proyectoService = {
   getAll: (page = 1, limit = 50) =>
@@ -74,7 +99,15 @@ export const personalRequeridoService = {
 
 export const trabajoService = {
   getJornadas: (idTrabajo: number) =>
-    axios.get<Jornada[]>(`/trabajos/${idTrabajo}/jornadas`).then((r) => r.data),
+    axios
+      .get<unknown>(`/trabajos/${idTrabajo}/jornadas`)
+      .then((r) => {
+        const raw = r.data;
+        const arr: JornadaRaw[] = Array.isArray(raw)
+          ? (raw as JornadaRaw[])
+          : ((raw as { data?: JornadaRaw[] })?.data ?? []);
+        return arr.map(normalizeJornada);
+      }),
 
   createJornada: (idTrabajo: number, body: CreateJornadaBody) =>
     axios
