@@ -1,8 +1,6 @@
 import { ClientCard } from "../components/reference/ClientCard";
 import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
-import {
-  QuotationReferenceStoreProvider,
-} from "../hooks/stores/quotation.reference.store.provider";
+import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
   Tabs,
@@ -44,11 +42,11 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
 import { type FC } from "react";
 import { useNavigate } from "react-router";
+import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
 
 export function CreateQuotationPage() {
   const navigate = useNavigate();
-  const { orderId, orderData, exchangeRate, isPending, isError } =
-    useCreateQuotationPage();
+  const { orderId, initialData, isPending, isError } = useCreateQuotationPage();
 
   if (!orderId) {
     throw new Error("Id de la solicitud no especificada");
@@ -58,11 +56,9 @@ export function CreateQuotationPage() {
     return <CreateQuotationPageSkeleton />;
   }
 
-  if (isError || !orderData) {
+  if (isError || !initialData) {
     return <CreateQuotationPageError />;
   }
-
-  const orderDataSafe = orderData;
 
   const baseTriggerClass =
     "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
@@ -76,7 +72,10 @@ export function CreateQuotationPage() {
             Elaborar Cotización - Solicitud #{orderId}
           </h1>
         </div>
-        <Button variant="outline" onClick={() => navigate("/intranet/solicitudes")}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/intranet/solicitudes")}
+        >
           <ArrowLeft className="h-4 w-4" />
           Regresar
         </Button>
@@ -88,108 +87,93 @@ export function CreateQuotationPage() {
       >
         <QuotationConditionStoreProvider>
           <QuotationExchangeRateProvider
-            initialData={exchangeRate ? { rate: exchangeRate } : undefined}
+            initialData={{ rate: initialData.quotationRate }}
           >
-            <QuotationReferenceStoreProvider
-              initialName={orderDataSafe.Cliente_Nombre}
-            >
+            <QuotationReferenceStoreProvider initialName={initialData.name}>
               <QuotationTruckStoreProvider>
-                <QuotationProductStoreProvider
-                  initialProducts={orderDataSafe.inventario.map((item) => ({
-                    id: item.id.toString(),
-                    nombre: item.nombre,
-                    cantidad: item.cantidad,
-                    precio_unitario: Number(item.precio_unitario),
-                    ...(item.intencion === "alquilar"
-                      ? {
-                          intencion: "alquilar" as const,
-                          dias_alquilados: item.dias_alquilados ?? 1,
-                        }
-                      : {
-                          intencion: "comprar" as const,
-                          dias_alquilados: null,
-                        }),
-                  }))}
+                <QuotationServiceStoreProvider
+                  initialServices={initialData.services}
                 >
-                  <QuotationPickupStoreProvider
-                    initialData={{ pickupAddress: orderDataSafe.ubicacion }}
+                  <QuotationProductStoreProvider
+                    initialProducts={initialData.inventory}
                   >
-                    <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                      <TabsTrigger
-                        value="reference"
-                        className={baseTriggerClass}
-                      >
-                        <FileText className="w-4 h-4" />
-                        Datos de Referencia
-                      </TabsTrigger>
-                      <TabsTrigger value="prices" className={baseTriggerClass}>
-                        <DollarSign className="w-4 h-4" />
-                        Precios
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="conditions"
-                        className={baseTriggerClass}
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                        Condiciones
-                      </TabsTrigger>
-                      <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
-                        <Eye className="w-4 h-4" />
-                        Visualización
-                      </VisualizeTrigger>
-                    </TabsList>
-                    <ScrollArea className="mt-2 flex-1 min-h-0">
-                      <div className="px-3 py-6">
-                        <TabsContent value="reference" className="space-y-6">
-                          <ClientCard
-                            client={{
-                              DNI_O_RUC: orderDataSafe.Id_Cliente,
-                              nombre_comercial: orderDataSafe.Cliente_Nombre,
-                              razon_social: orderDataSafe.Razon_Social,
-                            }}
-                          />
-                          <ReferenceNameCard />
-                        </TabsContent>
-                        <TabsContent value="prices" className="space-y-6">
-                          <CreateQuotationProductsSection />
-                          <Card className="gap-4 border bg-card shadow-none">
-                            <CardHeader className="pb-0">
-                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                                <SquareChartGantt className="text-primary" />
-                                <span className="pb-0.5 font-[375] text-[18px]">
-                                  Servicios
-                                </span>
-                              </CardTitle>
-                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                                Servicios incluidos en la cotización.
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <QuotationServicesTable
-                                items={[]}
-                                readOnly={true}
-                                onUpdateQuantity={undefined}
-                                onUpdateUnitPrice={undefined}
-                                onDelete={undefined}
-                              />
-                            </CardContent>
-                          </Card>
-                          <CreateQuotationTruckSelector />
-                          <CreateQuotationPickupSection />
-                          <CreateQuotationSummaryCard />
-                        </TabsContent>
-                        <TabsContent value="conditions">
-                          <CreateQuotationConditionCard />
-                        </TabsContent>
-                        <TabsContent value="visualize">
-                          <CreateQuotationVisualizeSection
+                    <QuotationPickupStoreProvider
+                      initialData={initialData.pickupService}
+                    >
+                      <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                        <TabsTrigger
+                          value="reference"
+                          className={baseTriggerClass}
+                        >
+                          <FileText className="w-4 h-4" />
+                          Datos de Referencia
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="prices"
+                          className={baseTriggerClass}
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          Precios
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="conditions"
+                          className={baseTriggerClass}
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Condiciones
+                        </TabsTrigger>
+                        <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                          <Eye className="w-4 h-4" />
+                          Visualización
+                        </VisualizeTrigger>
+                      </TabsList>
+                      <ScrollArea className="mt-2 flex-1 min-h-0">
+                        <div className="px-3 py-6">
+                          <TabsContent value="reference" className="space-y-6">
+                            <ClientCard client={initialData.client} />
+                            <ReferenceNameCard />
+                          </TabsContent>
+                          <TabsContent value="prices" className="space-y-6">
+                            <CreateQuotationProductsSection />
+                            <Card className="gap-4 border bg-card shadow-none">
+                              <CardHeader className="pb-0">
+                                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                  <SquareChartGantt className="text-primary" />
+                                  <span className="pb-0.5 font-[375] text-[18px]">
+                                    Servicios
+                                  </span>
+                                </CardTitle>
+                                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                  Servicios incluidos en la cotización.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                {/* <QuotationServicesTable
+                                  items={}
+                                  readOnly={true}
+                                  onUpdateQuantity={undefined}
+                                  onUpdateUnitPrice={undefined}
+                                  onDelete={undefined}
+                                /> */}
+                              </CardContent>
+                            </Card>
+                            <CreateQuotationTruckSelector />
+                            <CreateQuotationPickupSection />
+                            <CreateQuotationSummaryCard />
+                          </TabsContent>
+                          <TabsContent value="conditions">
+                            <CreateQuotationConditionCard />
+                          </TabsContent>
+                          <TabsContent value="visualize">
+                            {/* <CreateQuotationVisualizeSection
                             detailedOrder={orderDataSafe}
-                          />
-                        </TabsContent>
-                      </div>
-                    </ScrollArea>
-                  </QuotationPickupStoreProvider>
-                </QuotationProductStoreProvider>
+                          /> */}
+                          </TabsContent>
+                        </div>
+                      </ScrollArea>
+                    </QuotationPickupStoreProvider>
+                  </QuotationProductStoreProvider>
+                </QuotationServiceStoreProvider>
               </QuotationTruckStoreProvider>
             </QuotationReferenceStoreProvider>
           </QuotationExchangeRateProvider>
