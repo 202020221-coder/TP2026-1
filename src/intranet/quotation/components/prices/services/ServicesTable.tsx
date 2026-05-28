@@ -4,57 +4,60 @@ import {
   TableHead,
   TableHeader,
 } from "@/shared/components/ui/table";
-import { memo, useMemo, type FC } from "react";
+import { memo, type FC } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
 import { Bird, Eraser } from "lucide-react";
-import type { ServiceItem } from "@/intranet/quotation/interfaces/quotation";
-import { formatCurrency } from "@/shared/lib/format-currency";
+import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 
-type UpdateQuantityHandler = (
-  id: ServiceItem["id"],
-  quantity: ServiceItem["cantidad"],
-) => void;
-type UpdateUnitPriceHandler = (
-  id: ServiceItem["id"],
-  quantity: ServiceItem["precio_unitario"],
-) => void;
-type DeleteHandler = (id: ServiceItem["id"]) => void;
+type Service = DesiredQuotationData["services"][number];
+
+type UpdateScheduleHandler = (id: Service["id"], schedule: Service["schedule"]) => void;
+type UpdateStartDateHandler = (id: Service["id"], startDate: Service["startDate"]) => void;
+type UpdateDueDateHandler = (id: Service["id"], dueDate: Service["dueDate"]) => void;
+type UpdateUnitPriceHandler = (id: Service["id"], unitPrice: Service["unitPrice"]) => void;
+type DeleteHandler = (id: Service["id"]) => void;
+
 type OptionalProps =
   | {
       readOnly: true;
-      onUpdateQuantity: undefined;
+      onUpdateSchedule: undefined;
+      onUpdateStartDate: undefined;
+      onUpdateDueDate: undefined;
       onUpdateUnitPrice: undefined;
       onDelete: undefined;
     }
   | {
       readOnly: false;
-      onUpdateQuantity: UpdateQuantityHandler;
+      onUpdateSchedule: UpdateScheduleHandler;
+      onUpdateStartDate: UpdateStartDateHandler;
+      onUpdateDueDate: UpdateDueDateHandler;
       onUpdateUnitPrice: UpdateUnitPriceHandler;
       onDelete: DeleteHandler;
     };
 
 type ServicesTableProps = {
-  items: ServiceItem[];
+  items: Service[];
 } & OptionalProps;
 
 export const QuotationServicesTable: FC<ServicesTableProps> = memo(
   ({ items, ...rest }) => {
     const readOnly = rest.readOnly;
-    const colCount = readOnly ? 5 : 6;
+    const colCount = readOnly ? 6 : 7;
     return (
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-muted/70 backdrop-blur supports-backdrop-filter:bg-muted/60 overflow-hidden">
             <TableRow>
               <TableHead className="w-[50px]">ID</TableHead>
-              <TableHead className="w-[400px] overflow-hidden">
+              <TableHead className="w-[200px] overflow-hidden">
                 Nombre
               </TableHead>
-              <TableHead className="text-center">Cantidad</TableHead>
-              <TableHead className="text-center">P.Unit</TableHead>
-              <TableHead className="text-right">Subtotal {"($)"}</TableHead>
+              <TableHead className="text-center min-w-[140px]">Jornada</TableHead>
+              <TableHead className="text-center min-w-[130px]">F. Inicio</TableHead>
+              <TableHead className="text-center min-w-[130px]">F. Vencimiento</TableHead>
+              <TableHead className="text-center min-w-[100px]">P. Unitario {"($)"}</TableHead>
               {!readOnly && (
                 <TableHead className="text-center">Acción</TableHead>
               )}
@@ -89,78 +92,96 @@ export const QuotationServicesTable: FC<ServicesTableProps> = memo(
   },
 );
 
-type ServiceRowProps = { service: ServiceItem } & OptionalProps;
+type ServiceRowProps = { service: Service } & OptionalProps;
 const ServiceRow: FC<ServiceRowProps> = memo(
   ({
     service,
     readOnly,
-    onUpdateQuantity,
+    onUpdateSchedule,
+    onUpdateStartDate,
+    onUpdateDueDate,
     onUpdateUnitPrice,
     onDelete,
-  }) => {
-    const formattedSubtotal = useMemo(() => {
-      const subtotal = service.precio_unitario * service.cantidad;
-      return formatCurrency(subtotal, "USD", 2);
-    }, [service.precio_unitario, service.cantidad]);
-    return (
-      <TableRow
-        key={service.id}
-        className="hover:bg-muted/40 transition-colors"
-      >
-        <TableCell>{service.id}</TableCell>
-        <TableCell className="whitespace-break-spaces">
-          {service.nombre}
-        </TableCell>
-        <TableCell className="text-center">
-          {readOnly ? (
-            <span className="text-sm text-foreground">{service.cantidad}</span>
-          ) : (
-            <Input
-              type="number"
-              min={0}
-              value={service.cantidad}
-              className="h-9 border-border bg-background text-sm"
-              onChange={(e) =>
-                onUpdateQuantity?.(service.id, Number(e.target.value))
-              }
-              disabled={readOnly}
-            />
-          )}
-        </TableCell>
-        <TableCell className="text-center">
-          {readOnly ? (
-            <span className="text-sm text-foreground">
-              ${service.precio_unitario}
-            </span>
-          ) : (
-            <Input
-              type="number"
-              value={service.precio_unitario}
-              className="h-9 border-border bg-background text-sm"
-              onChange={(e) =>
-                onUpdateUnitPrice?.(service.id, Number(e.target.value))
-              }
-              disabled={readOnly}
-            />
-          )}
-        </TableCell>
-        <TableCell className="text-right font-medium">
-          {formattedSubtotal}
-        </TableCell>
-        {!readOnly && (
-          <TableCell className="text-center">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => onDelete?.(service.id)}
-              disabled={readOnly}
-            >
-              <Eraser className="h-4 w-4" />
-            </Button>
-          </TableCell>
+  }) => (
+    <TableRow
+      key={service.id}
+      className="hover:bg-muted/40 transition-colors"
+    >
+      <TableCell>{service.id}</TableCell>
+      <TableCell className="whitespace-break-spaces">
+        {service.name ?? "-"}
+      </TableCell>
+      <TableCell className="text-center">
+        {readOnly ? (
+          <span className="text-sm text-foreground">{service.schedule}</span>
+        ) : (
+          <Input
+            value={service.schedule}
+            className="h-9 border-border bg-background text-sm"
+            onChange={(e) =>
+              onUpdateSchedule?.(service.id, e.target.value)
+            }
+          />
         )}
-      </TableRow>
-    );
-  },
+      </TableCell>
+      <TableCell className="text-center">
+        {readOnly ? (
+          <span className="text-sm text-foreground">{service.startDate}</span>
+        ) : (
+          <Input
+            type="date"
+            value={service.startDate}
+            className="h-9 border-border bg-background text-sm"
+            onChange={(e) =>
+              onUpdateStartDate?.(service.id, e.target.value)
+            }
+          />
+        )}
+      </TableCell>
+      <TableCell className="text-center">
+        {readOnly ? (
+          <span className="text-sm text-foreground">{service.dueDate}</span>
+        ) : (
+          <Input
+            type="date"
+            value={service.dueDate}
+            className="h-9 border-border bg-background text-sm"
+            onChange={(e) =>
+              onUpdateDueDate?.(service.id, e.target.value)
+            }
+          />
+        )}
+      </TableCell>
+      <TableCell className="text-center">
+        {readOnly ? (
+          <span className="text-sm text-foreground">
+            ${service.unitPrice}
+          </span>
+        ) : (
+          <Input
+            type="number"
+            min={0.01}
+            step={0.01}
+            value={service.unitPrice}
+            className="h-9 border-border bg-background text-sm"
+            onChange={(e) =>
+              onUpdateUnitPrice?.(service.id, Number(e.target.value))
+            }
+          />
+        )}
+      </TableCell>
+      {!readOnly && (
+        <TableCell className="text-center">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDelete?.(service.id)}
+          >
+            <Eraser className="h-4 w-4" />
+          </Button>
+        </TableCell>
+      )}
+    </TableRow>
+  ),
 );

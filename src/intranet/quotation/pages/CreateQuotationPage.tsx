@@ -43,6 +43,7 @@ import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
 import { type FC } from "react";
 import { useNavigate } from "react-router";
 import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
+import { CreateQuotationServicesSection } from "../components/prices/services/CreateQuotationServicesSection";
 
 export function CreateQuotationPage() {
   const navigate = useNavigate();
@@ -135,28 +136,7 @@ export function CreateQuotationPage() {
                           </TabsContent>
                           <TabsContent value="prices" className="space-y-6">
                             <CreateQuotationProductsSection />
-                            <Card className="gap-4 border bg-card shadow-none">
-                              <CardHeader className="pb-0">
-                                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                                  <SquareChartGantt className="text-primary" />
-                                  <span className="pb-0.5 font-[375] text-[18px]">
-                                    Servicios
-                                  </span>
-                                </CardTitle>
-                                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                                  Servicios incluidos en la cotización.
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent>
-                                {/* <QuotationServicesTable
-                                  items={}
-                                  readOnly={true}
-                                  onUpdateQuantity={undefined}
-                                  onUpdateUnitPrice={undefined}
-                                  onDelete={undefined}
-                                /> */}
-                              </CardContent>
-                            </Card>
+                            <CreateQuotationServicesSection/>
                             <CreateQuotationTruckSelector />
                             <CreateQuotationPickupSection />
                             <CreateQuotationSummaryCard />
