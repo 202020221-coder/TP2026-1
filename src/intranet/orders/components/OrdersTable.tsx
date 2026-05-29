@@ -47,38 +47,69 @@ export const OrdersTable: FC = () => {
             </TableRow>
           ) : (
             <>
-              {data.data.length > 0 &&
-                data.data.map((o) => <OrderTableRow order={o} key={o.ID} />)}
-              {data.data.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5}>
-                    <span className="flex flex-col justify-center items-center">
-                      <PackageOpen
-                        strokeWidth={1}
-                        size={200}
-                        className="text-gray-300"
-                      />
-                      {user?.rol === RolesRecord.client && (
-                        <p className="text-gray-400">
-                          Sin resultados, no olvide que puede crear una
-                          solicitud{" "}
-                          <Link
-                            to={"/intranet/solicitudes/crear"}
-                            className="text-primary"
-                          >
-                            aquí
-                          </Link>
-                          .
-                        </p>
-                      )}
+              {
+                (() => {
+                  const getOrderDate = (order: (typeof data.data)[number]) => {
+                    const rawOrder = order as unknown as {
+                      FechaCreacion?: string;
+                      fecha_inicio?: string;
+                    };
 
-                      {user?.rol === RolesRecord.projectAdmin && (
-                        <p>Sin resultados.</p>
-                      )}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              )}
+                    return new Date(
+                      rawOrder.FechaCreacion ?? rawOrder.fecha_inicio ?? 0,
+                    ).getTime();
+                  };
+
+                  const all = [...(data.data ?? [])].sort((left, right) => {
+                    return getOrderDate(right) - getOrderDate(left);
+                  });
+                  const filtered = queryParams.order_name
+                    ? all.filter((o) =>
+                      (o.Cliente_Nombre ?? o.descripcion ?? "")
+                        .toString()
+                        .toLowerCase()
+                        .includes(queryParams.order_name!.toString().toLowerCase()),
+                    )
+                    : all;
+
+                  if (filtered.length > 0) {
+                    return filtered.map((o) => (
+                      <OrderTableRow order={o} key={o.ID} />
+                    ));
+                  }
+
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={5}>
+                        <span className="flex flex-col justify-center items-center">
+                          <PackageOpen
+                            strokeWidth={1}
+                            size={200}
+                            className="text-gray-300"
+                          />
+                          {user?.rol === RolesRecord.client && (
+                            <p className="text-gray-400">
+                              Sin resultados, no olvide que puede crear una
+                              solicitud{" "}
+                              <Link
+                                to={"/intranet/solicitudes/crear"}
+                                className="text-primary"
+                              >
+                                aquí
+                              </Link>
+                              .
+                            </p>
+                          )}
+
+                          {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) && (
+                            <p>Sin resultados.</p>
+                          )}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })()
+              }
             </>
           )}
         </TableBody>

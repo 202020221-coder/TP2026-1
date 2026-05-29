@@ -117,7 +117,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
         </TableCell>
         {/* Ver Orden de Compra */}
         <TableCell className="text-center">
-          {project.orden_servicio ? (
+          {project.id_cotizacion ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

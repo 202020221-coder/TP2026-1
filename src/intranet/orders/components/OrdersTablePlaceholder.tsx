@@ -15,7 +15,7 @@ export const OrdersTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
           <TableCell className="py-4.5">
             <Skeleton className="aspect-square w-6 mb-2 rounded-full bg-gray-50" />
           </TableCell>
-          {user?.rol === RolesRecord.projectAdmin && (
+          {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) && (
             <TableCell>
               <div className="flex flex-col gap-y-2">
                 <Skeleton className="h-4 w-50 bg-gray-50" />
