@@ -1,4 +1,5 @@
 import { useState, type FC } from "react";
+import { useNavigate } from "react-router";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -6,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { PackageSearch, Users, Pencil, Trash2 } from "lucide-react";
+import { PackageSearch, Users, Pencil, Trash2, Eye } from "lucide-react";
 import type { Incident } from "../interfaces/incident";
 import {
   type IncidentState,
@@ -20,6 +21,7 @@ import { IncidentObjectsModal } from "./IncidentObjectsModal";
 import { IncidentInvolvedModal } from "./IncidentInvolvedModal";
 
 export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [objectsOpen, setObjectsOpen] = useState(false);
