@@ -1,4 +1,4 @@
-import { SquareChartGantt } from "lucide-react";
+import { Plus, SquareChartGantt } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,14 +6,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { useMemo, type FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { QuotationServicesTable } from "./ServicesTable";
 import { useQuotationServiceStore } from "@/intranet/quotation/hooks/stores/quotation.services.store.provider";
+import { Button } from "@/shared/components/ui/button";
+import { AddServicesDialog } from "./AddServicesDialog";
+import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 
 export const CreateQuotationServicesSection: FC = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const items = useQuotationServiceStore((s) => s.items);
   const deleteItem = useQuotationServiceStore((s) => s.removeItem);
   const updateItem = useQuotationServiceStore((s) => s.updateItem);
+  const addItems = useQuotationServiceStore((s) => s.addItems);
   const services = useMemo(() => Object.values(items), [items]);
 
   return (
@@ -31,6 +36,30 @@ export const CreateQuotationServicesSection: FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Button
+          className="ml-auto flex mb-2"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <Plus /> Agregar Servicios
+        </Button>
+        <AddServicesDialog
+          addHandler={(items) =>
+            addItems(
+              items.map(
+                (i): DesiredQuotationData["services"][number] => ({
+                  id: i.id,
+                  name: i.name,
+                  unitPrice: i.unitPrice,
+                  startDate: i.startDate,
+                  dueDate: i.dueDate,
+                  schedule: i.schedule,
+                }),
+              ),
+            )
+          }
+          onOpenChange={setIsDialogOpen}
+          open={isDialogOpen}
+        />
         <QuotationServicesTable
           items={services}
           onDelete={deleteItem}
