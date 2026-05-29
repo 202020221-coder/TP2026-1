@@ -49,7 +49,9 @@ const CostSummary = ({
     0,
   );
   const subtotal = inventorySubtotal + servicesSubtotal;
-  const total = subtotal + (pickup?.pickupCost || 0);
+  
+  //TODO: String cuando es decimal??
+  const total = Number(subtotal) + Number(pickup?.pickupCost || 0);
 
   return (
     <View style={styles.section}>
