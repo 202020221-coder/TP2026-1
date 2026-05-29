@@ -5,10 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import {
-  SquareChartGantt,
-  ClipboardList,
-} from "lucide-react";
+import { SquareChartGantt, ClipboardList } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { QuotationProductsTable } from "../prices/products/ProductsTable";
 import { QuotationServicesTable } from "../prices/services/ServicesTable";
@@ -158,7 +155,15 @@ export function QuotationDetailFormCard({
             </Card>
 
             {/* Truck */}
-            <TruckInfoCard trucks={quotation.camiones} />
+            <TruckInfoCard
+              trucks={quotation.camiones.map((c) => ({
+                color: c.color,
+                description: c.caracteristicas,
+                maintenanceDate: c.fecha_prox_revision,
+                model: c.modelo,
+                plate: c.Placa,
+              }))}
+            />
 
             {/* Pickup */}
             <PickupCardView

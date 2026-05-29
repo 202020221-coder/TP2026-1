@@ -1,5 +1,4 @@
 import type { TruckState } from "@/intranet/quotation/hooks/stores/quotation.truck.store";
-import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({

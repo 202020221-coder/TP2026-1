@@ -1,5 +1,4 @@
 import type { ProductsState } from "@/intranet/quotation/hooks/stores/quotation.products.store";
-import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 

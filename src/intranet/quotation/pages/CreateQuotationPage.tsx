@@ -127,7 +127,7 @@ export function CreateQuotationPage() {
                           </TabsContent>
                           <TabsContent value="prices" className="space-y-6">
                             <CreateQuotationProductsSection />
-                            <CreateQuotationServicesSection/>
+                            <CreateQuotationServicesSection />
                             <CreateQuotationTruckSelector />
                             <CreateQuotationPickupSection />
                             <CreateQuotationSummaryCard />
@@ -136,9 +136,9 @@ export function CreateQuotationPage() {
                             <CreateQuotationConditionCard />
                           </TabsContent>
                           <TabsContent value="visualize">
-                            {/* <CreateQuotationVisualizeSection
-                            detailedOrder={orderDataSafe}
-                          /> */}
+                            <CreateQuotationVisualizeSection
+                              referenceData={initialData.client}
+                            />
                           </TabsContent>
                         </div>
                       </ScrollArea>

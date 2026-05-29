@@ -1,44 +1,45 @@
 import { Button } from "@/shared/components/ui/button";
 import PdfPreview from "./PdfPreview";
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { toast } from "sonner";
+// import { useNavigate } from "react-router";
+// import { toast } from "sonner";
 import { Send } from "lucide-react";
-import { createQuotation } from "../../api/quotation.api";
-import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
-import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
-import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
-import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
-import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
-import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
-import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
-import { useQuotationServiceStore } from "../../hooks/stores/quotation.services.store.provider";
+// import { createQuotation } from "../../api/quotation.api";
+// import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
+// import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
+// import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
+// import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
+// import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
+// import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
+// import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
+// import { useQuotationServiceStore } from "../../hooks/stores/quotation.services.store.provider";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
 export const CreateQuotationVisualizeSection = ({
-  detailedOrder,
+  referenceData,
 }: {
-  detailedOrder: DetailedOrder;
+  referenceData: DesiredQuotationData["client"];
 }) => {
-  const [isSending, setIsSending] = useState(false);
-  const Navigate = useNavigate();
-  const inventory = useQuotationProductStore((state) => state.items);
-  const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
-  const quotationName = useQuotationReferenceStore((state) => state.name);
-  const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
-  const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
-  const pickupAddress = useQuotationPickupStore((state) => state.pickupAddress);
-  const emissionDate = useQuotationConditionStore(
-    (state) => state.emissionDate,
-  );
-  const expirationDate = useQuotationConditionStore(
-    (state) => state.expirationDate,
-  );
-  const conditions = useQuotationConditionStore((state) => state.conditions);
-  const observaciones = useQuotationConditionStore(
-    (state) => state.observations,
-  );
-  const servicios = useQuotationServiceStore((state)=>state.items)
-  const rate = useQuotationExchangeRate((s) => s.rate);
+  const [isSending, _setIsSending] = useState(false);
+  // const Navigate = useNavigate();
+  // const inventory = useQuotationProductStore((state) => state.items);
+  // const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
+  // const quotationName = useQuotationReferenceStore((state) => state.name);
+  // const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
+  // const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
+  // const pickupAddress = useQuotationPickupStore((state) => state.pickupAddress);
+  // const emissionDate = useQuotationConditionStore(
+  //   (state) => state.emissionDate,
+  // );
+  // const expirationDate = useQuotationConditionStore(
+  //   (state) => state.expirationDate,
+  // );
+  // const conditions = useQuotationConditionStore((state) => state.conditions);
+  // const observaciones = useQuotationConditionStore(
+  //   (state) => state.observations,
+  // );
+  // const servicios = useQuotationServiceStore((state)=>state.items)
+  // const rate = useQuotationExchangeRate((s) => s.rate);
   // const handleSend = async () => {
   //   try {
   //     setIsSending(true);
@@ -95,9 +96,9 @@ export const CreateQuotationVisualizeSection = ({
       <PdfPreview
         key={Date.now()}
         client={{
-          RUC: detailedOrder.Id_Cliente,
-          nombre_comercial: detailedOrder.Cliente_Nombre,
-          razon_social: detailedOrder.Razon_Social,
+          RUC: referenceData.DNIorRUC,
+          nombre_comercial: referenceData.comercialName,
+          razon_social: referenceData.companyName,
         }}
       />
     </>
