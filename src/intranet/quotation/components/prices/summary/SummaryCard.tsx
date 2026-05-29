@@ -12,7 +12,8 @@ import { useQuotationExchangeRate } from "@/intranet/quotation/hooks/stores/quot
 import { formatCurrency } from "@/shared/lib/format-currency";
 
 export const SummaryCard: FC = () => {
-  const { pickupCost, subtotal, total } = useSummaryCard();
+  const { productsSubtotal, servicesSubtotal, pickupCost, total } =
+    useSummaryCard();
   const rate = useQuotationExchangeRate((s) => s.rate);
   return (
     <Card className="sm:col-span-2 flex flex-col border shadow-none">
@@ -58,8 +59,12 @@ export const SummaryCard: FC = () => {
           </div>
         </div>
         <div className="flex flex-row justify-between min-w-full">
-          <p>Subtotal:</p>
-          <p>{subtotal}</p>
+          <p>Subtotal (Productos):</p>
+          <p>{productsSubtotal}</p>
+        </div>
+        <div className="flex flex-row justify-between min-w-full">
+          <p>Servicios:</p>
+          <p>{servicesSubtotal}</p>
         </div>
         <div className={`flex flex-row justify-between `}>
           <p>Costo de Recojo:</p>
