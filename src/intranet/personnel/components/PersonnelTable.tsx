@@ -80,11 +80,13 @@ export function PersonnelTable({
   onAdd,
   activeTab,
   setActiveTab,
+  canEdit,
 }: {
   onEdit: (id: string) => void
-  onAdd: () => void
+  onAdd?: () => void
   activeTab: "active" | "inactive"
   setActiveTab: (tab: "active" | "inactive") => void
+  canEdit: boolean
 }) {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set())
@@ -158,40 +160,46 @@ export function PersonnelTable({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700 gap-2">
-            <Plus className="w-4 h-4" />
-            Nuevo colaborador
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 bg-transparent">
-                Acciones
-                <ChevronDown className="w-4 h-4" />
+          {canEdit ? (
+            <>
+              <Button onClick={onAdd} className="bg-blue-600 hover:bg-blue-700 gap-2">
+                <Plus className="w-4 h-4" />
+                Nuevo colaborador
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-semibold text-foreground">Cargas masivas</p>
-              </div>
-              <DropdownMenuItem>Cargar o actualizar colaboradores</DropdownMenuItem>
-              <DropdownMenuItem>Cargar avatars</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-semibold text-foreground">Descargas masivas</p>
-              </div>
-              <DropdownMenuItem>Descargar colaboradores seleccionados ({selectedRows.size})</DropdownMenuItem>
-              <DropdownMenuItem>Descargar todos los colaboradores</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-semibold text-foreground">Acciones masivas</p>
-              </div>
-              <DropdownMenuItem>Restablecer contraseña de seleccionados ({selectedRows.size})</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                Dar de baja a colaboradores seleccionados ({selectedRows.size})
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2 bg-transparent">
+                    Acciones
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-semibold text-foreground">Cargas masivas</p>
+                  </div>
+                  <DropdownMenuItem>Cargar o actualizar colaboradores</DropdownMenuItem>
+                  <DropdownMenuItem>Cargar avatars</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-semibold text-foreground">Descargas masivas</p>
+                  </div>
+                  <DropdownMenuItem>Descargar colaboradores seleccionados ({selectedRows.size})</DropdownMenuItem>
+                  <DropdownMenuItem>Descargar todos los colaboradores</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-semibold text-foreground">Acciones masivas</p>
+                  </div>
+                  <DropdownMenuItem>Restablecer contraseña de seleccionados ({selectedRows.size})</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive">
+                    Dar de baja a colaboradores seleccionados ({selectedRows.size})
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">Vista de solo lectura</span>
+          )}
         </div>
       </div>
 
@@ -253,10 +261,16 @@ export function PersonnelTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEdit(person.id)}>Editar</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit(person.id)}>
+                        {canEdit ? "Editar" : "Ver"}
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                      {canEdit ? (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                        </>
+                      ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

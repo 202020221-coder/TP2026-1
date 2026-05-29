@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { useSession } from '@/security/session/hooks/stores/useSession.store';
+import { canEditPersonnel } from '@/intranet/layout/sidebar-links';
 import { WorkCalendar } from '../components/work-calendar';
 import { DailyStaffPanel } from '../components/daily-staff-panel';
 import { BudgetAnalysis } from '../components/budget-analysis';
@@ -16,6 +18,8 @@ import type { Proyecto, Jornada } from '../types';
 export default function OrganizarPersonalPage() {
   const { idProyecto } = useParams<{ idProyecto: string }>();
   const navigate = useNavigate();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canEdit = canEditPersonnel(role);
   const projectId = Number(idProyecto);
 
   const [proyecto, setProyecto] = useState<Proyecto | null>(null);
@@ -121,6 +125,7 @@ export default function OrganizarPersonalPage() {
               onRefresh={loadJornadas}
               fechaInicio={proyecto?.fecha_inicio ?? null}
               fechaFin={proyecto?.fecha_fin ?? null}
+              canEdit={canEdit}
             />
           </aside>
         </TabsContent>

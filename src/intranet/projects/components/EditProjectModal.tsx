@@ -27,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 interface EditProjectModalProps {
   project: Project;
   open: boolean;
+  canEdit: boolean;
   onClose: () => void;
 }
 
@@ -38,6 +39,7 @@ const toDateInput = (dateStr?: string) => {
 export const EditProjectModal: FC<EditProjectModalProps> = ({
   project,
   open,
+  canEdit,
   onClose,
 }) => {
   const queryClient = useQueryClient();
@@ -72,9 +74,15 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-800">
-            Editar Proyecto
+            {canEdit ? "Editar Proyecto" : "Ver Proyecto"}
           </DialogTitle>
         </DialogHeader>
+
+        {!canEdit ? (
+          <p className="text-sm text-muted-foreground">
+            Vista de solo lectura. Este rol puede consultar el proyecto, pero no modificarlo.
+          </p>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-4 py-2">
 
@@ -83,6 +91,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Label>Nombre del servicio</Label>
             <Input
               value={form.Cotizacion_Nombre ?? ""}
+              disabled={!canEdit}
               onChange={(e) =>
                 setForm({ ...form, Cotizacion_Nombre: e.target.value })
               }
@@ -91,16 +100,18 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
 
           {/* Factura + Guardar */}
           <div className="flex items-end justify-end gap-2">
-            <Button variant="outline" type="button">
+            <Button variant="outline" type="button" disabled={!canEdit}>
               Factura
             </Button>
-            <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
-              onClick={handleGuardar}
-              disabled={saving}
-            >
-              {saving ? "Guardando..." : "Guardar"}
-            </Button>
+            {canEdit ? (
+              <Button
+                className="bg-red-500 hover:bg-red-600 text-white"
+                onClick={handleGuardar}
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "Guardar"}
+              </Button>
+            ) : null}
           </div>
 
           {/* Descripción del servicio */}
@@ -109,6 +120,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Textarea
               rows={3}
               value={form.descripcion_servicio ?? ""}
+              disabled={!canEdit}
               onChange={(e) =>
                 setForm({ ...form, descripcion_servicio: e.target.value })
               }
@@ -120,6 +132,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Label>Ubicación</Label>
             <Input
               value={form.ubicacion ?? ""}
+              disabled={!canEdit}
               onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
             />
           </div>
@@ -135,6 +148,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Label>Estado</Label>
             <Select
               value={form.estado}
+              disabled={!canEdit}
               onValueChange={(val) =>
                 setForm({ ...form, estado: val as ProjectState })
               }
@@ -158,6 +172,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Input
               type="date"
               value={form.fecha_inicio ?? ""}
+              disabled={!canEdit}
               onKeyDown={(e) => e.preventDefault()}
               onChange={(e) =>
                 setForm({ ...form, fecha_inicio: e.target.value })
@@ -171,6 +186,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Input
               type="date"
               value={form.fecha_fin ?? ""}
+              disabled={!canEdit}
               onKeyDown={(e) => e.preventDefault()}
               onChange={(e) =>
                 setForm({ ...form, fecha_fin: e.target.value })
@@ -184,6 +200,7 @@ export const EditProjectModal: FC<EditProjectModalProps> = ({
             <Textarea
               rows={3}
               value={form.observaciones ?? ""}
+              disabled={!canEdit}
               onChange={(e) =>
                 setForm({ ...form, observaciones: e.target.value })
               }

@@ -1,7 +1,11 @@
 import React from "react";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canEditPersonnel } from "@/intranet/layout/sidebar-links";
 import { PersonnelForm, PersonnelTable } from "../components";
 
 export const PersonnelManagement = () => {
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canEdit = canEditPersonnel(role);
   const [view, setView] = React.useState<"table" | "form">("table");
   const [selectedPersonnelId, setSelectedPersonnelId] = React.useState<
     string | null
@@ -30,14 +34,16 @@ export const PersonnelManagement = () => {
       {view === "table" ? (
         <PersonnelTable
           onEdit={handleEdit}
-          onAdd={handleAdd}
+          onAdd={canEdit ? handleAdd : undefined}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          canEdit={canEdit}
         />
       ) : (
         <PersonnelForm
           personnelId={selectedPersonnelId}
           onCancel={handleCancel}
+          canEdit={canEdit}
         />
       )}
     </>

@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Edit2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Edit2, ChevronLeft, ChevronRight, Search, Eye } from "lucide-react";
 import type { Proyecto } from "../interfaces/proyecto";
 import { formatDate } from "@/shared/lib/utils";
 import { ESTADO_BADGES, ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
@@ -26,9 +26,11 @@ import { useInventarioDelProyecto, useCamionesByProyecto } from "../hooks/useOrg
 function ProyectoRow({
   proyecto,
   onEdit,
+  canEdit,
 }: {
   proyecto: Proyecto;
   onEdit: (id: number) => void;
+  canEdit: boolean;
 }) {
   const { data: inventario } = useInventarioDelProyecto(proyecto.id_Proyecto);
   const { data: camiones } = useCamionesByProyecto(proyecto.id_Proyecto);
@@ -87,8 +89,12 @@ function ProyectoRow({
           onClick={() => onEdit(proyecto.id_Proyecto)}
           className="gap-1"
         >
-          <Edit2 className="h-3 w-3" />
-          Editar
+          {canEdit ? (
+            <Edit2 className="h-3 w-3" />
+          ) : (
+            <Eye className="h-3 w-3" />
+          )}
+          {canEdit ? "Editar" : "Ver"}
         </Button>
       </TableCell>
     </TableRow>
@@ -99,6 +105,7 @@ interface ProyectosTableProps {
   proyectos: Proyecto[];
   isLoading: boolean;
   onEdit: (id: number) => void;
+  canEdit: boolean;
   pagination: {
     total: number;
     page: number;
@@ -112,6 +119,7 @@ export function ProyectosTable({
   proyectos,
   isLoading,
   onEdit,
+  canEdit,
   pagination,
   onPageChange,
 }: ProyectosTableProps) {
@@ -193,6 +201,7 @@ export function ProyectosTable({
                   key={proyecto.id_Proyecto}
                   proyecto={proyecto}
                   onEdit={onEdit}
+                  canEdit={canEdit}
                 />
               ))
             )}

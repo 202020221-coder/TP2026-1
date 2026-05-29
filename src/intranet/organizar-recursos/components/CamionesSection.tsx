@@ -38,6 +38,7 @@ import { ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
 
 interface CamioneSectionProps {
   projectId: number;
+  canEdit: boolean;
 }
 
 type CamionFormData = {
@@ -51,7 +52,7 @@ type CamionFormData = {
   estado: string;
 };
 
-export function CamionesSection({ projectId }: CamioneSectionProps) {
+export function CamionesSection({ projectId, canEdit }: CamioneSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingCamion, setEditingCamion] = useState<Camion | null>(null);
   const today = new Date().toISOString().split("T")[0];
@@ -151,17 +152,18 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Camiones</h3>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Agregar Camión
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
-            <DialogHeader>
-              <DialogTitle>Agregar Camión al Proyecto</DialogTitle>
-            </DialogHeader>
+        {canEdit ? (
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Agregar Camión
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>Agregar Camión al Proyecto</DialogTitle>
+              </DialogHeader>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
@@ -309,17 +311,21 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
                 {isAddingCamion ? "Agregando..." : "Agregar Camión"}
               </Button>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <span className="text-sm text-muted-foreground">Solo lectura</span>
+        )}
       </div>
 
       {/* Dialog edición */}
-      <Dialog open={!!editingCamion} onOpenChange={(open) => !open && setEditingCamion(null)}>
-        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Editar Camión — {editingCamion?.Placa}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={onEditSubmit} className="space-y-4">
+      {canEdit ? (
+        <Dialog open={!!editingCamion} onOpenChange={(open) => !open && setEditingCamion(null)}>
+          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>Editar Camión — {editingCamion?.Placa}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={onEditSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Placa *</label>
               <Input placeholder="Ej: ABC-123" {...editForm.register("placa", { required: "Requerida" })} className="mt-1" />
@@ -370,9 +376,10 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
             <Button type="submit" disabled={isUpdatingCamion} className="w-full">
               {isUpdatingCamion ? "Guardando..." : "Guardar Cambios"}
             </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       <div className="rounded-lg border border-border overflow-x-auto">
         <Table>
@@ -427,14 +434,18 @@ export function CamionesSection({ projectId }: CamioneSectionProps) {
                   </TableCell>
                   <TableCell className="text-sm">{camion.estado || "—"}</TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEdit(camion)}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {canEdit ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(camion)}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Solo lectura</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

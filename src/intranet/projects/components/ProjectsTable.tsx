@@ -11,7 +11,7 @@ import { ProjectsTableHeader } from "./ProjectsTableHeader";
 import { ProjectTableRow } from "./ProjectTableRow";
 import { useProjects } from "../hooks/useProjects";
 
-export const ProjectsTable: FC = () => {
+export const ProjectsTable: FC<{ canEdit: boolean }> = ({ canEdit }) => {
   const { result, queryParams } = useProjects();
   const { isPending, isFetching, isError, error, data } = result;
 
@@ -40,7 +40,7 @@ export const ProjectsTable: FC = () => {
           ) : (
             <>
               {data.data.map((p) => (
-                <ProjectTableRow project={p} key={p.id_Proyecto} />
+                <ProjectTableRow project={p} key={p.id_Proyecto} canEdit={canEdit} />
               ))}
             </>
           )}

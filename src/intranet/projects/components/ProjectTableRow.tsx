@@ -4,7 +4,7 @@ import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil, Send } from "lucide-react";
+import { Users, FileText, AlertTriangle, Pencil, Send, Eye } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,7 +15,7 @@ import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.re
 import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
 import { toast } from "sonner";
 
-export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
+export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ project, canEdit }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -54,6 +54,7 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
       <EditProjectModal
         project={project}
         open={modalOpen}
+        canEdit={canEdit}
         onClose={() => setModalOpen(false)}
       />
 
@@ -208,12 +209,16 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
                 className="h-8 px-3 text-gray-600 border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-600 hover:border-gray-500 transition-colors"
                 onClick={() => setModalOpen(true)}
               >
-                <Pencil className="w-3.5 h-3.5 mr-1 text-gray-600" />
-                Edit
+                {canEdit ? (
+                  <Pencil className="w-3.5 h-3.5 mr-1 text-gray-600" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5 mr-1 text-gray-600" />
+                )}
+                {canEdit ? "Editar" : "Ver"}
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white border border-gray-400 text-gray-600">
-              Editar proyecto
+              {canEdit ? "Editar proyecto" : "Ver proyecto"}
             </TooltipContent>
           </Tooltip>
         </TableCell>

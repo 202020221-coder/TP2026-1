@@ -20,6 +20,7 @@ interface Props {
   onRefresh: () => void;
   fechaInicio: string | null;
   fechaFin: string | null;
+  canEdit: boolean;
 }
 
 const parseISODateOnly = (iso: string | null): Date | null => {
@@ -63,6 +64,7 @@ export function DailyStaffPanel({
   onRefresh,
   fechaInicio,
   fechaFin,
+  canEdit,
 }: Props) {
   const [adding, setAdding] = useState(false);
   const [disponibles, setDisponibles] = useState<TrabajadorDisponible[]>([]);
@@ -252,12 +254,18 @@ export function DailyStaffPanel({
         <span className="text-sm font-medium">
           Personal ({dayJornadas.length})
         </span>
-        {!adding && isWithinProject && (
+        {canEdit && !adding && isWithinProject && (
           <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
             <Plus className="w-3 h-3 mr-1" /> Agregar
           </Button>
         )}
       </div>
+
+      {!canEdit ? (
+        <div className="mx-4 mb-3 p-3 border border-slate-200 rounded-xl bg-slate-50 text-xs text-slate-700 shrink-0">
+          Vista de solo lectura. No puedes agregar ni eliminar trabajadores.
+        </div>
+      ) : null}
 
       {!isWithinProject && (
         <div className="mx-4 mb-3 p-3 border border-amber-300 rounded-xl bg-amber-50 text-xs text-amber-800 shrink-0">
@@ -266,7 +274,7 @@ export function DailyStaffPanel({
         </div>
       )}
 
-      {adding && (
+      {canEdit && adding && (
         <div className="mx-4 mb-3 p-3 border rounded-xl bg-orange-50 space-y-2 shrink-0">
           <p className="text-xs font-medium">Nuevo trabajador</p>
           <select
@@ -367,18 +375,20 @@ export function DailyStaffPanel({
                 </p>
                 <p className="text-xs text-gray-400">DNI: {j.DNI_Trabajador}</p>
               </div>
-              <button
-                onClick={() => handleDelete(j)}
-                className="p-1 rounded hover:bg-red-50 disabled:opacity-50"
-                title="Eliminar"
-                disabled={deletingId === j.Id_Jornada}
-              >
-                {deletingId === j.Id_Jornada ? (
-                  <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                )}
-              </button>
+              {canEdit ? (
+                <button
+                  onClick={() => handleDelete(j)}
+                  className="p-1 rounded hover:bg-red-50 disabled:opacity-50"
+                  title="Eliminar"
+                  disabled={deletingId === j.Id_Jornada}
+                >
+                  {deletingId === j.Id_Jornada ? (
+                    <Loader2 className="w-3.5 h-3.5 text-red-400 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  )}
+                </button>
+              ) : null}
             </div>
           </div>
         ))}

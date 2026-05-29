@@ -13,12 +13,14 @@ import { CamionesSection } from "./CamionesSection";
 interface EditProyectoModalProps {
   projectId: number | null;
   isOpen: boolean;
+  canEdit: boolean;
   onClose: () => void;
 }
 
 export function EditProyectoModal({
   projectId,
   isOpen,
+  canEdit,
   onClose,
 }: EditProyectoModalProps) {
   const { data: proyecto, isLoading, refetch } = useProyecto(projectId || 0);
@@ -34,7 +36,9 @@ export function EditProyectoModal({
       <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-xl">
-            {isLoading ? "Cargando..." : `Editar Proyecto #${projectId}`}
+            {isLoading
+              ? "Cargando..."
+              : `${canEdit ? "Editar" : "Ver"} Proyecto #${projectId}`}
           </DialogTitle>
           {!isLoading && proyecto?.Cotizacion_Nombre && (
             <p className="text-sm text-muted-foreground">
@@ -42,6 +46,12 @@ export function EditProyectoModal({
             </p>
           )}
         </DialogHeader>
+
+        {!canEdit && !isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            Vista de solo lectura. Este rol puede consultar los recursos del proyecto, pero no modificarlos.
+          </p>
+        ) : null}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -84,11 +94,11 @@ export function EditProyectoModal({
 
               <hr />
 
-              <InventarioSection projectId={projectId || 0} />
+              <InventarioSection projectId={projectId || 0} canEdit={canEdit} />
 
               <hr />
 
-              <CamionesSection projectId={projectId || 0} />
+              <CamionesSection projectId={projectId || 0} canEdit={canEdit} />
             </div>
           </div>
         ) : (

@@ -14,6 +14,12 @@ export const routes: IRoute[] = [
     path: "/",
     Component: OrganizarRecursosPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+    ],
   },
 ];

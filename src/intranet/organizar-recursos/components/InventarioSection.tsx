@@ -38,9 +38,10 @@ import { ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
 
 interface InventarioSectionProps {
   projectId: number;
+  canEdit: boolean;
 }
 
-export function InventarioSection({ projectId }: InventarioSectionProps) {
+export function InventarioSection({ projectId, canEdit }: InventarioSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventarioDelProyectoItem | null>(null);
 
@@ -155,17 +156,18 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Objetos / Equipos</h3>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Agregar Objeto
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
-            <DialogHeader>
-              <DialogTitle>Agregar Objeto al Proyecto</DialogTitle>
-            </DialogHeader>
+        {canEdit ? (
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Agregar Objeto
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>Agregar Objeto al Proyecto</DialogTitle>
+              </DialogHeader>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
@@ -308,17 +310,21 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                 {isAddingInventario ? "Agregando..." : "Agregar Objeto"}
               </Button>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <span className="text-sm text-muted-foreground">Solo lectura</span>
+        )}
       </div>
 
       {/* Dialog edición */}
-      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
-        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Editar Objeto — {editingItem?.Objeto_Nombre}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={onEditSubmit} className="space-y-4">
+      {canEdit ? (
+        <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[85vw] max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>Editar Objeto — {editingItem?.Objeto_Nombre}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={onEditSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Cantidad *</label>
               <Input type="number" min="1" {...editForm.register("cantidad", { required: "Requerida" })} className="mt-1" />
@@ -364,9 +370,10 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
             <Button type="submit" disabled={isUpdatingInventario} className="w-full">
               {isUpdatingInventario ? "Guardando..." : "Guardar Cambios"}
             </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       <div className="rounded-lg border border-border">
         <Table>
@@ -415,14 +422,18 @@ export function InventarioSection({ projectId }: InventarioSectionProps) {
                   </TableCell>
                   <TableCell className="text-sm">{item.estado || "—"}</TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEdit(item)}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {canEdit ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(item)}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Solo lectura</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

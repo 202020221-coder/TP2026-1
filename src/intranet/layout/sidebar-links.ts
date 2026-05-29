@@ -3,6 +3,35 @@
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import type { UserRole } from "@/security/session/interfaces/roles";
 
+const hasRole = (
+  role: UserRole | null | undefined,
+  allowedRoles: readonly UserRole[],
+) => !!role && allowedRoles.includes(role);
+
+export const projectEditableRoles = [
+  RolesRecord.projectAdmin,
+  RolesRecord.manager,
+] as const;
+
+export const personnelEditableRoles = [
+  RolesRecord.projectAdmin,
+  RolesRecord.manager,
+  RolesRecord.lawyer,
+] as const;
+
+export const resourceEditableRoles = [
+  RolesRecord.lawyer,
+] as const;
+
+export const canEditProjects = (role: UserRole | null | undefined) =>
+  hasRole(role, projectEditableRoles);
+
+export const canEditPersonnel = (role: UserRole | null | undefined) =>
+  hasRole(role, personnelEditableRoles);
+
+export const canEditResources = (role: UserRole | null | undefined) =>
+  hasRole(role, resourceEditableRoles);
+
 export interface IMenu {
   title: string;
   url?: string;
@@ -49,8 +78,14 @@ export const sidebarLinks: IMenu[] = [
     icon: "BriefcaseBusiness",
   },
   {
-    title: "Personal",
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
+    title: "Gestionar Trabajadores",
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+    ],
     url: "/intranet/personal/",
     icon: "Users",
   },
@@ -67,8 +102,15 @@ export const sidebarLinks: IMenu[] = [
     icon: "CalendarDays",
   },
   {
-    title: "Proyectos",
-    roles: [RolesRecord.manager, RolesRecord.client, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
+    title: "Gestionar Proyectos",
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+      RolesRecord.client,
+    ],
     url: "/intranet/proyectos/",
     icon: "BriefcaseBusiness",
   },
@@ -79,10 +121,22 @@ export const sidebarLinks: IMenu[] = [
     icon: "FileText",
   },
   {
-    title: "Ver Incidencias",
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
+    title: "Gestionar Incidencias",
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+    ],
     url: "/intranet/organizar-recursos/",
     icon: "ClipboardList",
+  },
+  {
+    title: "Gestionar Recursos",
+    roles: [RolesRecord.lawyer, RolesRecord.fieldSupervisor],
+    url: "/intranet/organizar-recursos/",
+    icon: "FileText",
   },
   {
     title: "Presupuesto Interno",
