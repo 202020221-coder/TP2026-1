@@ -26,7 +26,7 @@ import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchang
 import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
-import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQuotationVisualizeSection";
+import { QuotationVisualizeSection } from "../components/visualize/QuotationVisualizeSection";
 import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -136,7 +136,9 @@ export function CreateQuotationPage() {
                             <CreateQuotationConditionCard />
                           </TabsContent>
                           <TabsContent value="visualize">
-                            <CreateQuotationVisualizeSection
+                            <QuotationVisualizeSection
+                              mode="create"
+                              orderId={orderId}
                               referenceData={initialData.client}
                             />
                           </TabsContent>

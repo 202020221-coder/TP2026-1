@@ -82,6 +82,12 @@ export const createQuotation = async (data: CreateQuotationBody) => {
   await axiosInstance.post("/cotizaciones", data);
 };
 
+export type UpdateQuotationBody = Omit<CreateQuotationBody, "id_solicitud" | "DNI_O_RUC">;
+
+export const updateQuotation = async (id: number, data: UpdateQuotationBody) => {
+  await axiosInstance.put(`/cotizaciones/${id}`, data);
+};
+
 export type AdminQuotationDetailsData = {
   ID: number;
   nombre: string;

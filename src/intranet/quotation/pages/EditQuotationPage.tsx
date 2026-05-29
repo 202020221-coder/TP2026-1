@@ -28,6 +28,7 @@ import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQ
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
 import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
+import { QuotationVisualizeSection } from "../components/visualize/QuotationVisualizeSection";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useNavigate } from "react-router";
@@ -143,13 +144,11 @@ export function EditQuotationPage() {
                               <CreateQuotationConditionCard />
                             </TabsContent>
                             <TabsContent value="visualize">
-                              {/* <PdfPreview
-                              client={{
-                                RUC: data.client.DNI_O_RUC,
-                                nombre_comercial: data.client.nombre_comercial,
-                                razon_social: data.client.razon_social,
-                              }}
-                            /> */}
+                              <QuotationVisualizeSection
+                                mode="update"
+                                quotationId={quotationId}
+                                referenceData={data.client}
+                              />
                             </TabsContent>
                           </div>
                         </ScrollArea>
