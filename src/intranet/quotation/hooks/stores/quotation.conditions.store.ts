@@ -1,13 +1,11 @@
 import { createStore } from "zustand";
 import { format, addDays } from "date-fns";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
-type State = {
-  emissionDate: string;
-  expirationDate: string;
-  conditions: string;
-  observaciones: string;
+type ICondition = DesiredQuotationData["quotationConditions"];
+interface State extends ICondition {
   initialized: boolean;
-};
+}
 
 type Actions = {
   update: <K extends keyof ConditionState>(
@@ -25,7 +23,7 @@ const defaultState = () => ({
   emissionDate: format(new Date(), "yyyy-MM-dd"),
   expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
   conditions: "",
-  observaciones: "",
+  observations: "",
 });
 
 export const createConditionsStore = (initialData?: ConditionState) =>

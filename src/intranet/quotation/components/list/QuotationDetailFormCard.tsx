@@ -146,10 +146,12 @@ export function QuotationDetailFormCard({
               </CardHeader>
               <CardContent>
                 <QuotationServicesTable
-                  items={quotation.servicios}
+                  items={[]}
                   readOnly={true}
-                  onUpdateQuantity={undefined}
                   onUpdateUnitPrice={undefined}
+                  onUpdateDueDate={undefined}
+                  onUpdateSchedule={undefined}
+                  onUpdateStartDate={undefined}
                   onDelete={undefined}
                 />
               </CardContent>

@@ -1,58 +1,62 @@
 export type QuotationAdminDetailData = {
-  ID: number;
+  id: number;
   nombre: string;
   estado: string;
   version: number;
-  client: {
-    DNI_O_RUC: string;
-    nombre_comercial: string;
-    razon_social: string;
+  cliente: {
+    documentoIdentidad: string;
+    nombreComercial: string;
+    razonSocial: string;
   };
   productos: ({
     id: string;
     nombre: string;
     cantidad: number;
-    precio_unitario: number;
+    precioUnitario: number;
   } & (
     | { intencion: "comprar"; dias_alquilados: null }
     | { intencion: "alquilar"; dias_alquilados: number }
   ))[];
   servicios: {
-    id: string;
+    idServicio: number;
     nombre: string;
-    cantidad: number;
-    precio_unitario: number;
+    fecha_inicio: string;
+    fecha_finalizacion: string;
+    jornada:string;
+    precio_comercial: string;
+    ubicacion: string;
   }[];
   camiones: {
-    Placa: string;
+    placa: string;
     nombre: string;
-    ano_fabricacion: number;
+    anoFabricacion: number;
     modelo: string;
     color: string;
     caracteristicas: string;
-    revision_tecnica: string;
-    fecha_prox_revision: string;
-    ID_Fabricante: string | null;
-    tarjeta_propiedad: string;
-    vencimiento_tarjeta: string;
-    soat_n_poliza: string;
-    soat_empresa: string;
-    soat_precio: string;
-    soat_dia_pago: string;
+    revisionTecnica: string;
+    fechaProximaRevision: string;
+    tarjetaPropiedad: string;
+    vencimientoTarjeta: string;
+    soatPoliza: string;
+    soatEmpresa: string;
+    soatPrecio: string;
+    soatDiaPago: string;
   }[];
   costoRecojo: {
     costo: number;
     fechaRecojo: string;
     direccionRecojo: string;
-  };
+  } | null;
   condiciones: {
     fechaEmision: string;
     fechaVigencia: string;
     condiciones: string;
     observaciones: string;
   };
-  tasaCambio: {
+  tipoCambio: {
     tasaCompra: number;
     tasaVenta: number;
   };
+  etapas: string | null;
+  duracion_etapas: string | null;
 };

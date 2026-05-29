@@ -1,27 +1,29 @@
 import { createStore } from "zustand";
-import type { QuotationProduct } from "../../interfaces/quotation";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
+
+type Product = DesiredQuotationData["inventory"][number];
 
 type State = {
-  items: Record<QuotationProduct["id"], QuotationProduct>;
+  items: Record<Product["id"], Product>;
   initialized: boolean;
 };
 
 type Actions = {
-  initialize: (items: QuotationProduct[]) => void;
-  updateItem: <K extends keyof QuotationProduct>(
-    id: QuotationProduct["id"],
+  initialize: (items: Product[]) => void;
+  updateItem: <K extends keyof Product>(
+    id: Product["id"],
     field: K,
-    value: QuotationProduct[K],
+    value: Product[K],
   ) => void;
-  removeItem: (id: QuotationProduct["id"]) => void;
-  addItems: (item: QuotationProduct[]) => void;
+  removeItem: (id: Product["id"]) => void;
+  addItems: (item: Product[]) => void;
   reset: () => void;
 };
 
 export type ProductsState = State;
 export type ProductsStore = State & Actions;
 
-export const createProductsStore = (initialProducts?: QuotationProduct[]) =>
+export const createProductsStore = (initialProducts?: Product[]) =>
   createStore<ProductsStore>((set) => ({
     items: initialProducts
       ? Object.fromEntries(initialProducts.map((p) => [p.id, p]))

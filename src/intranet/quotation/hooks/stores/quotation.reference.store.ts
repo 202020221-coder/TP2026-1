@@ -1,6 +1,9 @@
 import { createStore } from "zustand";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
-type State = {
+type ReferenceData = Pick<DesiredQuotationData,"name">
+
+interface State extends ReferenceData {
   name: string;
   initialized: boolean;
 };

@@ -15,12 +15,14 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { differenceInDays, format } from "date-fns";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Badge } from "@/shared/components/ui/badge";
+import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
+type QuotationTruck = DesiredQuotationData["trucks"][number]
 
 interface TruckSelectorProps {
   readOnly?: boolean;
-  selectedTrucks: Truck[];
-  onSelectedTrucks: (trucks: Truck[]) => void;
+  selectedTrucks: QuotationTruck[];
+  onSelectedTrucks: (trucks: QuotationTruck[]) => void;
 }
 
 export const TruckSelector: FC<TruckSelectorProps> = ({
@@ -34,9 +36,9 @@ export const TruckSelector: FC<TruckSelectorProps> = ({
   const handleToggle = useCallback(
     (truck: Truck, checked: boolean) => {
       if (checked) {
-        onSelectedTrucks([...selectedTrucks, truck]);
+        onSelectedTrucks([...selectedTrucks, {plate:truck.Placa, color: truck.color, description:truck.caracteristicas, maintenanceDate:truck.fecha_prox_revision, model:truck.modelo}]);
       } else {
-        onSelectedTrucks(selectedTrucks.filter((t) => t.Placa !== truck.Placa));
+        onSelectedTrucks(selectedTrucks.filter((t) => t.plate !== truck.Placa));
       }
     },
     [selectedTrucks, onSelectedTrucks],
@@ -79,7 +81,7 @@ export const TruckSelector: FC<TruckSelectorProps> = ({
                   key={truck.Placa}
                   truck={truck}
                   checked={selectedTrucks.some(
-                    (t) => t.Placa === truck.Placa,
+                    (t) => t.plate === truck.Placa,
                   )}
                   onToggle={handleToggle}
                   readOnly={readOnly}

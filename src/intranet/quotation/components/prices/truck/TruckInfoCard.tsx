@@ -9,7 +9,9 @@ import {
 import { Truck as TruckIcon } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { Badge } from "@/shared/components/ui/badge";
-import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
+import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
+
+type Truck = DesiredQuotationData["trucks"][number]
 
 interface TruckInfoCardProps {
   trucks: Truck[];
@@ -37,7 +39,7 @@ export const TruckInfoCard: FC<TruckInfoCardProps> = ({ trucks }) => {
         ) : (
           <div className="space-y-3">
             {trucks.map((truck) => (
-              <TruckCard key={truck.Placa} truck={truck} />
+              <TruckCard key={truck.plate} truck={truck} />
             ))}
           </div>
         )}
@@ -47,7 +49,7 @@ export const TruckInfoCard: FC<TruckInfoCardProps> = ({ trucks }) => {
 };
 
 const TruckCard: FC<{ truck: Truck }> = memo(({ truck }) => {
-  const revisionDate = new Date(truck.fecha_prox_revision);
+  const revisionDate = new Date(truck.maintenanceDate);
   const today = new Date();
   const daysUntilRevision = differenceInDays(revisionDate, today);
   const needsRevisionSoon = daysUntilRevision <= 30 && daysUntilRevision >= 0;
@@ -58,22 +60,21 @@ const TruckCard: FC<{ truck: Truck }> = memo(({ truck }) => {
         <div className="flex-1 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold tracking-tight">
-              {truck.Placa}
+              {truck.plate}
             </span>
             <Badge variant={needsRevisionSoon ? "destructive" : "secondary"}>
               {needsRevisionSoon ? "Revisión próxima" : "Vigente"}
             </Badge>
           </div>
-          <div className="text-sm text-muted-foreground">{truck.nombre}</div>
           <div className="text-sm text-muted-foreground">
-            {truck.modelo} • {truck.ano_fabricacion} • {truck.color}
+            {truck.model} • {truck.color}
           </div>
           <div className="text-xs text-muted-foreground">
             Próx revisión: {format(revisionDate, "dd MMM yyyy")}
           </div>
-          {truck.caracteristicas && (
+          {truck.description && (
             <div className="text-xs text-muted-foreground">
-              {truck.caracteristicas}
+              {truck.description}
             </div>
           )}
         </div>

@@ -15,21 +15,12 @@ import {
   Eye,
   AlertCircle,
   ArrowLeft,
-  SquareChartGantt,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
-import { QuotationServicesTable } from "../components/prices/services/ServicesTable";
 import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
 import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";

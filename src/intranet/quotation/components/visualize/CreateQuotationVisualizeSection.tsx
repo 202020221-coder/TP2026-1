@@ -12,6 +12,7 @@ import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditi
 import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import type { DetailedOrder } from "@/intranet/orders/interfaces/order";
+import { useQuotationServiceStore } from "../../hooks/stores/quotation.services.store.provider";
 
 export const CreateQuotationVisualizeSection = ({
   detailedOrder,
@@ -34,58 +35,59 @@ export const CreateQuotationVisualizeSection = ({
   );
   const conditions = useQuotationConditionStore((state) => state.conditions);
   const observaciones = useQuotationConditionStore(
-    (state) => state.observaciones,
+    (state) => state.observations,
   );
+  const servicios = useQuotationServiceStore((state)=>state.items)
   const rate = useQuotationExchangeRate((s) => s.rate);
-  const handleSend = async () => {
-    try {
-      setIsSending(true);
-      toast.promise(
-        async () => {
-          await createQuotation({
-            id_solicitud: detailedOrder.ID,
-            DNI_O_RUC: detailedOrder.Id_Cliente,
-            nombre: quotationName || "cotizacion nombre",
-            condiciones: {
-              condiciones: conditions,
-              fechaEmision: emissionDate,
-              fechaVigencia: expirationDate,
-              observaciones,
-            },
-            costoRecojo: {
-              costo: pickupCost,
-              direccionRecojo: pickupAddress,
-              fechaRecojo: pickupDate,
-            },
-            id_camion: trucks[0]?.Placa ?? "",
-            productos: Object.values(inventory),
-            servicios:[],
-            tasaCambio: {
-              tasaCompra: rate?.buyingRate ?? 0.0,
-              tasaVenta: rate?.sellingRate ?? 0.0,
-            }, //obtener tasa siempre al entrar
-          });
-          Navigate("/intranet/solicitudes");
-        }, // tu promesa real aquí
-        {
-          loading: "Loading...",
-          success: "Cotización enviada con éxito.",
-          error: "Error",
-        },
-      );
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSending(false);
-    }
-  };
+  // const handleSend = async () => {
+  //   try {
+  //     setIsSending(true);
+  //     toast.promise(
+  //       async () => {
+  //         await createQuotation({
+  //           id_solicitud: detailedOrder.ID,
+  //           DNI_O_RUC: detailedOrder.Id_Cliente,
+  //           nombre: quotationName || "cotizacion nombre",
+  //           condiciones: {
+  //             condiciones: conditions,
+  //             fechaEmision: emissionDate,
+  //             fechaVigencia: expirationDate,
+  //             observaciones,
+  //           },
+  //           costoRecojo: {
+  //             costo: pickupCost,
+  //             direccionRecojo: pickupAddress,
+  //             fechaRecojo: pickupDate,
+  //           },
+  //           camiones: trucks,
+  //           productos: Object.values(inventory),
+  //           servicios:Object.values(servicios),
+  //           tasaCambio: {
+  //             tasaCompra: rate?.buyingRate ?? 0.0,
+  //             tasaVenta: rate?.sellingRate ?? 0.0,
+  //           }, //obtener tasa siempre al entrar
+  //         });
+  //         Navigate("/intranet/solicitudes");
+  //       }, // tu promesa real aquí
+  //       {
+  //         loading: "Loading...",
+  //         success: "Cotización enviada con éxito.",
+  //         error: "Error",
+  //       },
+  //     );
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setIsSending(false);
+  //   }
+  // };
 
   return (
     <>
       <Button
         className="w-full mb-2 h-14"
         disabled={isSending}
-        onClick={handleSend}
+        onClick={()=>{}}
       >
         <Send className="mr-2 h-4 w-4" />
         {isSending ? "Enviando..." : "Crear Cotización y enviar al cliente"}

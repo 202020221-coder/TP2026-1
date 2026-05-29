@@ -1,3 +1,4 @@
+import type { TruckState } from "@/intranet/quotation/hooks/stores/quotation.truck.store";
 import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
@@ -34,7 +35,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const TruckDriverSection = ({ trucks }: { trucks: Truck[] }) => (
+const TruckDriverSection = ({
+  trucks,
+}: {
+  trucks: TruckState["selectedTrucks"];
+}) => (
   <View style={styles.section}>
     <Text style={styles.title}>Camiones Asignados</Text>
 
@@ -42,19 +47,20 @@ const TruckDriverSection = ({ trucks }: { trucks: Truck[] }) => (
       <Text style={{ fontSize: 10 }}>No hay camiones asignados.</Text>
     ) : (
       trucks.map((truck, index) => (
-        <View key={truck.Placa} style={index < trucks.length - 1 ? styles.truckBlock : undefined}>
+        <View
+          key={truck.plate}
+          style={index < trucks.length - 1 ? styles.truckBlock : undefined}
+        >
           <Text style={{ fontSize: 10, fontWeight: "bold", marginBottom: 4 }}>
             Camión {index + 1}
           </Text>
           <View style={styles.row}>
             <Text style={styles.label}>Placa:</Text>
-            <Text style={styles.value}>{truck.Placa}</Text>
+            <Text style={styles.value}>{truck.plate}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Modelo:</Text>
-            <Text style={styles.value}>
-              {truck.modelo} ({truck.ano_fabricacion})
-            </Text>
+            <Text style={styles.value}>{truck.model}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Color:</Text>
@@ -62,11 +68,11 @@ const TruckDriverSection = ({ trucks }: { trucks: Truck[] }) => (
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Próx. Revisión:</Text>
-            <Text style={styles.value}>{truck.fecha_prox_revision}</Text>
+            <Text style={styles.value}>{truck.maintenanceDate}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Características:</Text>
-            <Text style={styles.value}>{truck.caracteristicas}</Text>
+            <Text style={styles.value}>{truck.description}</Text>
           </View>
         </View>
       ))

@@ -1,5 +1,7 @@
-import type { Truck } from "../../interfaces/create/order-trucks";
 import { createStore } from "zustand";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
+
+type Truck = DesiredQuotationData["trucks"][number];
 
 type State = {
   selectedTrucks: Truck[];
@@ -9,7 +11,7 @@ type State = {
 type Actions = {
   setSelectedTrucks: (trucks: Truck[]) => void;
   addTruck: (truck: Truck) => void;
-  removeTruck: (placa: Truck["Placa"]) => void;
+  removeTruck: (plate: Truck["plate"]) => void;
   initialize: (data: Pick<State, "selectedTrucks">) => void;
 };
 
@@ -27,15 +29,13 @@ export const createTruckStore = (initialData?: TruckState) =>
     addTruck: (truck) =>
       set((state) => ({
         selectedTrucks: state.selectedTrucks.some(
-          (t) => t.Placa === truck.Placa,
+          (t) => t.plate === truck.plate,
         )
           ? state.selectedTrucks
           : [...state.selectedTrucks, truck],
       })),
-    removeTruck: (placa) =>
+    removeTruck: (plate) =>
       set((state) => ({
-        selectedTrucks: state.selectedTrucks.filter(
-          (t) => t.Placa !== placa,
-        ),
+        selectedTrucks: state.selectedTrucks.filter((t) => t.plate !== plate),
       })),
   }));

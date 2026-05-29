@@ -6,31 +6,25 @@ import CostSummary from "./pdf/CostSummary";
 import PickupSection from "./pdf/PickupSection";
 import TruckDriverSection from "./pdf/TruckDriverSection";
 import ConditionsSection from "./pdf/ConditionsSection";
-import type { Truck } from "../../interfaces/create/order-trucks";
-import type { QuotationProduct } from "../../interfaces/quotation";
+import type { ConditionState } from "../../hooks/stores/quotation.conditions.store";
+import type { PickupState } from "../../hooks/stores/quotation.pickup.store";
+import type { TruckState } from "../../hooks/stores/quotation.truck.store";
+import type { ProductsState } from "../../hooks/stores/quotation.products.store";
 const styles = StyleSheet.create({
   page: { padding: 30, fontFamily: "Helvetica" },
 });
 
-interface PDFQuotationDocumentProps {
+export interface PDFQuotationDocumentProps {
   data: {
     client: {
       RUC: string;
       nombre_comercial: string;
       razon_social: string;
     };
-    inventory: Record<string, QuotationProduct>;
-    trucks: Truck[];
-    pickup: {
-      pickupCost: number;
-      pickupDate: string;
-    };
-    conditions: {
-      emissionDate: string;
-      expirationDate: string;
-      conditions: string;
-      observaciones?: string;
-    };
+    inventory: ProductsState["items"];
+    trucks: TruckState["selectedTrucks"];
+    pickup: PickupState;
+    conditions: ConditionState
   };
 }
 

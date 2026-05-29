@@ -63,7 +63,7 @@ export const getQuotationForClient = async (
 export const getQuotationForAdmin = async (
   id: Quotation["ID"],
 ): Promise<QuotationAdminDetailData> => {
-  const response = await axiosInstance.get<QuotationDetailsData>(
+  const response = await axiosInstance.get<QuotationAdminDetailData>(
     `/cotizaciones/${id}/detalles-franco`,
   );
 
@@ -74,22 +74,7 @@ export const getQuotationForAdmin = async (
   };
   return {
     ...response.data,
-    camiones: (response.data.camiones ?? []).map(normalizeTruck),
     costoRecojo,
-    tasaCambio: response.data.tipoCambio,
-    servicios: response.data.servicios ?? [],
-    client: {
-      DNI_O_RUC: response.data.cliente.documentoIdentidad,
-      nombre_comercial: response.data.cliente.nombreComercial,
-      razon_social: response.data.cliente.razonSocial,
-    },
-    productos: response.data.productos.map(
-      ({ precioUnitario, ...rest }) =>
-        ({
-          ...rest,
-          precio_unitario: Number(precioUnitario),
-        }) as QuotationProduct,
-    ),
   };
 };
 

@@ -1,5 +1,5 @@
 import { PDFViewer } from "@react-pdf/renderer";
-import { PdfDocument } from "./PdfDocument";
+import { PdfDocument, type PDFQuotationDocumentProps } from "./PdfDocument";
 // Importamos los stores
 import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
 import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
@@ -20,25 +20,33 @@ export const PdfPreview = ({ client }: PdfPreviewProps) => {
   const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
   const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
   const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
-  const emissionDate = useQuotationConditionStore((state) => state.emissionDate);
-  const expirationDate = useQuotationConditionStore((state) => state.expirationDate);
+  const pickupAddress = useQuotationPickupStore((state) => state.pickupAddress);
+  const emissionDate = useQuotationConditionStore(
+    (state) => state.emissionDate,
+  );
+  const expirationDate = useQuotationConditionStore(
+    (state) => state.expirationDate,
+  );
   const conditions = useQuotationConditionStore((state) => state.conditions);
-  const observaciones = useQuotationConditionStore((state) => state.observaciones);
+  const observations = useQuotationConditionStore(
+    (state) => state.observations,
+  );
 
   // Construimos el objeto data
-  const data = {
+  const data: PDFQuotationDocumentProps["data"] = {
     client,
     inventory,
     trucks,
     pickup: {
       pickupCost,
       pickupDate,
+      pickupAddress,
     },
     conditions: {
       emissionDate,
       expirationDate,
       conditions,
-      observaciones,
+      observations,
     },
   };
 

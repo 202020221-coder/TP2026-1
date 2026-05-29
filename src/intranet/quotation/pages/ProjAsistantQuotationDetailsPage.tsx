@@ -65,10 +65,13 @@ export function ProjectAssistantQuotationDetailsPage() {
           <div className="flex items-center gap-3">
             <div className="h-7 w-1 rounded-full bg-primary" />
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {data.nombre}
+              {data.name}
             </h1>
           </div>
-          <Button variant="outline" onClick={() => navigate("/intranet/cotizaciones")}>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/intranet/cotizaciones")}
+          >
             <ArrowLeft className="h-4 w-4" />
             Regresar
           </Button>
@@ -78,21 +81,12 @@ export function ProjectAssistantQuotationDetailsPage() {
           defaultValue="reference"
           className="w-full flex flex-col flex-1 min-h-0"
         >
-          <QuotationReferenceStoreProvider initialName={data.nombre}>
-            <QuotationProductStoreProvider initialProducts={data.productos}>
-              <QuotationPickupStoreProvider
-                initialData={{
-                  pickupAddress: data.costoRecojo.direccionRecojo,
-                  pickupCost: data.costoRecojo.costo,
-                  pickupDate: data.costoRecojo.fechaRecojo,
-                }}
-              >
+          <QuotationReferenceStoreProvider initialName={data.name}>
+            <QuotationProductStoreProvider initialProducts={data.inventory}>
+              <QuotationPickupStoreProvider initialData={data.pickupService}>
                 <QuotationExchangeRateProvider
                   initialData={{
-                    rate: {
-                      buyingRate: data.tasaCambio.tasaCompra,
-                      sellingRate: data.tasaCambio.tasaVenta,
-                    },
+                    rate: data.quotationRate,
                   }}
                 >
                   <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
@@ -132,7 +126,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                           </CardHeader>
                           <CardContent>
                             <QuotationProductsTable
-                              items={data.productos}
+                              items={data.inventory}
                               readOnly={true}
                               onUpdateQuantity={undefined}
                               onUpdateUnitPrice={undefined}
@@ -156,19 +150,21 @@ export function ProjectAssistantQuotationDetailsPage() {
                           </CardHeader>
                           <CardContent>
                             <QuotationServicesTable
-                              items={data.servicios}
+                              items={data.services}
                               readOnly={true}
-                              onUpdateQuantity={undefined}
                               onUpdateUnitPrice={undefined}
                               onDelete={undefined}
+                              onUpdateDueDate={undefined}
+                              onUpdateSchedule={undefined}
+                              onUpdateStartDate={undefined}
                             />
                           </CardContent>
                         </Card>
-                        <TruckInfoCard trucks={data.camiones} />
+                        <TruckInfoCard trucks={data.trucks} />
                         <PickupCardView
-                          pickupCost={data.costoRecojo.costo}
-                          pickupDate={data.costoRecojo.fechaRecojo}
-                          pickupAddress={data.costoRecojo.direccionRecojo}
+                          pickupCost={data.pickupService.pickupCost}
+                          pickupDate={data.pickupService.pickupDate}
+                          pickupAddress={data.pickupService.pickupAddress}
                           readOnly={true}
                           onPickupDateChange={undefined}
                           onPickupCostChange={undefined}
@@ -178,10 +174,12 @@ export function ProjectAssistantQuotationDetailsPage() {
                       </TabsContent>
                       <TabsContent value="conditions" className="space-y-6">
                         <ConditionCard
-                          emissionDate={data.condiciones.fechaEmision}
-                          expirationDate={data.condiciones.fechaVigencia}
-                          conditions={data.condiciones.condiciones}
-                          observaciones={data.condiciones.observaciones}
+                          emissionDate={data.quotationConditions.emissionDate}
+                          expirationDate={
+                            data.quotationConditions.expirationDate
+                          }
+                          conditions={data.quotationConditions.conditions}
+                          observaciones={data.quotationConditions.observations}
                           readOnly={true}
                           onEmissionChange={undefined}
                           onExpirationChange={undefined}
@@ -199,8 +197,8 @@ export function ProjectAssistantQuotationDetailsPage() {
       </div>
       <NegotiationChatFloating
         quotationId={Number(quotationId)}
-        quotationEstado={data.estado}
-        contactName={data.client.razon_social}
+        quotationEstado={data.status}
+        contactName={data.client.companyName}
         contactRole={RolesRecord.client}
       />
     </>
