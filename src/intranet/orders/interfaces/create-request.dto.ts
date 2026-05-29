@@ -53,7 +53,7 @@ export interface PostRequestInventoryDTO {
   cantidad: number;
   intencion: string;
   dias_alquilados: number;
-}
+}[]
 
 //Solicitud
 export interface PostRequestDTO {

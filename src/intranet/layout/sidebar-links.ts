@@ -84,10 +84,4 @@ export const sidebarLinks: IMenu[] = [
     url: "/intranet/incidencias/",
     icon: "AlertTriangle",
   },
-  {
-    title: "Presupuesto Interno",
-    roles: [RolesRecord.manager],
-    // aun no hay
-    icon: "FileText",
-  },
 ];
