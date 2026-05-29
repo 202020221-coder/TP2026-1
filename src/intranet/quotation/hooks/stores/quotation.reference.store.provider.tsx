@@ -8,15 +8,17 @@ import {
 import { useStore, type StoreApi } from "zustand";
 import {
   createReferenceStore,
+  type ReferenceState,
   type ReferenceStore,
 } from "./quotation.reference.store";
 
-const QuotationReferenceStoreContext = createContext<StoreApi<ReferenceStore> | null>(null);
+const QuotationReferenceStoreContext =
+  createContext<StoreApi<ReferenceStore> | null>(null);
 
 export const QuotationReferenceStoreProvider: FC<
-  PropsWithChildren<{ initialName?: string }>
-> = ({ children, initialName }) => {
-  const [store] = useState(() => createReferenceStore(initialName));
+  PropsWithChildren<Partial<ReferenceState>>
+> = ({ children, name, phases }) => {
+  const [store] = useState(() => createReferenceStore(name, phases));
   return (
     <QuotationReferenceStoreContext.Provider value={store}>
       {children}

@@ -13,14 +13,12 @@ export const useViewQuotationPage = () => {
     queryKey: ["quotation", "admin", quotationId],
     queryFn: async () => {
       try {
-              const dto = await getQuotationForAdmin(Number(quotationId));
-      return adaptDTO(dto);
+        const dto = await getQuotationForAdmin(Number(quotationId));
+        return adaptDTO(dto);
       } catch (error) {
         console.log(error);
         throw new Error("ERROR CURRIOs");
-        
       }
-
     },
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -86,5 +84,9 @@ const adaptDTO = (dto: QuotationAdminDetailData): DesiredQuotationData => {
         model: t.modelo,
       };
     }),
+    phases: {
+      quantity: dto.etapas ?? 1,
+      duration: dto.duracion_etapas ?? 1,
+    },
   };
 };

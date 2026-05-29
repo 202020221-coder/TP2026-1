@@ -16,6 +16,10 @@ export interface DesiredQuotationData {
   quotationRate: {
     sellingRate: number;
     buyingRate: number;
+  },
+  phases: {
+    quantity: number;
+    duration: number;
   }
 }
 

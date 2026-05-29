@@ -82,7 +82,10 @@ export function ProjectAssistantQuotationDetailsPage() {
           defaultValue="reference"
           className="w-full flex flex-col flex-1 min-h-0"
         >
-          <QuotationReferenceStoreProvider initialName={data.name}>
+          <QuotationReferenceStoreProvider
+            name={data.name}
+            phases={data.phases}
+          >
             <QuotationServiceStoreProvider initialServices={data.services}>
               <QuotationProductStoreProvider initialProducts={data.inventory}>
                 <QuotationPickupStoreProvider initialData={data.pickupService}>

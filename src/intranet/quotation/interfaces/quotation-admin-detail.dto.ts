@@ -57,6 +57,6 @@ export type QuotationAdminDetailData = {
     tasaCompra: number;
     tasaVenta: number;
   };
-  etapas: string | null;
-  duracion_etapas: string | null;
+  etapas: number | null;
+  duracion_etapas: number | null;
 };

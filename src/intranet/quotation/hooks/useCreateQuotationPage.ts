@@ -83,5 +83,9 @@ const adaptDTO = async (
       };
     }),
     quotationRate,
+    phases: {
+      quantity: 1,
+      duration: 1
+    }
   };
 };

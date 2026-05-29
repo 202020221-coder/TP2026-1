@@ -81,7 +81,10 @@ export function CreateQuotationPage() {
           <QuotationExchangeRateProvider
             initialData={{ rate: initialData.quotationRate }}
           >
-            <QuotationReferenceStoreProvider initialName={initialData.name}>
+            <QuotationReferenceStoreProvider
+              name={initialData.name}
+              phases={initialData.phases}
+            >
               <QuotationTruckStoreProvider>
                 <QuotationServiceStoreProvider
                   initialServices={initialData.services}
