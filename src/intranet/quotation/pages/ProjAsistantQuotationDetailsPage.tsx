@@ -38,6 +38,7 @@ import { useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
 
 export function ProjectAssistantQuotationDetailsPage() {
   const navigate = useNavigate();
@@ -82,116 +83,123 @@ export function ProjectAssistantQuotationDetailsPage() {
           className="w-full flex flex-col flex-1 min-h-0"
         >
           <QuotationReferenceStoreProvider initialName={data.name}>
-            <QuotationProductStoreProvider initialProducts={data.inventory}>
-              <QuotationPickupStoreProvider initialData={data.pickupService}>
-                <QuotationExchangeRateProvider
-                  initialData={{
-                    rate: data.quotationRate,
-                  }}
-                >
-                  <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                    <TabsTrigger value="reference" className={baseTriggerClass}>
-                      <FileText className="w-4 h-4" />
-                      Datos de Referencia
-                    </TabsTrigger>
-                    <TabsTrigger value="prices" className={baseTriggerClass}>
-                      <DollarSign className="w-4 h-4" />
-                      Precios
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="conditions"
-                      className={baseTriggerClass}
-                    >
-                      <ClipboardList className="w-4 h-4" />
-                      Condiciones
-                    </TabsTrigger>
-                  </TabsList>
-                  <ScrollArea className="mt-2 flex-1 min-h-0">
-                    <div className="px-3 py-6">
-                      <TabsContent value="reference" className="space-y-6">
-                        <ClientCard client={data.client} />
-                      </TabsContent>
-                      <TabsContent value="prices" className="space-y-6">
-                        <Card className="gap-4 border bg-card shadow-none">
-                          <CardHeader className="pb-0">
-                            <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                              <SquareChartGantt className="text-primary" />
-                              <span className="pb-0.5 font-[375] text-[18px]">
-                                Productos Cotizados
-                              </span>
-                            </CardTitle>
-                            <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                              Productos incluidos en la cotización.
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <QuotationProductsTable
-                              items={data.inventory}
-                              readOnly={true}
-                              onUpdateQuantity={undefined}
-                              onUpdateUnitPrice={undefined}
-                              onUpdateIntention={undefined}
-                              onUpdateRentedDays={undefined}
-                              onDelete={undefined}
-                            />
-                          </CardContent>
-                        </Card>
-                        <Card className="gap-4 border bg-card shadow-none">
-                          <CardHeader className="pb-0">
-                            <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                              <SquareChartGantt className="text-primary" />
-                              <span className="pb-0.5 font-[375] text-[18px]">
-                                Servicios
-                              </span>
-                            </CardTitle>
-                            <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                              Servicios incluidos en la cotización.
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <QuotationServicesTable
-                              items={data.services}
-                              readOnly={true}
-                              onUpdateUnitPrice={undefined}
-                              onDelete={undefined}
-                              onUpdateDueDate={undefined}
-                              onUpdateSchedule={undefined}
-                              onUpdateStartDate={undefined}
-                            />
-                          </CardContent>
-                        </Card>
-                        <TruckInfoCard trucks={data.trucks} />
-                        <PickupCardView
-                          pickupCost={data.pickupService.pickupCost}
-                          pickupDate={data.pickupService.pickupDate}
-                          pickupAddress={data.pickupService.pickupAddress}
-                          readOnly={true}
-                          onPickupDateChange={undefined}
-                          onPickupCostChange={undefined}
-                          onPickupAddressChange={undefined}
-                        />
-                        <SummaryCard />
-                      </TabsContent>
-                      <TabsContent value="conditions" className="space-y-6">
-                        <ConditionCard
-                          emissionDate={data.quotationConditions.emissionDate}
-                          expirationDate={
-                            data.quotationConditions.expirationDate
-                          }
-                          conditions={data.quotationConditions.conditions}
-                          observaciones={data.quotationConditions.observations}
-                          readOnly={true}
-                          onEmissionChange={undefined}
-                          onExpirationChange={undefined}
-                          onConditionsChange={undefined}
-                          onObservacionesChange={undefined}
-                        />
-                      </TabsContent>
-                    </div>
-                  </ScrollArea>
-                </QuotationExchangeRateProvider>
-              </QuotationPickupStoreProvider>
-            </QuotationProductStoreProvider>
+            <QuotationServiceStoreProvider initialServices={data.services}>
+              <QuotationProductStoreProvider initialProducts={data.inventory}>
+                <QuotationPickupStoreProvider initialData={data.pickupService}>
+                  <QuotationExchangeRateProvider
+                    initialData={{
+                      rate: data.quotationRate,
+                    }}
+                  >
+                    <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                      <TabsTrigger
+                        value="reference"
+                        className={baseTriggerClass}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Datos de Referencia
+                      </TabsTrigger>
+                      <TabsTrigger value="prices" className={baseTriggerClass}>
+                        <DollarSign className="w-4 h-4" />
+                        Precios
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="conditions"
+                        className={baseTriggerClass}
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                        Condiciones
+                      </TabsTrigger>
+                    </TabsList>
+                    <ScrollArea className="mt-2 flex-1 min-h-0">
+                      <div className="px-3 py-6">
+                        <TabsContent value="reference" className="space-y-6">
+                          <ClientCard client={data.client} />
+                        </TabsContent>
+                        <TabsContent value="prices" className="space-y-6">
+                          <Card className="gap-4 border bg-card shadow-none">
+                            <CardHeader className="pb-0">
+                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                <SquareChartGantt className="text-primary" />
+                                <span className="pb-0.5 font-[375] text-[18px]">
+                                  Productos Cotizados
+                                </span>
+                              </CardTitle>
+                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                Productos incluidos en la cotización.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <QuotationProductsTable
+                                items={data.inventory}
+                                readOnly={true}
+                                onUpdateQuantity={undefined}
+                                onUpdateUnitPrice={undefined}
+                                onUpdateIntention={undefined}
+                                onUpdateRentedDays={undefined}
+                                onDelete={undefined}
+                              />
+                            </CardContent>
+                          </Card>
+                          <Card className="gap-4 border bg-card shadow-none">
+                            <CardHeader className="pb-0">
+                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                <SquareChartGantt className="text-primary" />
+                                <span className="pb-0.5 font-[375] text-[18px]">
+                                  Servicios
+                                </span>
+                              </CardTitle>
+                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                Servicios incluidos en la cotización.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <QuotationServicesTable
+                                items={data.services}
+                                readOnly={true}
+                                onUpdateUnitPrice={undefined}
+                                onDelete={undefined}
+                                onUpdateDueDate={undefined}
+                                onUpdateSchedule={undefined}
+                                onUpdateStartDate={undefined}
+                              />
+                            </CardContent>
+                          </Card>
+                          <TruckInfoCard trucks={data.trucks} />
+                          <PickupCardView
+                            pickupCost={data.pickupService.pickupCost}
+                            pickupDate={data.pickupService.pickupDate}
+                            pickupAddress={data.pickupService.pickupAddress}
+                            readOnly={true}
+                            onPickupDateChange={undefined}
+                            onPickupCostChange={undefined}
+                            onPickupAddressChange={undefined}
+                          />
+                          <SummaryCard />
+                        </TabsContent>
+                        <TabsContent value="conditions" className="space-y-6">
+                          <ConditionCard
+                            emissionDate={data.quotationConditions.emissionDate}
+                            expirationDate={
+                              data.quotationConditions.expirationDate
+                            }
+                            conditions={data.quotationConditions.conditions}
+                            observaciones={
+                              data.quotationConditions.observations
+                            }
+                            readOnly={true}
+                            onEmissionChange={undefined}
+                            onExpirationChange={undefined}
+                            onConditionsChange={undefined}
+                            onObservacionesChange={undefined}
+                          />
+                        </TabsContent>
+                      </div>
+                    </ScrollArea>
+                  </QuotationExchangeRateProvider>
+                </QuotationPickupStoreProvider>
+              </QuotationProductStoreProvider>
+            </QuotationServiceStoreProvider>
           </QuotationReferenceStoreProvider>
         </Tabs>
       </div>
