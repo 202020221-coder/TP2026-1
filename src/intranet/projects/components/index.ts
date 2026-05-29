@@ -4,3 +4,6 @@ export { ProjectsTablePlaceholder } from "./ProjectsTablePlaceholder";
 export { ProjectsTableControls } from "./ProjectsTableControls";
 export { ProjectTableRow } from "./ProjectTableRow";
 export { EditProjectModal } from "./EditProjectModal";
+export { ActiveProjectsTable } from "./ActiveProjectsTable";
+export { ProjectDetailModal } from "./ProjectDetailModal";
+export { ClientProjectsTable } from "./ClientProjectsTable";

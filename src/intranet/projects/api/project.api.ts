@@ -37,3 +37,12 @@ export async function getAllProjects(params: GetProjectsQP) {
   );
   return response.data;
 }
+
+import type { ProjectDetail } from "../interfaces/project-detail";
+
+export async function getProjectDetail(id: number): Promise<ProjectDetail> {
+  const response = await axiosInstance.get<ProjectDetail>(
+    `/proyectos/${id}/proyecto_todo`
+  );
+  return response.data;
+}
