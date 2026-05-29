@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { SquareChartGantt, ClipboardList } from "lucide-react";
+import { SquareChartGantt, ClipboardList, Layers } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { QuotationProductsTable } from "../prices/products/ProductsTable";
 import { QuotationServicesTable } from "../prices/services/ServicesTable";
@@ -94,6 +94,41 @@ export function QuotationDetailFormCard({
                   {quotation.status}
                 </Badge>
               </div>
+
+              {/* Phases */}
+              <Card className="border bg-card shadow-none">
+                <CardHeader className="pb-0">
+                  <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                    <Layers className="text-primary" />
+                    <span className="pb-0.5 font-[375] text-[18px]">
+                      Fases de la Cotización
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                    Información de fases.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-row gap-4">
+                    <div className="flex-1 space-y-1.5">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Cantidad de Fases
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {quotation.phases.quantity}
+                      </p>
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Duración por Fase
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {quotation.phases.duration} día(s)
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Products */}
               <Card className="border bg-card shadow-none">

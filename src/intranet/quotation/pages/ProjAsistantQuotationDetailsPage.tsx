@@ -1,4 +1,5 @@
 import { ClientCard } from "../components/reference/ClientCard";
+import { ReferencePhasesCard } from "../components/reference/ReferencePhasesCard";
 import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
@@ -118,6 +119,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                       <div className="px-3 py-6">
                         <TabsContent value="reference" className="space-y-6">
                           <ClientCard client={data.client} />
+                          <ReferencePhasesCard readOnly />
                         </TabsContent>
                         <TabsContent value="prices" className="space-y-6">
                           <Card className="gap-4 border bg-card shadow-none">

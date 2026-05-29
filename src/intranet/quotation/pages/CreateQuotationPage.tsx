@@ -1,5 +1,6 @@
 import { ClientCard } from "../components/reference/ClientCard";
 import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
+import { ReferencePhasesCard } from "../components/reference/ReferencePhasesCard";
 import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
@@ -127,6 +128,7 @@ export function CreateQuotationPage() {
                           <TabsContent value="reference" className="space-y-6">
                             <ClientCard client={initialData.client} />
                             <ReferenceNameCard />
+                            <ReferencePhasesCard />
                           </TabsContent>
                           <TabsContent value="prices" className="space-y-6">
                             <CreateQuotationProductsSection />
