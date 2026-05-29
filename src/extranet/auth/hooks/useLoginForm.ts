@@ -8,6 +8,7 @@ import { LogIn } from "../api/session.api";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import type { User } from "@/security/session/interfaces/user";
 import { isAxiosError } from "axios";
+import type { LogInResponse } from "../interfaces/responses.dto";
 
 export function useLoginForm() {
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ export function useLoginForm() {
     setIsLoading(true);
     try {
       const response = await LogIn(data.email, data.password);
-      const { user } = response;
+      const { user, nuevo } = response;
       createSession(response);
-      handleNavigation(user);
+      handleNavigation(user, nuevo);
     } catch (error) {
       if (isAxiosError<{ error: string }>(error)) {
         const message = error.response?.data.error;
@@ -44,27 +45,34 @@ export function useLoginForm() {
     }
   };
 
-  const handleNavigation = useCallback((user: User) => {
-    switch (user.rol) {
-      case RolesRecord.client:
-        navigate("/intranet/solicitudes");
-        break;
-      case RolesRecord.manager:
-        navigate("/intranet/dashboard");
-        break;
-      case RolesRecord.projectAdmin:
-        navigate("/intranet/dashboard");
-        break;
-      case RolesRecord.fieldSupervisor:
-      case RolesRecord.fieldWorker:
-      case RolesRecord.lawyer:
-      case RolesRecord.workshopWorker:
-        navigate("/intranet/proyectos");
-        break;
-      default:
-        navigate("/intranet/proyectos");
-    }
-  }, []);
+  const handleNavigation = useCallback(
+    (user: User, nuevo: LogInResponse["nuevo"]) => {
+      switch (user.rol) {
+        case RolesRecord.client:
+          navigate(
+            nuevo === "si"
+              ? "/intranet/solicitudes/crear"
+              : "/intranet/solicitudes",
+          );
+          break;
+        case RolesRecord.manager:
+          navigate("/intranet/dashboard");
+          break;
+        case RolesRecord.projectAdmin:
+          navigate("/intranet/dashboard");
+          break;
+        case RolesRecord.fieldSupervisor:
+        case RolesRecord.fieldWorker:
+        case RolesRecord.lawyer:
+        case RolesRecord.workshopWorker:
+          navigate("/intranet/proyectos");
+          break;
+        default:
+          navigate("/intranet/proyectos");
+      }
+    },
+    [],
+  );
 
   return {
     form,

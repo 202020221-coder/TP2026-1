@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import { useEffect } from "react";
 import {
   Table,
   TableCell,
@@ -15,25 +14,10 @@ import { Link } from "react-router";
 import { PackageOpen } from "lucide-react";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
-import { useNavigate } from "react-router";
 export const OrdersTable: FC = () => {
   const { result, queryParams } = useOrders();
   const { isPending, isFetching, isError, error, data } = result;
   const user = useSession((s) => s.loggedUser);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (
-      user?.rol === RolesRecord.client &&
-      !isPending &&
-      !isFetching &&
-      !isError &&
-      (data?.data?.length ?? 0) === 0
-    ) {
-      navigate("/intranet/solicitudes/crear", { replace: true });
-    }
-  }, [data?.data?.length, isError, isFetching, isPending, navigate, user?.rol]);
-
   return (
     <OrdersTableControls>
       <Table containerClassname="flex-1 overflow-auto flex-col">
