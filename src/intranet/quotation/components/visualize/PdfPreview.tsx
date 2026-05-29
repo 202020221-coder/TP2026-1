@@ -6,6 +6,7 @@ import { useQuotationServiceStore } from "../../hooks/stores/quotation.services.
 import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
+import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 
 interface PdfPreviewProps {
   client: {
@@ -33,9 +34,11 @@ export const PdfPreview = ({ client }: PdfPreviewProps) => {
   const observations = useQuotationConditionStore(
     (state) => state.observations,
   );
+  const phases = useQuotationReferenceStore((state) => state.phases);
 
   // Construimos el objeto data
   const data: PDFQuotationDocumentProps["data"] = {
+    phases,
     client,
     inventory,
     services,

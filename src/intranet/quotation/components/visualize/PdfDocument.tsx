@@ -7,6 +7,7 @@ import CostSummary from "./pdf/CostSummary";
 import PickupSection from "./pdf/PickupSection";
 import TruckDriverSection from "./pdf/TruckDriverSection";
 import ConditionsSection from "./pdf/ConditionsSection";
+import PhasesSection from "./pdf/PhasesSection";
 import type { ConditionState } from "../../hooks/stores/quotation.conditions.store";
 import type { PickupState } from "../../hooks/stores/quotation.pickup.store";
 import type { TruckState } from "../../hooks/stores/quotation.truck.store";
@@ -27,7 +28,11 @@ export interface PDFQuotationDocumentProps {
     services: ServicesState["items"];
     trucks: TruckState["selectedTrucks"];
     pickup: PickupState;
-    conditions: ConditionState
+    conditions: ConditionState;
+    phases: {
+      quantity: number;
+      duration: number;
+    };
   };
 }
 
@@ -36,6 +41,7 @@ export const PdfDocument = ({ data }: PDFQuotationDocumentProps) => (
     <Page size="A4" style={styles.page}>
       <Header />
       <ClientInfo client={data.client} />
+      <PhasesSection phases={data.phases} />
       <InventoryTable items={data.inventory} />
       <ServicesTable items={data.services} />
       <TruckDriverSection trucks={data.trucks} />
