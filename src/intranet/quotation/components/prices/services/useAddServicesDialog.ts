@@ -21,7 +21,7 @@ export const useAddServicesDialog = (
   const [currentPage, setCurrentPage] = useState(1);
   const [preSelectedIds, setPreSelectedIds] = useState<Set<string>>(new Set());
   const [isConfirming, setIsConfirming] = useState(false);
-  const { control, trigger, getValues, formState, reset } =
+  const { control, trigger, getValues, reset } =
     useForm<AddServicesFormType>({
       resolver: zodResolver(AddServicesFormSchema),
       defaultValues: {

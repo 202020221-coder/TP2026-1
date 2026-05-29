@@ -34,30 +34,19 @@ export const getAllQuotations = async (
 
 export const getQuotationForClient = async (
   id: Quotation["ID"],
-): Promise<ClientQuotationDetailsData> => {
-  const response = await axiosInstance.get<QuotationDetailsData>(
+): Promise<QuotationAdminDetailData> => {
+  const response = await axiosInstance.get<QuotationAdminDetailData>(
     `/cotizaciones/${id}/detalles-franco`,
   );
-
   const costoRecojo = response.data.costoRecojo ?? {
     costo: 0,
     fechaRecojo: "",
     direccionRecojo: "",
   };
-  return {
+  return ({
     ...response.data,
-    camiones: (response.data.camiones ?? []).map(normalizeTruck),
     costoRecojo,
-    tasaCambio: response.data.tipoCambio,
-    servicios: response.data.servicios ?? [],
-    productos: response.data.productos.map(
-      ({ precioUnitario, ...rest }) =>
-        ({
-          ...rest,
-          precio_unitario: Number(precioUnitario),
-        }) as QuotationProduct,
-    ),
-  };
+  });
 };
 
 export const getQuotationForAdmin = async (
@@ -136,40 +125,40 @@ export type ClientQuotationDetailsData = {
   };
 };
 
-interface QuotationDetailsData extends Omit<
-  AdminQuotationDetailsData,
-  "camiones" | "tasaCambio" | "client" | "productos" | "servicios"
-> {
-  camiones: BadDefinedTruck[];
-  productos: BadDefinedProduct[];
-  servicios?: ServiceItem[];
-  tipoCambio: {
-    tasaCompra: number;
-    tasaVenta: number;
-  };
-  cliente: {
-    documentoIdentidad: string;
-    nombreComercial: string;
-    razonSocial: string;
-  };
-}
+// interface QuotationDetailsData extends Omit<
+//   AdminQuotationDetailsData,
+//   "camiones" | "tasaCambio" | "client" | "productos" | "servicios"
+// > {
+//   camiones: BadDefinedTruck[];
+//   productos: BadDefinedProduct[];
+//   servicios?: ServiceItem[];
+//   tipoCambio: {
+//     tasaCompra: number;
+//     tasaVenta: number;
+//   };
+//   cliente: {
+//     documentoIdentidad: string;
+//     nombreComercial: string;
+//     razonSocial: string;
+//   };
+// }
 
 // TODO: EL DIA QUE VEA UN BACK BIEN HECHO JURO POR MI MADRE QUE ME CORTARE LA PINGA CARAJO
 
-interface BadDefinedTruck extends Omit<Truck, "Placa" | "fecha_prox_revision"> {
-  placa: string;
-  fechaProximaRevision: string;
-}
+// interface BadDefinedTruck extends Omit<Truck, "Placa" | "fecha_prox_revision"> {
+//   placa: string;
+//   fechaProximaRevision: string;
+// }
 
-interface BadDefinedProduct extends Omit<QuotationProduct, "precio_unitario"> {
-  precioUnitario: string;
-}
+// interface BadDefinedProduct extends Omit<QuotationProduct, "precio_unitario"> {
+//   precioUnitario: string;
+// }
 
-const normalizeTruck = (t: BadDefinedTruck): Truck => ({
-  ...t,
-  Placa: t.placa,
-  fecha_prox_revision: t.fechaProximaRevision,
-});
+// const normalizeTruck = (t: BadDefinedTruck): Truck => ({
+//   ...t,
+//   Placa: t.placa,
+//   fecha_prox_revision: t.fechaProximaRevision,
+// });
 
 
 import type { GetAvailableTrucksResponse } from "../interfaces/responses.dto";

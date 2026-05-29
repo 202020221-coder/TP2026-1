@@ -15,11 +15,12 @@ import { QuotationExchangeRateProvider } from "../../hooks/stores/quotation.exch
 import { TruckInfoCard } from "../prices/truck/TruckInfoCard";
 import { PickupCardView } from "../prices/delivery/PickupCardView";
 import { SummaryCard } from "../prices/summary/SummaryCard";
-import type { ClientQuotationDetailsData } from "../../api/quotation.api";
 import { format } from "date-fns";
+import { QuotationServiceStoreProvider } from "../../hooks/stores/quotation.services.store.provider";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
 type QuotationDetailFormCardProps = {
-  quotation: ClientQuotationDetailsData;
+  quotation: DesiredQuotationData;
 };
 
 const estadoVariant: Record<string, "secondary" | "default" | "destructive"> = {
@@ -72,121 +73,106 @@ export function QuotationDetailFormCard({
   quotation,
 }: QuotationDetailFormCardProps) {
   return (
-    <QuotationProductStoreProvider initialProducts={quotation.productos}>
-      <QuotationPickupStoreProvider
-        initialData={{
-          pickupAddress: quotation.costoRecojo.direccionRecojo,
-          pickupCost: quotation.costoRecojo.costo,
-          pickupDate: quotation.costoRecojo.fechaRecojo,
-        }}
-      >
-        <QuotationExchangeRateProvider
-          initialData={{
-            rate: {
-              buyingRate: quotation.tasaCambio.tasaCompra,
-              sellingRate: quotation.tasaCambio.tasaVenta,
-            },
-          }}
-        >
-          <div className="space-y-6">
-            {/* Title & Status */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                {quotation.nombre}
-              </h2>
-              <Badge
-                variant={estadoVariant[quotation.estado] ?? "secondary"}
-                className="capitalize"
-              >
-                {quotation.estado}
-              </Badge>
+    <QuotationServiceStoreProvider initialServices={quotation.services}>
+      <QuotationProductStoreProvider initialProducts={quotation.inventory}>
+        <QuotationPickupStoreProvider initialData={quotation.pickupService}>
+          <QuotationExchangeRateProvider
+            initialData={{
+              rate: quotation.quotationRate,
+            }}
+          >
+            <div className="space-y-6">
+              {/* Title & Status */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                  {quotation.name}
+                </h2>
+                <Badge
+                  variant={estadoVariant[quotation.status] ?? "secondary"}
+                  className="capitalize"
+                >
+                  {quotation.status}
+                </Badge>
+              </div>
+
+              {/* Products */}
+              <Card className="border bg-card shadow-none">
+                <CardHeader className="pb-0">
+                  <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                    <SquareChartGantt className="text-primary" />
+                    <span className="pb-0.5 font-[375] text-[18px]">
+                      Productos Cotizados
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                    Productos incluidos en la cotización.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <QuotationProductsTable
+                    items={quotation.inventory}
+                    readOnly={true}
+                    onUpdateQuantity={undefined}
+                    onUpdateUnitPrice={undefined}
+                    onUpdateIntention={undefined}
+                    onUpdateRentedDays={undefined}
+                    onDelete={undefined}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Services */}
+              <Card className="border bg-card shadow-none">
+                <CardHeader className="pb-0">
+                  <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                    <SquareChartGantt className="text-primary" />
+                    <span className="pb-0.5 font-[375] text-[18px]">
+                      Servicios
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                    Servicios incluidos en la cotización.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <QuotationServicesTable
+                    items={[]}
+                    readOnly={true}
+                    onUpdateUnitPrice={undefined}
+                    onUpdateDueDate={undefined}
+                    onUpdateSchedule={undefined}
+                    onUpdateStartDate={undefined}
+                    onDelete={undefined}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Truck */}
+              <TruckInfoCard trucks={quotation.trucks} />
+
+              {/* Pickup */}
+              <PickupCardView
+                pickupCost={quotation.pickupService.pickupCost}
+                pickupDate={quotation.pickupService.pickupDate}
+                pickupAddress={quotation.pickupService.pickupAddress}
+                description="Datos del servicio de recojo incluido en la cotización."
+                readOnly={true}
+                onPickupDateChange={undefined}
+                onPickupCostChange={undefined}
+                onPickupAddressChange={undefined}
+              />
+
+              {/* Conditions (dates only for client) */}
+              <ConditionsDatesCard
+                fechaEmision={quotation.quotationConditions.emissionDate}
+                fechaVigencia={quotation.quotationConditions.expirationDate}
+              />
+              {/* Summary */}
+              <SummaryCard />
             </div>
-
-            {/* Products */}
-            <Card className="border bg-card shadow-none">
-              <CardHeader className="pb-0">
-                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                  <SquareChartGantt className="text-primary" />
-                  <span className="pb-0.5 font-[375] text-[18px]">
-                    Productos Cotizados
-                  </span>
-                </CardTitle>
-                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                  Productos incluidos en la cotización.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <QuotationProductsTable
-                  items={quotation.productos}
-                  readOnly={true}
-                  onUpdateQuantity={undefined}
-                  onUpdateUnitPrice={undefined}
-                  onUpdateIntention={undefined}
-                  onUpdateRentedDays={undefined}
-                  onDelete={undefined}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Services */}
-            <Card className="border bg-card shadow-none">
-              <CardHeader className="pb-0">
-                <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                  <SquareChartGantt className="text-primary" />
-                  <span className="pb-0.5 font-[375] text-[18px]">
-                    Servicios
-                  </span>
-                </CardTitle>
-                <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                  Servicios incluidos en la cotización.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <QuotationServicesTable
-                  items={[]}
-                  readOnly={true}
-                  onUpdateUnitPrice={undefined}
-                  onUpdateDueDate={undefined}
-                  onUpdateSchedule={undefined}
-                  onUpdateStartDate={undefined}
-                  onDelete={undefined}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Truck */}
-            <TruckInfoCard
-              trucks={quotation.camiones.map((c) => ({
-                color: c.color,
-                description: c.caracteristicas,
-                maintenanceDate: c.fecha_prox_revision,
-                model: c.modelo,
-                plate: c.Placa,
-              }))}
-            />
-
-            {/* Pickup */}
-            <PickupCardView
-              pickupCost={quotation.costoRecojo.costo}
-              pickupDate={quotation.costoRecojo.fechaRecojo}
-              pickupAddress={quotation.costoRecojo.direccionRecojo}
-              description="Datos del servicio de recojo incluido en la cotización."
-              readOnly={true}
-              onPickupDateChange={undefined}
-              onPickupCostChange={undefined}
-              onPickupAddressChange={undefined}
-            />
-
-            {/* Conditions (dates only for client) */}
-            <ConditionsDatesCard
-              fechaEmision={quotation.condiciones.fechaEmision}
-              fechaVigencia={quotation.condiciones.fechaVigencia}
-            />
-            {/* Summary */}
-            <SummaryCard />
-          </div>
-        </QuotationExchangeRateProvider>
-      </QuotationPickupStoreProvider>
-    </QuotationProductStoreProvider>
+          </QuotationExchangeRateProvider>
+        </QuotationPickupStoreProvider>
+      </QuotationProductStoreProvider>
+    </QuotationServiceStoreProvider>
   );
 }
