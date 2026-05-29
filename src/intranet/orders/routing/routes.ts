@@ -1,6 +1,6 @@
 import type { IRoute } from "@/shared/interfaces/route";
 import ListOrdersPage from "../pages/ListOrdersPage";
-import OrderDetailPage from "../pages/OrderDetailPage";
+import OrderDetailsPage from "../pages/OrderDetailsPage";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 //Se definen todas las rutas publicas del modulo de autenticacion
 export const routes: IRoute[] = [
@@ -11,9 +11,9 @@ export const routes: IRoute[] = [
     roles: [RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.manager, RolesRecord.fieldWorker],
   },
   {
-    path: "/:id",
-    Component: OrderDetailPage,
+    path: "/:orderId",
+    Component: OrderDetailsPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.manager],
+    roles: [RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.manager, RolesRecord.fieldWorker],
   },
 ];

@@ -14,7 +14,7 @@ export const MessageBubble: FC<{
     <div className="flex w-full flex-col gap-1">
       <div
         className={cn(
-          "flex max-w-[350px] flex-col break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+          "flex max-w-[350px] flex-col wrap-break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
           isOwn
             ? "self-end rounded-br-md bg-primary text-primary-foreground"
             : "self-start rounded-bl-md border border-gray-200 bg-white text-gray-800",

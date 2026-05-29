@@ -11,10 +11,12 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
 import { Building } from "lucide-react";
-import type { Client } from "../../interfaces/create/client";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
-export const ClientCard: FC<{ client: Client }> = ({ client }) => {
-  const isCompany = client.DNI_O_RUC.length > 8;
+export const ClientCard: FC<{ client: DesiredQuotationData["client"] }> = ({
+  client,
+}) => {
+  const isCompany = client.DNIorRUC.length > 8;
 
   return (
     <Card className="border shadow-none">
@@ -52,7 +54,7 @@ export const ClientCard: FC<{ client: Client }> = ({ client }) => {
               {isCompany ? "RUC" : "DNI"}
             </p>
             <Input
-              value={client.DNI_O_RUC}
+              value={client.DNIorRUC}
               disabled
               className="
                   h-10
@@ -68,7 +70,7 @@ export const ClientCard: FC<{ client: Client }> = ({ client }) => {
               Nombre Comercial
             </p>
             <Input
-              value={client.nombre_comercial}
+              value={client.comercialName}
               disabled
               className="
                   h-10
@@ -84,7 +86,7 @@ export const ClientCard: FC<{ client: Client }> = ({ client }) => {
               Cliente / Razón Social
             </p>
             <Input
-              value={client.razon_social}
+              value={client.companyName}
               disabled
               className="
                   h-10

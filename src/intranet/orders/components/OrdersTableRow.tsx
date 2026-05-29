@@ -1,4 +1,4 @@
-import { /*useState,*/ useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -8,7 +8,7 @@ import {
   FileText,
   Mail,
   MapPin,
-  Trash2 /*FolderOpen, Send */,
+  Trash2,
 } from "lucide-react";
 import { OrderStatesRecord, type OrderState } from "../enum/order-state.record";
 import {
@@ -22,12 +22,22 @@ import OrderRejectionMessageDialog from "./OrderRejectionMessageDialog";
 import { toSearchParams } from "@/shared/lib/to-search-params";
 import { useNavigate } from "react-router";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RejectRequest } from "../api/order.api";
+import { toast } from "sonner";
 export const OrderTableRow: FC<{
   order: Order;
 }> = ({ order }) => {
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
+  const queryClient = useQueryClient()
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
+  const { mutate: rejectOrder, isPending: isRejecting } = useMutation({
+    mutationFn: (id: Order["ID"]) => RejectRequest(id),
+    onSuccess: () => toast.success("Solicitud rechazada exitosamente"),
+    onError: () => toast.error("Error al rechazar la solicitud"),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
+  })
 
   const statusStyles = new Map<OrderState, string>([
     [
@@ -130,7 +140,13 @@ export const OrderTableRow: FC<{
                     <Button
                       variant="ghost"
                       size="icon"
+                      disabled={isRejecting}
                       className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
+                      onClick={() => {
+                        if (window.confirm("¿Estás seguro de rechazar esta solicitud?")) {
+                          rejectOrder(order.ID)
+                        }
+                      }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

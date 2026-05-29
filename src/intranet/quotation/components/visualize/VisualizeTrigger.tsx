@@ -19,7 +19,7 @@ interface VisualizeTriggerProps {
 export const VisualizeTrigger: FC<
   PropsWithChildren<VisualizeTriggerProps>
 > = ({ children, baseTriggerClass }) => {
-  const truck = useQuotationTruckStore((s) => s.selectedTruck);
+  const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
   const inventory = useQuotationProductStore((s) => s.items);
   const quotationName = useQuotationReferenceStore((s) => s.name);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
@@ -29,12 +29,13 @@ export const VisualizeTrigger: FC<
   const hasName = quotationName.trim().length > 0;
   const hasAddress = pickupAddress.trim().length > 0;
   const hasRate = !!rate && rate.buyingRate > 0 && rate.sellingRate > 0;
-  const isDisabled = !truck || !hasInventory || !hasName || !hasAddress || !hasRate;
+  const hasTruck = trucks.length > 0;
+  const isDisabled = !hasTruck || !hasInventory || !hasName || !hasAddress || !hasRate;
 
   const getDisabledReasons = () => {
     const reasons: string[] = [];
 
-    if (!truck) reasons.push("Debe seleccionar un camión");
+    if (!hasTruck) reasons.push("Debe seleccionar al menos un camión");
     if (!hasInventory)
       reasons.push("Debe agregar al menos un item al inventario");
     if (!hasName) reasons.push("Debe definir un nombre para la cotización");

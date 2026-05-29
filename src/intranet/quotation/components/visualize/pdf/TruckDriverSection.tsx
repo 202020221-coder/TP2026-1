@@ -1,4 +1,4 @@
-import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
+import type { TruckState } from "@/intranet/quotation/hooks/stores/quotation.truck.store";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -12,6 +12,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     marginBottom: 6,
+  },
+  truckBlock: {
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
   row: {
     flexDirection: "row",
@@ -28,33 +34,48 @@ const styles = StyleSheet.create({
   },
 });
 
-const TruckDriverSection = ({ truck }: { truck: Truck }) => (
+const TruckDriverSection = ({
+  trucks,
+}: {
+  trucks: TruckState["selectedTrucks"];
+}) => (
   <View style={styles.section}>
-    <Text style={styles.title}>Camión Asignado</Text>
+    <Text style={styles.title}>Camiones Asignados</Text>
 
-    {/* Datos del camión */}
-    <View style={styles.row}>
-      <Text style={styles.label}>Placa:</Text>
-      <Text style={styles.value}>{truck?.Placa}</Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>Modelo:</Text>
-      <Text style={styles.value}>
-        {truck?.modelo} ({truck?.ano_fabricacion})
-      </Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>Color:</Text>
-      <Text style={styles.value}>{truck?.color}</Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>Próx. Revisión:</Text>
-      <Text style={styles.value}>{truck?.fecha_prox_revision}</Text>
-    </View>
-    <View style={styles.row}>
-      <Text style={styles.label}>Características:</Text>
-      <Text style={styles.value}>{truck?.caracteristicas}</Text>
-    </View>
+    {trucks.length === 0 ? (
+      <Text style={{ fontSize: 10 }}>No hay camiones asignados.</Text>
+    ) : (
+      trucks.map((truck, index) => (
+        <View
+          key={truck.plate}
+          style={index < trucks.length - 1 ? styles.truckBlock : undefined}
+        >
+          <Text style={{ fontSize: 10, fontWeight: "bold", marginBottom: 4 }}>
+            Camión {index + 1}
+          </Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Placa:</Text>
+            <Text style={styles.value}>{truck.plate}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Modelo:</Text>
+            <Text style={styles.value}>{truck.model}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Color:</Text>
+            <Text style={styles.value}>{truck.color}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Próx. Revisión:</Text>
+            <Text style={styles.value}>{truck.maintenanceDate}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Características:</Text>
+            <Text style={styles.value}>{truck.description}</Text>
+          </View>
+        </View>
+      ))
+    )}
   </View>
 );
 

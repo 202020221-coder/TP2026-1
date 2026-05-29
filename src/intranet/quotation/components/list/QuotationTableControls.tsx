@@ -1,6 +1,6 @@
 import { Input } from "@/shared/components/ui/input";
 import { ArrowLeft, ArrowRight, Eraser, Search } from "lucide-react";
-import {type FC, type ReactNode } from "react";
+import { type FC, type ReactNode } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import {
@@ -13,7 +13,11 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { useQuotation } from "../../hooks/useQuotations";
-import { QuotationStatesRecord, type QuotationState } from "../../enum/quotation-state.record";
+import {
+  QuotationStatesRecord,
+  type QuotationState,
+} from "../../enum/quotation-state.record";
+import { useDebounced } from "@/shared/hooks/useDebounced";
 
 export const QuotationTableControls: FC<{ children: ReactNode }> = ({
   children,
@@ -29,11 +33,18 @@ export const QuotationTableControls: FC<{ children: ReactNode }> = ({
 
 const TopControls: FC = () => {
   const { query, queryParams, result } = useQuotation();
-
+  const onNameChange = useDebounced((nameSearch: string) => {
+    query({ ...queryParams, page: 1, nombre: nameSearch });
+  }, 500);  
   return (
     <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
       <div className="col-span-1 md:col-span-3 relative">
-        <Input placeholder="Buscar por nombre" className="pl-8" disabled={result.isFetching}/>
+        <Input
+          placeholder="Buscar por nombre"
+          className="pl-8"
+          readOnly={result.isFetching}
+          onChange={(e) => onNameChange(e.target.value)}
+        />
         <Search
           className="absolute top-1/2 -translate-y-1/2 w-8 text-gray-400"
           size={20}
@@ -42,9 +53,9 @@ const TopControls: FC = () => {
       <div className="col-span-1 md:col-span-2 flex gap-x-2">
         <Select
           onValueChange={(value) => {
-            query({ ...queryParams, page: 1, status: value as QuotationState });
+            query({ ...queryParams, page: 1, estado: value as QuotationState });
           }}
-          value={queryParams.status || ""}
+          value={queryParams.estado || ""}
         >
           <SelectTrigger>
             <SelectValue placeholder="Seleccione un estado" />
@@ -52,7 +63,7 @@ const TopControls: FC = () => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Estados</SelectLabel>
-              {Object.values(QuotationStatesRecord).map((status,i) => (
+              {Object.values(QuotationStatesRecord).map((status, i) => (
                 <SelectItem key={`${i}-${status}`} value={status}>
                   {status}
                 </SelectItem>
@@ -63,9 +74,9 @@ const TopControls: FC = () => {
         <Button
           size={"icon"}
           onClick={() => {
-            query({ ...queryParams, page: 1, status: undefined });
+            query({ ...queryParams, page: 1, estado: undefined });
           }}
-          disabled={!queryParams.status}
+          disabled={!queryParams.estado}
         >
           <Eraser />
         </Button>

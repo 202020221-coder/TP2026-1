@@ -1,29 +1,41 @@
-import type { Truck } from "../../interfaces/create/order-trucks";
 import { createStore } from "zustand";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
+
+type Truck = DesiredQuotationData["trucks"][number];
 
 type State = {
-  selectedTruck?: Truck;
+  selectedTrucks: Truck[];
   initialized: boolean;
 };
 
 type Actions = {
-  update: <K extends keyof TruckState>(field: K, value: TruckState[K]) => void;
-  initialize: (data: TruckState) => void;
+  setSelectedTrucks: (trucks: Truck[]) => void;
+  addTruck: (truck: Truck) => void;
+  removeTruck: (plate: Truck["plate"]) => void;
+  initialize: (data: Pick<State, "selectedTrucks">) => void;
 };
 
-export type TruckState = Omit<State, "initialized">;
+export type TruckState = Pick<State, "selectedTrucks">;
 export type TruckStore = State & Actions;
 
 export const createTruckStore = (initialData?: TruckState) =>
   createStore<TruckStore>((set) => ({
-    selectedTruck: initialData?.selectedTruck ?? undefined,
+    selectedTrucks: initialData?.selectedTrucks ?? [],
     initialized: false,
     initialize: (data) => {
       set({ ...data, initialized: true });
     },
-    update: (field, value) =>
+    setSelectedTrucks: (trucks) => set({ selectedTrucks: trucks }),
+    addTruck: (truck) =>
       set((state) => ({
-        ...state,
-        [field]: value,
+        selectedTrucks: state.selectedTrucks.some(
+          (t) => t.plate === truck.plate,
+        )
+          ? state.selectedTrucks
+          : [...state.selectedTrucks, truck],
+      })),
+    removeTruck: (plate) =>
+      set((state) => ({
+        selectedTrucks: state.selectedTrucks.filter((t) => t.plate !== plate),
       })),
   }));

@@ -1,3 +1,4 @@
+import type { PickupState } from "@/intranet/quotation/hooks/stores/quotation.pickup.store";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const PickupSection = ({ pickup }: { pickup: { pickupCost: number; pickupDate: string } }) => (
+const PickupSection = ({ pickup }: { pickup: PickupState }) => (
   <View style={styles.section}>
     <Text style={styles.title}>Servicio de Recojo</Text>
 

@@ -1,4 +1,4 @@
-import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
+import type { ProductsState } from "@/intranet/quotation/hooks/stores/quotation.products.store";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 const InventoryTable = ({
   items,
 }: {
-  items: Record<QuotationProduct["id"], QuotationProduct>;
+  items: ProductsState["items"];
 }) => {
   const rows = Object.values(items);
 

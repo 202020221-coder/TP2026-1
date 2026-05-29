@@ -1,5 +1,7 @@
 import { createStore } from "zustand";
-import type { ExchangeRate } from "../../api/exchange-rate.api";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
+
+type ExchangeRate = DesiredQuotationData["quotationRate"]
 
 type State = {
   rate: ExchangeRate | undefined;

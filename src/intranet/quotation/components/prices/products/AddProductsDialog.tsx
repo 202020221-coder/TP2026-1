@@ -277,6 +277,11 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
   onRemoveItem,
   control,
 }) => {
+  const watchedItems = useWatch({
+    control,
+    name: "items",
+  }) ?? [];
+
   if (selectedItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
@@ -300,10 +305,7 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
       <ScrollArea className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card">
         <div className="space-y-2 p-4">
           {selectedItems.map((field, index) => {
-            const watchedIntention = useWatch({
-              control,
-              name: `items.${index}.intencion`,
-            });
+            const watchedIntention = watchedItems[index]?.intencion;
             return (
             <Card
               key={field.id}
