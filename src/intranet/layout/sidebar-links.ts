@@ -68,7 +68,7 @@ export const sidebarLinks: IMenu[] = [
   },
   {
     title: "Proyectos",
-    roles: [RolesRecord.manager, RolesRecord.client, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
+    roles: [RolesRecord.manager, RolesRecord.projectAdmin, RolesRecord.client, RolesRecord.lawyer, RolesRecord.fieldSupervisor],
     url: "/intranet/proyectos/",
     icon: "BriefcaseBusiness",
   },
