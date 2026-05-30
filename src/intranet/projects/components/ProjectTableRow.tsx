@@ -138,17 +138,6 @@ export const ProjectTableRow: FC<{ project: Project }> = ({ project }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>
-
-        {/* Orden de servicio */}
-        <TableCell className="text-center">
-          {project.orden_servicio ? (
-            <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
-              {project.orden_servicio}
-            </span>
-          ) : (
-            <span className="text-gray-400 text-sm italic">—</span>
-          )}
-        </TableCell>
         {/* Ver Orden de Compra */}
         <TableCell className="text-center">
           {project.orden_servicio ? (
