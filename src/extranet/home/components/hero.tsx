@@ -34,7 +34,7 @@ export default function Hero() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button asChild size="lg" className="w-full sm:w-auto h-14 px-8 text-base bg-gradient-primary hover:opacity-90 text-white font-bold rounded-xl shadow-[0_0_40px_rgba(200,50,0,0.4)] hover:shadow-[0_0_60px_rgba(200,50,0,0.6)] hover:-translate-y-1 transition-all duration-300">
-              <Link to="/auth/login">
+              <Link to="/intranet/solicitudes/crear" state={{ from: "/intranet/solicitudes/crear" }}>
                 Crear Solicitud <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>

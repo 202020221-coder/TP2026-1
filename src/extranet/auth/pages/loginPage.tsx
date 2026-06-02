@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   Card,
   CardContent,
@@ -8,10 +10,22 @@ import {
 import { LoginForm } from "../components/login-form";
 import ForgotPasswordButton from "../components/forgot-password-button";
 import { RecoverPasswordProvider } from "../context/recover-password-context";
-import { Link } from "react-router";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { getDefaultRouteByRole } from "../utils/navigation";
 import { CircleArrowLeft } from "lucide-react";
 
 export function LoginPage() {
+  const session = useSession((s) => s.loggedUser);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!session) return;
+    const from = (location.state as { from?: string } | null)?.from
+      ?? getDefaultRouteByRole(session.rol, session.nuevo ? "si" : undefined);
+    navigate(from, { replace: true });
+  }, [session, location.state]);
+
   return (
     <>
       <Link to={"/"} className="text-muted-foreground/70 flex text-sm items-end gap-x-1 hover:underline relative left-4 top-4 w-fit">

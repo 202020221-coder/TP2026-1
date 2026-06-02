@@ -1,16 +1,17 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 import { createSession } from "@/security/session/hooks/stores/useSession.store";
 import { LogIn } from "../api/session.api";
-import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { isAxiosError } from "axios";
 import type { LogInResponse } from "../interfaces/responses.dto";
+import { getDefaultRouteByRole } from "../utils/navigation";
 
 export function useLoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -44,30 +45,13 @@ export function useLoginForm() {
   };
 
   const handleNavigation = useCallback(({ user, nuevo }: LogInResponse) => {
-    switch (user.rol) {
-      case RolesRecord.client:
-        navigate(
-          nuevo === "si"
-            ? "/intranet/solicitudes/crear"
-            : "/intranet/solicitudes",
-        );
-        break;
-      case RolesRecord.manager:
-        navigate("/intranet/dashboard");
-        break;
-      case RolesRecord.projectAdmin:
-        navigate("/intranet/dashboard");
-        break;
-      case RolesRecord.fieldSupervisor:
-      case RolesRecord.fieldWorker:
-      case RolesRecord.lawyer:
-      case RolesRecord.workshopWorker:
-        navigate("/intranet/proyectos");
-        break;
-      default:
-        navigate("/intranet/proyectos");
+    const intended = location.state as { from?: string } | null;
+    if (intended?.from) {
+      navigate(intended.from, { replace: true });
+      return;
     }
-  }, []);
+    navigate(getDefaultRouteByRole(user.rol, nuevo), { replace: true });
+  }, [location.state]);
 
   return {
     form,
