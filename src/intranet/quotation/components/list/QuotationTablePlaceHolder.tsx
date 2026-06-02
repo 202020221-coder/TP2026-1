@@ -10,6 +10,9 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
           className="border-b border-gray-100 hover:bg-transparent"
         >
           <TableCell className="py-3">
+            <Skeleton className="h-4 w-12 mb-2 bg-gray-50" />
+          </TableCell>
+          <TableCell className="py-3">
             <Skeleton className="h-4 w-16 mb-2 bg-gray-50" />
           </TableCell>
           <TableCell>

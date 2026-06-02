@@ -2,14 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Eye,
-  Mail,
-  Pencil,
-  Trash2,
-  Send,
-  MessageCircle,
-} from "lucide-react";
+import { Eye, Mail, Pencil, Trash2, Send, MessageCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -74,9 +67,9 @@ export const QuotationTableRow: FC<{
   };
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
-  
+
   type ChatStatus = "first_time" | "active" | "closed";
-  
+
   let chatStatus: ChatStatus;
   if (!canNegotiate) {
     chatStatus = "closed";
@@ -88,6 +81,7 @@ export const QuotationTableRow: FC<{
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        <TableCell className="font-medium py-3">{quotation.ID}</TableCell>
         <TableCell className="font-medium py-3">
           {quotationDisplayName}
         </TableCell>
@@ -234,22 +228,28 @@ export const QuotationTableRow: FC<{
                   onClick={handleNegotiateClick}
                   className={cn(
                     "mx-auto inline-flex max-w-[200px] items-center justify-center rounded-full border px-3 py-1 text-xs font-medium leading-snug transition-colors cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2",
-                    chatStatus === "first_time" 
-                      ? "border-sky-300 bg-sky-50 text-sky-800 focus-visible:ring-sky-400" 
-                      : "border-green-300 bg-green-50 text-green-700 focus-visible:ring-green-400"
+                    chatStatus === "first_time"
+                      ? "border-sky-300 bg-sky-50 text-sky-800 focus-visible:ring-sky-400"
+                      : "border-green-300 bg-green-50 text-green-700 focus-visible:ring-green-400",
                   )}
                 >
                   <MessageCircle className="w-3 h-3 mr-1" />
-                  {chatStatus === "first_time" ? "Iniciar negociación" : "Abrir chat"}
+                  {chatStatus === "first_time"
+                    ? "Iniciar negociación"
+                    : "Abrir chat"}
                 </button>
               </TooltipTrigger>
               <TooltipContent
                 className={`bg-white border-[1.5px] ${
-                  chatStatus === "first_time" ? "border-sky-500 text-sky-600" : "border-green-500 text-green-600"
+                  chatStatus === "first_time"
+                    ? "border-sky-500 text-sky-600"
+                    : "border-green-500 text-green-600"
                 } font-normal text-center`}
                 align="center"
               >
-                {chatStatus === "first_time" ? "Abrir chat por primera vez" : "Abrir chat de negociación"}
+                {chatStatus === "first_time"
+                  ? "Abrir chat por primera vez"
+                  : "Abrir chat de negociación"}
               </TooltipContent>
             </Tooltip>
           ) : (
