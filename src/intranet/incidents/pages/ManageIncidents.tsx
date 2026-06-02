@@ -1,7 +1,7 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
-import { IncidentsTable } from "../components";
+import { IncidentObjectsModal, IncidentsTable } from "../components";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ListIncidentsProvider } from "../context/ListIncidentsProvider";
@@ -23,9 +23,10 @@ export function IncidentsManagementPage() {
   const location = useLocation();
   const navigationState = location.state as IncidentsNavigationState | null;
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
+  const [objectsModalOpen, setObjectsModalOpen] = useState(false);
   const projectId = Number.isInteger(projectIdRaw) && projectIdRaw > 0
     ? projectIdRaw
-    : undefined;
+    : navigationState?.projectId;
 
   const initialQueryParams = useMemo(
     () => ({
@@ -53,14 +54,31 @@ export function IncidentsManagementPage() {
         />
 
         <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
-          <IncidentActionsPanel />
+          <IncidentActionsPanel
+            projectId={projectId}
+            onOpenObjectsModal={() => setObjectsModalOpen(true)}
+          />
         </div>
+
+        {projectId ? (
+          <IncidentObjectsModal
+            incidentId={projectId}
+            open={objectsModalOpen}
+            onClose={() => setObjectsModalOpen(false)}
+          />
+        ) : null}
       </ListIncidentsProvider>
     </>
   );
 }
 
-function IncidentActionsPanel() {
+function IncidentActionsPanel({
+  projectId,
+  onOpenObjectsModal,
+}: {
+  projectId?: number;
+  onOpenObjectsModal: () => void;
+}) {
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
       <div>
@@ -74,7 +92,12 @@ function IncidentActionsPanel() {
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4 w-full min-w-0">
-        <Button variant="outline" className="h-10 w-full px-4 justify-center">
+        <Button
+          variant="outline"
+          className="h-10 w-full px-4 justify-center"
+          onClick={onOpenObjectsModal}
+          disabled={!projectId}
+        >
           Objetos involucrados
         </Button>
         <Button variant="outline" className="h-10 w-full px-4 justify-center">
@@ -148,8 +171,8 @@ function IncidentsProjectHeader({
 
   return (
     <div className="bg-card p-5 rounded-xl shadow-xs border mb-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-primary uppercase tracking-widest">
             <Hash size={10} />
             Proyecto
@@ -161,19 +184,19 @@ function IncidentsProjectHeader({
 
         {firstIncident?.estado ? (
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(firstIncident.estado) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
+            className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(firstIncident.estado) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
           >
             Estado de incidencia: {firstIncident.estado}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-medium border bg-amber-50 text-amber-700 border-amber-300">
+          <span className="inline-flex items-center self-start gap-2 rounded-full px-3 py-1 text-[13px] font-medium border bg-amber-50 text-amber-700 border-amber-300">
             <TriangleAlert size={14} />
             Sin incidencias registradas para este proyecto
           </span>
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <InfoField
           icon={<FileText size={10} />}
           label="Nombre del proyecto"
@@ -204,12 +227,14 @@ function InfoField({
   value: string;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex h-full flex-col gap-2 rounded-xl border border-border/70 bg-muted/20 p-4">
       <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
         {icon}
         {label}
       </span>
-      <p className="text-sm font-semibold text-foreground">{value}</p>
+      <p className="min-h-5 text-sm font-semibold leading-snug text-foreground">
+        {value}
+      </p>
     </div>
   );
 }
