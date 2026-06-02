@@ -1,5 +1,6 @@
 import type { QuotationProductIntention } from "../../enum/order-inventory-intention";
 import type { QuotationState } from "../../enum/quotation-state.record";
+import type { QuotationPhases } from "../phases.types";
 export interface DesiredQuotationData {
   name: string;
   status: QuotationState;
@@ -17,10 +18,7 @@ export interface DesiredQuotationData {
     sellingRate: number;
     buyingRate: number;
   },
-  phases: {
-    quantity: number;
-    duration: number;
-  }
+  phases: QuotationPhases;
 }
 
 interface QuotationTruck {

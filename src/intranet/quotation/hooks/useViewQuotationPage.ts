@@ -85,8 +85,7 @@ const adaptDTO = (dto: QuotationAdminDetailData): DesiredQuotationData => {
       };
     }),
     phases: {
-      quantity: dto.etapas ?? 1,
-      duration: dto.duracion_etapas ?? 1,
+      items: [],
     },
   };
 };

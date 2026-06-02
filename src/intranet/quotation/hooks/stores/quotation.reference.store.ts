@@ -25,8 +25,7 @@ const defaultState = (
 ): ReferenceState => ({
   name: initialName ?? "",
   phases: phase ?? {
-    quantity: 1,
-    duration: 1,
+    items: [],
   },
 });
 

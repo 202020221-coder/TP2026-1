@@ -109,23 +109,42 @@ export function QuotationDetailFormCard({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-row gap-4">
-                    <div className="flex-1 space-y-1.5">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Cantidad de Fases
-                      </p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {quotation.phases.quantity}
-                      </p>
-                    </div>
-                    <div className="flex-1 space-y-1.5">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Duración por Fase
-                      </p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {quotation.phases.duration} día(s)
-                      </p>
-                    </div>
+                  <div className="flex flex-row items-center gap-4 mb-4 text-sm text-muted-foreground">
+                    <span>{quotation.phases.items.length} fase(s)</span>
+                    <span>
+                      {quotation.phases.items.reduce((a, p) => a + p.duration, 0)} días total
+                    </span>
+                    <span>
+                      {quotation.phases.items.reduce((a, p) => a + p.activities.length, 0)} actividad(es)
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {quotation.phases.items.map((phase, idx) => (
+                      <div key={phase.id} className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {idx + 1}. {phase.name}
+                          </p>
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            {phase.duration} día(s)
+                          </Badge>
+                        </div>
+                        {phase.description && (
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {phase.description}
+                          </p>
+                        )}
+                        {phase.activities.length > 0 && (
+                          <div className="space-y-0.5 mt-2">
+                            {phase.activities.map((act, actIdx) => (
+                              <p key={act.id} className="text-xs text-muted-foreground pl-2">
+                                {actIdx + 1}. {act.name}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

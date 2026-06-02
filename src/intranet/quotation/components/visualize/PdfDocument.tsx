@@ -30,8 +30,7 @@ export interface PDFQuotationDocumentProps {
     pickup: PickupState;
     conditions: ConditionState;
     phases: {
-      quantity: number;
-      duration: number;
+      items: { id: string; name: string; description: string; duration: number; activities: { id: string; name: string }[] }[];
     };
   };
 }
