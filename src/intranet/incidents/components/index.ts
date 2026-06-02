@@ -11,5 +11,6 @@ export { IncidentInvolvedModal } from "./IncidentInvolvedModal";
 export { IncidentWorkflowStatus } from "./detail/IncidentWorkflowStatus";
 export { IncidentQuotationsTable } from "./detail/IncidentQuotationsTable";
 export { IncidentInvolvedObjects } from "./detail/IncidentInvolvedObjects";
+export { IncidentObjectsModal as IncidentDetailObjectsModal } from "./detail/IncidentObjectsModal";
 export { CreateIncidentQuotationModal } from "./detail/CreateIncidentQuotationModal";
 export { QuotationCommentsModal } from "./detail/QuotationCommentsModal";
