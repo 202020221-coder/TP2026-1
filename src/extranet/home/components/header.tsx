@@ -3,6 +3,8 @@
 import { Menu, X, LogIn } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
+import { useSession } from '@/security/session/hooks/stores/useSession.store'
+import { UserDropdown } from './user-dropdown'
 
 interface Props {
   onLogin?: () => void;
@@ -11,6 +13,7 @@ interface Props {
 export default function Header({ onLogin }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const session = useSession((s) => s.loggedUser)
 
   // Detect scroll to make the header background more opaque
   useEffect(() => {
@@ -62,19 +65,22 @@ export default function Header({ onLogin }: Props) {
             </nav>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/*Login Button */}
-              <button
-                onClick={onLogin}
-                className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
-                  scrolled 
-                    ? 'text-white bg-secondary hover:bg-secondary/90' 
-                    : 'text-secondary bg-white hover:bg-white/90'
-                }`}
-                title="Login"
-              >
-                <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">Iniciar Sesión</span>
-              </button>
+              {session ? (
+                <UserDropdown />
+              ) : (
+                <button
+                  onClick={onLogin}
+                  className={`relative px-3 sm:px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 flex items-center space-x-2 ${
+                    scrolled 
+                      ? 'text-white bg-secondary hover:bg-secondary/90' 
+                      : 'text-secondary bg-white hover:bg-white/90'
+                  }`}
+                  title="Login"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                </button>
+              )}
 
               {/* Mobile Menu Button */}
               <button
