@@ -9,6 +9,7 @@ import type {
   InventarioRequestPayload,
   Incidencia,
   Camion,
+  InventarioPorServicioResponse,
 } from "../interfaces/proyecto";
 
 export const organizarRecursosApi = {
@@ -92,4 +93,13 @@ export const organizarRecursosApi = {
   // Todas las incidencias del sistema
   getAllIncidencias: () =>
     axiosInstance.get<Incidencia[]>("/incidencias"),
+
+  // Inventario requerido por servicio (checklist)
+  getInventarioPorServicio: (projectId: number) =>
+    axiosInstance.get<InventarioPorServicioResponse>(
+      `/proyectos/${projectId}/inventario-por-servicio`
+    ),
+
+  exportarInventarioPorServicio: (projectId: number) =>
+    axiosInstance.post(`/proyectos/${projectId}/inventario-por-servicio/exportar`),
 };
