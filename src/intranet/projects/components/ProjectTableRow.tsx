@@ -139,6 +139,22 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
               >
                 Gestionar Presupuesto
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/intranet/incidencias?id_proyecto=${project.id_Proyecto}`,
+                    {
+                      state: {
+                        projectId: project.id_Proyecto,
+                        projectName: project.Cotizacion_Nombre,
+                        clientName: project.Cliente_Nombre,
+                      },
+                    }
+                  )
+                }
+              >
+                Gestionar Incidencias
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>

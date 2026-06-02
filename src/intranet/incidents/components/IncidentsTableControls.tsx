@@ -88,7 +88,11 @@ const TopControls: FC = () => {
             variant="outline"
             onClick={() => {
               setSearchInput("");
-              query({ page: 1, limit: queryParams.limit });
+              query({
+                page: 1,
+                limit: queryParams.limit,
+                id_proyecto: queryParams.id_proyecto,
+              });
             }}
             disabled={!queryParams.estado && !queryParams.buscar}
             title="Limpiar filtros"

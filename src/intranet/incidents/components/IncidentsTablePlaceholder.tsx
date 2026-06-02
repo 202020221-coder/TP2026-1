@@ -11,34 +11,25 @@ export const IncidentsTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
           className="border-b border-gray-100 hover:bg-transparent"
         >
           <TableCell className="py-3">
-            <Skeleton className="h-4 w-8 bg-gray-100" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-32 bg-gray-100" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-24 bg-gray-100" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-24 bg-gray-100" />
-          </TableCell>
-          <TableCell>
             <Skeleton className="h-4 w-40 bg-gray-100" />
           </TableCell>
-          <TableCell className="text-center">
-            <Skeleton className="h-4 w-16 mx-auto bg-gray-100" />
+          <TableCell>
+            <Skeleton className="h-4 w-24 bg-gray-100" />
           </TableCell>
-          <TableCell className="text-center">
+          <TableCell>
+            <Skeleton className="h-6 w-12 mx-auto rounded-full bg-gray-100" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-24 mx-auto bg-gray-100" />
+          </TableCell>
+          <TableCell>
             <Skeleton className="h-6 w-24 mx-auto rounded-full bg-gray-100" />
           </TableCell>
           <TableCell className="text-center">
-            <Skeleton className="h-8 w-16 mx-auto rounded bg-gray-100" />
+            <Skeleton className="h-8 w-56 mx-auto rounded bg-gray-100" />
           </TableCell>
           <TableCell className="text-center">
-            <Skeleton className="h-8 w-16 mx-auto rounded bg-gray-100" />
-          </TableCell>
-          <TableCell className="text-center">
-            <Skeleton className="h-8 w-20 mx-auto rounded bg-gray-100" />
+            <Skeleton className="h-6 w-28 mx-auto rounded-full bg-gray-100" />
           </TableCell>
         </TableRow>
       ))}

@@ -136,6 +136,17 @@ export const sidebarLinks: IMenu[] = [
     icon: "ClipboardList",
   },
   {
+    title: "Gestionar Incidencia",
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+    ],
+    url: "/intranet/incidencias/",
+    icon: "ClipboardList",
+  },
+  {
     title: "Gestionar Recursos",
     roles: [RolesRecord.lawyer, RolesRecord.fieldSupervisor],
     url: "/intranet/organizar-recursos/",
