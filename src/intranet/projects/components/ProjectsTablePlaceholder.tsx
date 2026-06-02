@@ -34,12 +34,6 @@ export const ProjectsTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
           <TableCell className="text-center">
             <Skeleton className="h-8 w-20 mx-auto rounded bg-gray-100" />
           </TableCell>
-          <TableCell className="text-center">
-            <Skeleton className="h-8 w-16 mx-auto rounded bg-gray-100" />
-          </TableCell>
-          <TableCell className="text-center">
-            <Skeleton className="h-8 w-16 mx-auto rounded bg-gray-100" />
-          </TableCell>
         </TableRow>
       ))}
     </>
