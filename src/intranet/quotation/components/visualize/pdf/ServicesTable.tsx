@@ -51,25 +51,35 @@ const ServicesTable = ({ items }: { items: ServicesState["items"] }) => {
         </View>
       </View>
 
-      {rows.map((item) => (
-        <View style={styles.tableRow} key={item.id}>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.name}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.schedule}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.startDate}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>{item.dueDate}</Text>
-          </View>
-          <View style={styles.tableCol}>
-            <Text style={styles.tableCell}>${item.unitPrice}</Text>
+      {rows.length === 0 ? (
+        <View style={styles.tableRow}>
+          <View style={[styles.tableCol, { flex: 5 }]}>
+            <Text style={[styles.tableCell, { textAlign: "center", color: "#888" }]}>
+              No se cotizaron servicios
+            </Text>
           </View>
         </View>
-      ))}
+      ) : (
+        rows.map((item) => (
+          <View style={styles.tableRow} key={item.id}>
+            <View style={styles.tableCol}>
+              <Text style={styles.tableCell}>{item.name}</Text>
+            </View>
+            <View style={styles.tableCol}>
+              <Text style={styles.tableCell}>{item.schedule}</Text>
+            </View>
+            <View style={styles.tableCol}>
+              <Text style={styles.tableCell}>{item.startDate}</Text>
+            </View>
+            <View style={styles.tableCol}>
+              <Text style={styles.tableCell}>{item.dueDate}</Text>
+            </View>
+            <View style={styles.tableCol}>
+              <Text style={styles.tableCell}>${item.unitPrice}</Text>
+            </View>
+          </View>
+        ))
+      )}
     </View>
   );
 };

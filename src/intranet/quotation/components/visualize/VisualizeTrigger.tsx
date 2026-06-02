@@ -6,7 +6,6 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { TabsTrigger } from "@/shared/components/ui/tabs";
 import { cn } from "@/shared/lib/utils";
-import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
 import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
@@ -20,24 +19,24 @@ export const VisualizeTrigger: FC<
   PropsWithChildren<VisualizeTriggerProps>
 > = ({ children, baseTriggerClass }) => {
   const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
-  const inventory = useQuotationProductStore((s) => s.items);
   const quotationName = useQuotationReferenceStore((s) => s.name);
+  const phases = useQuotationReferenceStore((s) => s.phases);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
   const rate = useQuotationExchangeRate((s) => s.rate);
 
-  const hasInventory = Object.keys(inventory).length > 0;
   const hasName = quotationName.trim().length > 0;
+  const hasPhases = phases.items.length > 0;
   const hasAddress = pickupAddress.trim().length > 0;
   const hasRate = !!rate && rate.buyingRate > 0 && rate.sellingRate > 0;
   const hasTruck = trucks.length > 0;
-  const isDisabled = !hasTruck || !hasInventory || !hasName || !hasAddress || !hasRate;
+  const isDisabled = !hasTruck || !hasPhases || !hasName || !hasAddress || !hasRate;
 
   const getDisabledReasons = () => {
     const reasons: string[] = [];
 
     if (!hasTruck) reasons.push("Debe seleccionar al menos un camión");
-    if (!hasInventory)
-      reasons.push("Debe agregar al menos un item al inventario");
+    if (!hasPhases)
+      reasons.push("Debe definir al menos una fase");
     if (!hasName) reasons.push("Debe definir un nombre para la cotización");
     if (!hasAddress)
       reasons.push("Debe definir una dirección de recojo");
