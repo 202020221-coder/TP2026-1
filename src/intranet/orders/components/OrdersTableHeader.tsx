@@ -8,7 +8,7 @@ export const OrdersTableHeader: FC = () => {
     <TableHeader className="[&_tr]:border-b border-gray-200">
       <TableRow className="hover:bg-white">
         <TableHead className="text-gray-500 font-medium">ID</TableHead>
-        {user?.rol === RolesRecord.projectAdmin && (
+        {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) && (
           <TableHead className="text-gray-500 font-medium">Cliente</TableHead>
         )}
         <TableHead className="min-w-[220px]">Descripción</TableHead>

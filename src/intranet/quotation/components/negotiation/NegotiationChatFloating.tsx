@@ -6,10 +6,11 @@ import { canNegotiateQuotation } from "../../lib/can-negotiate-quotation";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import type { UserRole } from "@/security/session/interfaces/roles";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
 type NegotiationChatFloatingProps = {
   quotationId: number;
-  quotationEstado: string;
+  quotationEstado: DesiredQuotationData["status"];
   contactName?: string;
   contactRole?: UserRole;
 };

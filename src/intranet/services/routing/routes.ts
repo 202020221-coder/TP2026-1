@@ -7,6 +7,6 @@ export const routes: IRoute[] = [
     path: "/", 
     Component: ListServiciosPage,
     isPrivate: true,  //private sirve si es accedible si es para inciar sesión
-    roles: [RolesRecord.projectAdmin , RolesRecord.manager],  //escoges que roles pueden ver
+    roles: [RolesRecord.projectAdmin, RolesRecord.manager],  //escoges que roles pueden ver
   },
 ];

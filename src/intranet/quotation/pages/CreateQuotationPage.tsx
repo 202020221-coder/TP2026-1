@@ -1,8 +1,7 @@
 import { ClientCard } from "../components/reference/ClientCard";
 import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
-import {
-  QuotationReferenceStoreProvider,
-} from "../hooks/stores/quotation.reference.store.provider";
+import { ReferencePhasesCard } from "../components/reference/ReferencePhasesCard";
+import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
   Tabs,
@@ -19,7 +18,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
-import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
@@ -29,17 +27,19 @@ import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchang
 import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQuotationSummaryCard";
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
-import { CreateQuotationVisualizeSection } from "../components/visualize/CreateQuotationVisualizeSection";
+import { QuotationVisualizeSection } from "../components/visualize/QuotationVisualizeSection";
 import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
+import { type FC } from "react";
 import { useNavigate } from "react-router";
+import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
+import { CreateQuotationServicesSection } from "../components/prices/services/CreateQuotationServicesSection";
 
 export function CreateQuotationPage() {
   const navigate = useNavigate();
-  const { orderId, orderData, exchangeRate, isPending, isError } =
-    useCreateQuotationPage();
+  const { orderId, initialData, isPending, isError } = useCreateQuotationPage();
 
   if (!orderId) {
     throw new Error("Id de la solicitud no especificada");
@@ -49,11 +49,9 @@ export function CreateQuotationPage() {
     return <CreateQuotationPageSkeleton />;
   }
 
-  if (isError || !orderData) {
+  if (isError || !initialData) {
     return <CreateQuotationPageError />;
   }
-
-  const orderDataSafe = orderData;
 
   const baseTriggerClass =
     "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
@@ -67,7 +65,10 @@ export function CreateQuotationPage() {
             Elaborar Cotización - Solicitud #{orderId}
           </h1>
         </div>
-        <Button variant="outline" onClick={() => navigate("/intranet/solicitudes")}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/intranet/solicitudes")}
+        >
           <ArrowLeft className="h-4 w-4" />
           Regresar
         </Button>
@@ -79,72 +80,78 @@ export function CreateQuotationPage() {
       >
         <QuotationConditionStoreProvider>
           <QuotationExchangeRateProvider
-            initialData={exchangeRate ? { rate: exchangeRate } : undefined}
+            initialData={{ rate: initialData.quotationRate }}
           >
             <QuotationReferenceStoreProvider
-              initialName={orderDataSafe.Cliente_Nombre}
+              name={initialData.name}
+              phases={initialData.phases}
             >
               <QuotationTruckStoreProvider>
-                <QuotationProductStoreProvider
-                  initialProducts={orderDataSafe.inventario}
+                <QuotationServiceStoreProvider
+                  initialServices={initialData.services}
                 >
-                  <QuotationPickupStoreProvider
-                    initialData={{ pickupAddress: orderDataSafe.ubicacion }}
+                  <QuotationProductStoreProvider
+                    initialProducts={initialData.inventory}
                   >
-                    <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                      <TabsTrigger
-                        value="reference"
-                        className={baseTriggerClass}
-                      >
-                        <FileText className="w-4 h-4" />
-                        Datos de Referencia
-                      </TabsTrigger>
-                      <TabsTrigger value="prices" className={baseTriggerClass}>
-                        <DollarSign className="w-4 h-4" />
-                        Precios
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="conditions"
-                        className={baseTriggerClass}
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                        Condiciones
-                      </TabsTrigger>
-                      <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
-                        <Eye className="w-4 h-4" />
-                        Visualización
-                      </VisualizeTrigger>
-                    </TabsList>
-                    <ScrollArea className="mt-2 flex-1 min-h-0">
-                      <div className="px-3 py-6">
-                        <TabsContent value="reference" className="space-y-6">
-                          <ClientCard
-                            client={{
-                              DNI_O_RUC: orderDataSafe.Id_Cliente,
-                              nombre_comercial: orderDataSafe.Cliente_Nombre,
-                              razon_social: orderDataSafe.Razon_Social,
-                            }}
-                          />
-                          <ReferenceNameCard />
-                        </TabsContent>
-                        <TabsContent value="prices" className="space-y-6">
-                          <CreateQuotationProductsSection />
-                          <CreateQuotationTruckSelector />
-                          <CreateQuotationPickupSection />
-                          <CreateQuotationSummaryCard />
-                        </TabsContent>
-                        <TabsContent value="conditions">
-                          <CreateQuotationConditionCard />
-                        </TabsContent>
-                        <TabsContent value="visualize">
-                          <CreateQuotationVisualizeSection
-                            detailedOrder={orderDataSafe}
-                          />
-                        </TabsContent>
-                      </div>
-                    </ScrollArea>
-                  </QuotationPickupStoreProvider>
-                </QuotationProductStoreProvider>
+                    <QuotationPickupStoreProvider
+                      initialData={initialData.pickupService}
+                    >
+                      <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                        <TabsTrigger
+                          value="reference"
+                          className={baseTriggerClass}
+                        >
+                          <FileText className="w-4 h-4" />
+                          Datos de Referencia
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="prices"
+                          className={baseTriggerClass}
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          Precios
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="conditions"
+                          className={baseTriggerClass}
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Condiciones
+                        </TabsTrigger>
+                        <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                          <Eye className="w-4 h-4" />
+                          Visualización
+                        </VisualizeTrigger>
+                      </TabsList>
+                      <ScrollArea className="mt-2 flex-1 min-h-0">
+                        <div className="px-3 py-6">
+                          <TabsContent value="reference" className="space-y-6">
+                            <ClientCard client={initialData.client} />
+                            <ReferenceNameCard />
+                            <ReferencePhasesCard />
+                          </TabsContent>
+                          <TabsContent value="prices" className="space-y-6">
+                            <CreateQuotationProductsSection />
+                            <CreateQuotationServicesSection />
+                            <CreateQuotationTruckSelector />
+                            <CreateQuotationPickupSection />
+                            <CreateQuotationSummaryCard />
+                          </TabsContent>
+                          <TabsContent value="conditions">
+                            <CreateQuotationConditionCard />
+                          </TabsContent>
+                          <TabsContent value="visualize">
+                            <QuotationVisualizeSection
+                              mode="create"
+                              orderId={orderId}
+                              referenceData={initialData.client}
+                            />
+                          </TabsContent>
+                        </div>
+                      </ScrollArea>
+                    </QuotationPickupStoreProvider>
+                  </QuotationProductStoreProvider>
+                </QuotationServiceStoreProvider>
               </QuotationTruckStoreProvider>
             </QuotationReferenceStoreProvider>
           </QuotationExchangeRateProvider>

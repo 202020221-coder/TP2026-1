@@ -1,12 +1,12 @@
 import { createStore } from "zustand";
 import { format } from "date-fns";
+import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
-type State = {
-  pickupCost: number;
-  pickupDate: string;
-  pickupAddress: string;
+type PickupService = DesiredQuotationData["pickupService"];
+
+interface State extends PickupService {
   initialized: boolean;
-};
+}
 
 type Actions = {
   update: <K extends keyof PickupState>(

@@ -1,52 +1,63 @@
+import { ProjectDetailModal } from "./ProjectDetailModal";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Users, FileText, AlertTriangle, Pencil, Send, Eye } from "lucide-react";
+import { Pencil, Eye, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import type { Project } from "../interfaces/project";
-import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
-import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
-import { toast } from "sonner";
+import {
+  type ProjectState,
+  ProjectStatesRecord,
+} from "../enum/project-state.record";
 
-export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ project, canEdit }) => {
+export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
+  project,
+  canEdit,
+}) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const openOrganizarPersonal = () =>
-    navigate(`/intranet/organizar-personal/${project.id_Proyecto}`);
-
   const statusStyles = new Map<ProjectState, string>([
-    [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
-    [ProjectStatesRecord.inExecution, "bg-blue-100 text-blue-700 border-blue-300"],
-    [ProjectStatesRecord.completed, "bg-green-100 text-green-700 border-green-300"],
-    [ProjectStatesRecord.legalProcess, "bg-red-100 text-red-700 border-red-300"],
-    [ProjectStatesRecord.cancelled, "bg-gray-100 text-gray-600 border-gray-300"],
+    [
+      ProjectStatesRecord.pending,
+      "bg-yellow-100 text-yellow-700 border-yellow-300",
+    ],
+    [
+      ProjectStatesRecord.inExecution,
+      "bg-blue-100 text-blue-700 border-blue-300",
+    ],
+    [
+      ProjectStatesRecord.completed,
+      "bg-green-100 text-green-700 border-green-300",
+    ],
+    [
+      ProjectStatesRecord.legalProcess,
+      "bg-red-100 text-red-700 border-red-300",
+    ],
+    [
+      ProjectStatesRecord.cancelled,
+      "bg-gray-100 text-gray-600 border-gray-300",
+    ],
   ]);
 
   const formatDate = (dateStr: string) => {
     const [datePart] = dateStr.split("T");
     const [year, month, day] = datePart.split("-");
     return `${day}/${month}/${year}`;
-  };
-
-  const handleModalSend = () => {
-    if (!project.id_cotizacion) {
-      toast.error("El proyecto no tiene una cotización asociada.");
-      return;
-    }
-
-    toast.promise(downloadPurchaseOrder(project.id_cotizacion), {
-      loading: "Descargando orden de compra...",
-      success: "Descarga iniciada.",
-      error: "No se pudo descargar la orden de compra.",
-    });
   };
 
   return (
@@ -56,6 +67,11 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ pr
         open={modalOpen}
         canEdit={canEdit}
         onClose={() => setModalOpen(false)}
+      />
+      <ProjectDetailModal
+        projectId={detailProjectId ?? 0}
+        open={detailProjectId !== null}
+        onClose={() => setDetailProjectId(null)}
       />
 
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -75,7 +91,9 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ pr
         </TableCell>
 
         {/* Cliente */}
-        <TableCell className="text-gray-700">{project.Cliente_Nombre}</TableCell>
+        <TableCell className="text-gray-700">
+          {project.Cliente_Nombre}
+        </TableCell>
 
         {/* Estado */}
         <TableCell>
@@ -86,35 +104,43 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ pr
           </span>
         </TableCell>
 
-        {/* Trabajadores */}
+        {/* Acciones */}
         <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={openOrganizarPersonal}
+                // onClick={openOrganizarPersonal}
                 className="h-8 px-3 text-blue-600 border-blue-300 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500 transition-colors"
               >
-                <Users className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                Ver
+                Acciones
+                <ChevronDown className="w-3.5 h-3.5 ml-1 text-blue-600" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-blue-400 text-blue-600">
-              Organizar personal del proyecto
-            </TooltipContent>
-          </Tooltip>
-        </TableCell>
-
-        {/* Orden de servicio */}
-        <TableCell className="text-center">
-          {project.orden_servicio ? (
-            <span className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded">
-              {project.orden_servicio}
-            </span>
-          ) : (
-            <span className="text-gray-400 text-sm italic">—</span>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem
+                onClick={() => setDetailProjectId(project.id_Proyecto)}
+              >
+                Ver detalle-proyecto
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/organizar-personal")}
+              >
+                Organizar personal
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/organizar-recursos")}
+              >
+                Organizar recursos
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/presupuestos")}
+              >
+                Gestionar Presupuesto
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TableCell>
         {/* Ver Orden de Compra */}
         <TableCell className="text-center">
@@ -123,82 +149,26 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({ pr
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-full aspect-square text-emerald-500 hover:border hover:border-emerald-500 hover:text-emerald-600 transition-colors hover:bg-emerald-50"
-                  onClick={() => handleModalSend()}
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-red-50"
                 >
-                  <Send className="w-4 h-4" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640"
+                    className="w-5 h-5 fill-red-500"
+                  >
+                    <path d="M128 64C92.7 64 64 92.7 64 128L64 512C64 547.3 92.7 576 128 576L208 576L208 464C208 428.7 236.7 400 272 400L448 400L448 234.5C448 217.5 441.3 201.2 429.3 189.2L322.7 82.7C310.7 70.7 294.5 64 277.5 64L128 64zM389.5 240L296 240C282.7 240 272 229.3 272 216L272 122.5L389.5 240zM272 444C261 444 252 453 252 464L252 592C252 603 261 612 272 612C283 612 292 603 292 592L292 564L304 564C337.1 564 364 537.1 364 504C364 470.9 337.1 444 304 444L272 444zM304 524L292 524L292 484L304 484C315 484 324 493 324 504C324 515 315 524 304 524zM400 444C389 444 380 453 380 464L380 592C380 603 389 612 400 612L432 612C460.7 612 484 588.7 484 560L484 496C484 467.3 460.7 444 432 444L400 444zM420 572L420 484L432 484C438.6 484 444 489.4 444 496L444 560C444 566.6 438.6 572 432 572L420 572zM508 464L508 592C508 603 517 612 528 612C539 612 548 603 548 592L548 548L576 548C587 548 596 539 596 528C596 517 587 508 576 508L548 508L548 484L576 484C587 484 596 475 596 464C596 453 587 444 576 444L528 444C517 444 508 453 508 464z" />
+                  </svg>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent
-                className="bg-white border-[1.5px] border-blue-500 text-blue-500 font-normal text-center"
-                align="center"
-              >
-                Ver Orden de Compra
+              <TooltipContent className="bg-white border border-red-300 text-red-500">
+                Ver orden de servicio
               </TooltipContent>
             </Tooltip>
-
           ) : (
             <span className="text-gray-400 text-sm italic">—</span>
           )}
         </TableCell>
-
-        {/* Informe */}
-        <TableCell className="text-center">
-          {project.informe_final ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />
-                  Ver
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-white border border-green-400 text-green-600">
-                Ver informe: {project.informe_final}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />
-                  Agregar
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-white border border-orange-400 text-orange-500">
-                Agregar / Editar informe
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </TableCell>
-
-        {/* Incidencias */}
-        <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
-              >
-                <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                -
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-amber-400 text-amber-600">
-              Ver incidencias del proyecto
-            </TooltipContent>
-          </Tooltip>
-        </TableCell>
-
         {/* Editar proyecto */}
         <TableCell className="text-center">
           <Tooltip>

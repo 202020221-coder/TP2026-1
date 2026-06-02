@@ -19,9 +19,7 @@ export const personnelEditableRoles = [
   RolesRecord.lawyer,
 ] as const;
 
-export const resourceEditableRoles = [
-  RolesRecord.lawyer,
-] as const;
+export const resourceEditableRoles = [RolesRecord.lawyer] as const;
 
 export const canEditProjects = (role: UserRole | null | undefined) =>
   hasRole(role, projectEditableRoles);
@@ -55,7 +53,12 @@ export const sidebarLinks: IMenu[] = [
   },
   {
     title: "Solicitudes",
-    roles: [RolesRecord.client, RolesRecord.projectAdmin, RolesRecord.manager, RolesRecord.fieldWorker],
+    roles: [
+      RolesRecord.client,
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.fieldWorker,
+    ],
     url: "/intranet/solicitudes/",
     icon: "ClipboardList",
   },

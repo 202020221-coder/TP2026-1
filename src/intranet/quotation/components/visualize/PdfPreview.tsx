@@ -1,10 +1,12 @@
 import { PDFViewer } from "@react-pdf/renderer";
-import { PdfDocument } from "./PdfDocument";
+import { PdfDocument, type PDFQuotationDocumentProps } from "./PdfDocument";
 // Importamos los stores
 import { useQuotationProductStore } from "../../hooks/stores/quotation.products.store.provider";
+import { useQuotationServiceStore } from "../../hooks/stores/quotation.services.store.provider";
 import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
+import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 
 interface PdfPreviewProps {
   client: {
@@ -17,32 +19,40 @@ interface PdfPreviewProps {
 export const PdfPreview = ({ client }: PdfPreviewProps) => {
   // Obtenemos datos de cada store
   const inventory = useQuotationProductStore((state) => state.items);
-  const truck = useQuotationTruckStore((state) => state.selectedTruck);
+  const services = useQuotationServiceStore((state) => state.items);
+  const trucks = useQuotationTruckStore((state) => state.selectedTrucks);
   const pickupCost = useQuotationPickupStore((state) => state.pickupCost);
   const pickupDate = useQuotationPickupStore((state) => state.pickupDate);
-  const emissionDate = useQuotationConditionStore((state) => state.emissionDate);
-  const expirationDate = useQuotationConditionStore((state) => state.expirationDate);
+  const pickupAddress = useQuotationPickupStore((state) => state.pickupAddress);
+  const emissionDate = useQuotationConditionStore(
+    (state) => state.emissionDate,
+  );
+  const expirationDate = useQuotationConditionStore(
+    (state) => state.expirationDate,
+  );
   const conditions = useQuotationConditionStore((state) => state.conditions);
-  const observaciones = useQuotationConditionStore((state) => state.observaciones);
-
-  if (!truck) {
-    throw new Error("TRUCK NO DEFINIDO");
-  }
+  const observations = useQuotationConditionStore(
+    (state) => state.observations,
+  );
+  const phases = useQuotationReferenceStore((state) => state.phases);
 
   // Construimos el objeto data
-  const data = {
+  const data: PDFQuotationDocumentProps["data"] = {
+    phases,
     client,
     inventory,
-    truck,
+    services,
+    trucks,
     pickup: {
       pickupCost,
       pickupDate,
+      pickupAddress,
     },
     conditions: {
       emissionDate,
       expirationDate,
       conditions,
-      observaciones,
+      observations,
     },
   };
 

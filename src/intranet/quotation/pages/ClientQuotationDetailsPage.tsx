@@ -1,26 +1,22 @@
 import { useNavigate, useParams } from "react-router";
 import { QuotationDetailState } from "../components/list/QuotationDetailState";
-import { useQuery } from "@tanstack/react-query";
 import { QuotationDetailHeader } from "../components/list/QuotationDetailHeader";
 import { QuotationDetailFormCard } from "../components/list/QuotationDetailFormCard";
 import type { FC } from "react";
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { getQuotationForClient } from "../api/quotation.api";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
+import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 
 export function ClientQuotationDetailsPage() {
   const navigate = useNavigate();
   const params = useParams();
   const quotationId = Number(params["quotationId"]);
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ["quotation", "details", quotationId],
-    queryFn: () => getQuotationForClient(quotationId),
-  });
+  const { data, isPending, isError } = useViewQuotationPage()
   if (isError) {
     return (
       <QuotationDetailState
-        message={error.message}
+        message={"hubo un error"}
         onBack={() => navigate("/intranet/cotizaciones")}
       />
     );
@@ -33,11 +29,11 @@ export function ClientQuotationDetailsPage() {
       <QuotationDetailHeader
         onBack={() => navigate("/intranet/cotizaciones")}
       />
-      <QuotationDetailFormCard quotation={data} />
+      <QuotationDetailFormCard quotation={data!} />
 
       <NegotiationChatFloating
         quotationId={quotationId}
-        quotationEstado={data.estado}
+        quotationEstado={data!.status}
       />
     </div>
   );

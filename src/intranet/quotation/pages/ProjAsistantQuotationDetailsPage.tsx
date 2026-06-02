@@ -1,4 +1,5 @@
 import { ClientCard } from "../components/reference/ClientCard";
+import { ReferencePhasesCard } from "../components/reference/ReferencePhasesCard";
 import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { type FC } from "react";
 import { QuotationProductsTable } from "../components/prices/products/ProductsTable";
+import { QuotationServicesTable } from "../components/prices/services/ServicesTable";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationPickupStoreProvider } from "../hooks/stores/quotation.pickup.store.provider";
 import { QuotationExchangeRateProvider } from "../hooks/stores/quotation.exchange.rate.store.provider";
@@ -37,6 +39,7 @@ import { useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
 
 export function ProjectAssistantQuotationDetailsPage() {
   const navigate = useNavigate();
@@ -64,10 +67,13 @@ export function ProjectAssistantQuotationDetailsPage() {
           <div className="flex items-center gap-3">
             <div className="h-7 w-1 rounded-full bg-primary" />
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {data.nombre}
+              {data.name}
             </h1>
           </div>
-          <Button variant="outline" onClick={() => navigate("/intranet/cotizaciones")}>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/intranet/cotizaciones")}
+          >
             <ArrowLeft className="h-4 w-4" />
             Regresar
           </Button>
@@ -77,107 +83,135 @@ export function ProjectAssistantQuotationDetailsPage() {
           defaultValue="reference"
           className="w-full flex flex-col flex-1 min-h-0"
         >
-          <QuotationReferenceStoreProvider initialName={data.nombre}>
-            <QuotationProductStoreProvider initialProducts={data.productos}>
-              <QuotationPickupStoreProvider
-                initialData={{
-                  pickupAddress: data.costoRecojo.direccionRecojo,
-                  pickupCost: data.costoRecojo.costo,
-                  pickupDate: data.costoRecojo.fechaRecojo,
-                }}
-              >
-                <QuotationExchangeRateProvider
-                  initialData={{
-                    rate: {
-                      buyingRate: data.tasaCambio.tasaCompra,
-                      sellingRate: data.tasaCambio.tasaVenta,
-                    },
-                  }}
-                >
-                  <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                    <TabsTrigger value="reference" className={baseTriggerClass}>
-                      <FileText className="w-4 h-4" />
-                      Datos de Referencia
-                    </TabsTrigger>
-                    <TabsTrigger value="prices" className={baseTriggerClass}>
-                      <DollarSign className="w-4 h-4" />
-                      Precios
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="conditions"
-                      className={baseTriggerClass}
-                    >
-                      <ClipboardList className="w-4 h-4" />
-                      Condiciones
-                    </TabsTrigger>
-                  </TabsList>
-                  <ScrollArea className="mt-2 flex-1 min-h-0">
-                    <div className="px-3 py-6">
-                      <TabsContent value="reference" className="space-y-6">
-                        <ClientCard client={data.client} />
-                      </TabsContent>
-                      <TabsContent value="prices" className="space-y-6">
-                        <Card className="gap-4 border bg-card shadow-none">
-                          <CardHeader className="pb-0">
-                            <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
-                              <SquareChartGantt className="text-primary" />
-                              <span className="pb-0.5 font-[375] text-[18px]">
-                                Productos Cotizados
-                              </span>
-                            </CardTitle>
-                            <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-                              Productos incluidos en la cotización.
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <QuotationProductsTable
-                              items={data.productos}
-                              readOnly={true}
-                              onUpdateQuantity={undefined}
-                              onUpdateUnitPrice={undefined}
-                              onUpdateIntention={undefined}
-                              onUpdateRentedDays={undefined}
-                              onDelete={undefined}
-                            />
-                          </CardContent>
-                        </Card>
-                        <TruckInfoCard truck={data.camionEspecificado} />
-                        <PickupCardView
-                          pickupCost={data.costoRecojo.costo}
-                          pickupDate={data.costoRecojo.fechaRecojo}
-                          pickupAddress={data.costoRecojo.direccionRecojo}
-                          readOnly={true}
-                          onPickupDateChange={undefined}
-                          onPickupCostChange={undefined}
-                          onPickupAddressChange={undefined}
-                        />
-                        <SummaryCard />
-                      </TabsContent>
-                      <TabsContent value="conditions" className="space-y-6">
-                        <ConditionCard
-                          emissionDate={data.condiciones.fechaEmision}
-                          expirationDate={data.condiciones.fechaVigencia}
-                          conditions={data.condiciones.condiciones}
-                          observaciones={data.condiciones.observaciones}
-                          readOnly={true}
-                          onEmissionChange={undefined}
-                          onExpirationChange={undefined}
-                          onConditionsChange={undefined}
-                          onObservacionesChange={undefined}
-                        />
-                      </TabsContent>
-                    </div>
-                  </ScrollArea>
-                </QuotationExchangeRateProvider>
-              </QuotationPickupStoreProvider>
-            </QuotationProductStoreProvider>
+          <QuotationReferenceStoreProvider
+            name={data.name}
+            phases={data.phases}
+          >
+            <QuotationServiceStoreProvider initialServices={data.services}>
+              <QuotationProductStoreProvider initialProducts={data.inventory}>
+                <QuotationPickupStoreProvider initialData={data.pickupService}>
+                  <QuotationExchangeRateProvider
+                    initialData={{
+                      rate: data.quotationRate,
+                    }}
+                  >
+                    <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                      <TabsTrigger
+                        value="reference"
+                        className={baseTriggerClass}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Datos de Referencia
+                      </TabsTrigger>
+                      <TabsTrigger value="prices" className={baseTriggerClass}>
+                        <DollarSign className="w-4 h-4" />
+                        Precios
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="conditions"
+                        className={baseTriggerClass}
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                        Condiciones
+                      </TabsTrigger>
+                    </TabsList>
+                    <ScrollArea className="mt-2 flex-1 min-h-0">
+                      <div className="px-3 py-6">
+                        <TabsContent value="reference" className="space-y-6">
+                          <ClientCard client={data.client} />
+                          <ReferencePhasesCard readOnly />
+                        </TabsContent>
+                        <TabsContent value="prices" className="space-y-6">
+                          <Card className="gap-4 border bg-card shadow-none">
+                            <CardHeader className="pb-0">
+                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                <SquareChartGantt className="text-primary" />
+                                <span className="pb-0.5 font-[375] text-[18px]">
+                                  Productos Cotizados
+                                </span>
+                              </CardTitle>
+                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                Productos incluidos en la cotización.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <QuotationProductsTable
+                                items={data.inventory}
+                                readOnly={true}
+                                onUpdateQuantity={undefined}
+                                onUpdateUnitPrice={undefined}
+                                onUpdateIntention={undefined}
+                                onUpdateRentedDays={undefined}
+                                onDelete={undefined}
+                              />
+                            </CardContent>
+                          </Card>
+                          <Card className="gap-4 border bg-card shadow-none">
+                            <CardHeader className="pb-0">
+                              <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
+                                <SquareChartGantt className="text-primary" />
+                                <span className="pb-0.5 font-[375] text-[18px]">
+                                  Servicios
+                                </span>
+                              </CardTitle>
+                              <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
+                                Servicios incluidos en la cotización.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <QuotationServicesTable
+                                items={data.services}
+                                readOnly={true}
+                                onUpdateUnitPrice={undefined}
+                                onDelete={undefined}
+                                onUpdateDueDate={undefined}
+                                onUpdateSchedule={undefined}
+                                onUpdateStartDate={undefined}
+                              />
+                            </CardContent>
+                          </Card>
+                          <TruckInfoCard trucks={data.trucks} />
+                          <PickupCardView
+                            pickupCost={data.pickupService.pickupCost}
+                            pickupDate={data.pickupService.pickupDate}
+                            pickupAddress={data.pickupService.pickupAddress}
+                            readOnly={true}
+                            onPickupDateChange={undefined}
+                            onPickupCostChange={undefined}
+                            onPickupAddressChange={undefined}
+                          />
+                          <SummaryCard />
+                        </TabsContent>
+                        <TabsContent value="conditions" className="space-y-6">
+                          <ConditionCard
+                            emissionDate={data.quotationConditions.emissionDate}
+                            expirationDate={
+                              data.quotationConditions.expirationDate
+                            }
+                            conditions={data.quotationConditions.conditions}
+                            observaciones={
+                              data.quotationConditions.observations
+                            }
+                            readOnly={true}
+                            onEmissionChange={undefined}
+                            onExpirationChange={undefined}
+                            onConditionsChange={undefined}
+                            onObservacionesChange={undefined}
+                          />
+                        </TabsContent>
+                      </div>
+                    </ScrollArea>
+                  </QuotationExchangeRateProvider>
+                </QuotationPickupStoreProvider>
+              </QuotationProductStoreProvider>
+            </QuotationServiceStoreProvider>
           </QuotationReferenceStoreProvider>
         </Tabs>
       </div>
       <NegotiationChatFloating
         quotationId={Number(quotationId)}
-        quotationEstado={data.estado}
-        contactName={data.client.razon_social}
+        quotationEstado={data.status}
+        contactName={data.client.companyName}
         contactRole={RolesRecord.client}
       />
     </>

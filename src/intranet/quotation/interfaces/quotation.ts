@@ -1,5 +1,4 @@
 import type { QuotationProductIntention } from "../enum/order-inventory-intention";
-import type { QuotationMessagesState } from "../enum/quotation-message-state.record";
 import { type QuotationState } from "../enum/quotation-state.record";
 
 export interface Quotation {
@@ -9,11 +8,10 @@ export interface Quotation {
   condiciones: QuotationConditions;
   estado: QuotationState;
   tasaCambio: QuotationExchangeRate;
-  /** Valor del API; se normaliza en UI con `normalizeQuotationMessageState`. */
-  mensajes?: QuotationMessagesState | string | null;
   version: number;
   /**solo visibles por el administrador */
   nombreCliente?: string;
+  chat: "si" | "no";
 }
 
 export type QuotationProduct = {
@@ -24,7 +22,7 @@ export type QuotationProduct = {
 } & (
   | {
       intencion: Extract<QuotationProductIntention, "comprar">;
-      dias_alquilados:null;
+      dias_alquilados: null;
     }
   | {
       intencion: Extract<QuotationProductIntention, "alquilar">;
@@ -42,6 +40,13 @@ export interface QuotationExchangeRate {
   tasaCompra: number;
   tasaVenta: number;
 }
+
+export type ServiceItem = {
+  id: string;
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+};
 
 export interface QuotationConditions {
   fechaEmision: string;

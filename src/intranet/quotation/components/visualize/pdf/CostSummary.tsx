@@ -1,5 +1,8 @@
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
+import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
+
+type Service = DesiredQuotationData["services"][number];
 
 const styles = StyleSheet.create({
   section: {
@@ -30,16 +33,25 @@ const styles = StyleSheet.create({
 
 const CostSummary = ({
   inventory,
+  services,
   pickup,
 }: {
   inventory: Record<QuotationProduct["id"], QuotationProduct>;
+  services: Record<Service["id"], Service>;
   pickup: { pickupCost: number; pickupDate: string };
 }) => {
-  const subtotal = Object.values(inventory).reduce(
+  const inventorySubtotal = Object.values(inventory).reduce(
     (acc, item) => acc + item.cantidad * item.precio_unitario,
     0,
   );
-  const total = subtotal + (pickup?.pickupCost || 0);
+  const servicesSubtotal = Object.values(services).reduce(
+    (acc, item) => acc + (Number(item.unitPrice) || 0),
+    0,
+  );
+  const subtotal = inventorySubtotal + servicesSubtotal;
+  
+  //TODO: String cuando es decimal??
+  const total = Number(subtotal) + Number(pickup?.pickupCost || 0);
 
   return (
     <View style={styles.section}>
@@ -47,7 +59,12 @@ const CostSummary = ({
 
       <View style={styles.row}>
         <Text style={styles.label}>Subtotal Inventario:</Text>
-        <Text style={styles.value}>${subtotal}</Text>
+        <Text style={styles.value}>${inventorySubtotal}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <Text style={styles.label}>Servicios:</Text>
+        <Text style={styles.value}>${servicesSubtotal}</Text>
       </View>
 
       <View style={styles.row}>

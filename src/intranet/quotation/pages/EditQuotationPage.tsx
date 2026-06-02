@@ -1,5 +1,6 @@
 import { ClientCard } from "../components/reference/ClientCard";
 import { ReferenceNameCard } from "../components/reference/ReferenceNameCard";
+import { ReferencePhasesCard } from "../components/reference/ReferencePhasesCard";
 import { QuotationReferenceStoreProvider } from "../hooks/stores/quotation.reference.store.provider";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import {
@@ -28,13 +29,15 @@ import { CreateQuotationSummaryCard } from "../components/prices/summary/CreateQ
 import { CreateQuotationConditionCard } from "../components/conditions/CreateQuotationConditionCard";
 import { QuotationConditionStoreProvider } from "../hooks/stores/quotation.conditions.store.provider";
 import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
-import { PdfPreview } from "../components/visualize/PdfPreview";
+import { QuotationVisualizeSection } from "../components/visualize/QuotationVisualizeSection";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { CreateQuotationServicesSection } from "../components/prices/services/CreateQuotationServicesSection";
+import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
 
 export function EditQuotationPage() {
   const navigate = useNavigate();
@@ -79,90 +82,86 @@ export function EditQuotationPage() {
           className="w-full flex flex-col flex-1 min-h-0"
         >
           <QuotationConditionStoreProvider
-            initialData={{
-              emissionDate: data.condiciones.fechaEmision,
-              expirationDate: data.condiciones.fechaVigencia,
-              conditions: data.condiciones.condiciones,
-              observaciones: data.condiciones.observaciones,
-            }}
+            initialData={data.quotationConditions}
           >
             <QuotationExchangeRateProvider
-              initialData={{
-                rate: {
-                  buyingRate: data.tasaCambio.tasaCompra,
-                  sellingRate: data.tasaCambio.tasaVenta,
-                },
-              }}
+              initialData={{ rate: data.quotationRate }}
             >
-              <QuotationReferenceStoreProvider initialName={data.nombre}>
+              <QuotationReferenceStoreProvider
+                name={data.name}
+                phases={data.phases}
+              >
                 <QuotationTruckStoreProvider
-                  initialData={{ selectedTruck: data.camionEspecificado }}
+                  initialData={{ selectedTrucks: data.trucks }}
                 >
-                  <QuotationProductStoreProvider
-                    initialProducts={data.productos}
+                  <QuotationServiceStoreProvider
+                    initialServices={data.services}
                   >
-                    <QuotationPickupStoreProvider
-                      initialData={{
-                        pickupAddress: data.costoRecojo.direccionRecojo,
-                        pickupCost: data.costoRecojo.costo,
-                        pickupDate: data.costoRecojo.fechaRecojo,
-                      }}
+                    <QuotationProductStoreProvider
+                      initialProducts={data.inventory}
                     >
-                      <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
-                        <TabsTrigger
-                          value="reference"
-                          className={baseTriggerClass}
-                        >
-                          <FileText className="w-4 h-4" />
-                          Datos de Referencia
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="prices"
-                          className={baseTriggerClass}
-                        >
-                          <DollarSign className="w-4 h-4" />
-                          Precios
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="conditions"
-                          className={baseTriggerClass}
-                        >
-                          <ClipboardList className="w-4 h-4" />
-                          Condiciones
-                        </TabsTrigger>
-                        <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
-                          <Eye className="w-4 h-4" />
-                          Visualización
-                        </VisualizeTrigger>
-                      </TabsList>
-                      <ScrollArea className="mt-2 flex-1 min-h-0">
-                        <div className="px-3 py-6">
-                          <TabsContent value="reference" className="space-y-6">
-                            <ClientCard client={data.client} />
-                            <ReferenceNameCard />
-                          </TabsContent>
-                          <TabsContent value="prices" className="space-y-6">
-                            <CreateQuotationProductsSection />
-                            <CreateQuotationTruckSelector />
-                            <CreateQuotationPickupSection />
-                            <CreateQuotationSummaryCard />
-                          </TabsContent>
-                          <TabsContent value="conditions">
-                            <CreateQuotationConditionCard />
-                          </TabsContent>
-                          <TabsContent value="visualize">
-                            <PdfPreview
-                              client={{
-                                RUC: data.client.DNI_O_RUC,
-                                nombre_comercial: data.client.nombre_comercial,
-                                razon_social: data.client.razon_social,
-                              }}
-                            />
-                          </TabsContent>
-                        </div>
-                      </ScrollArea>
-                    </QuotationPickupStoreProvider>
-                  </QuotationProductStoreProvider>
+                      <QuotationPickupStoreProvider
+                        initialData={data.pickupService}
+                      >
+                        <TabsList className="grid grid-cols-4 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
+                          <TabsTrigger
+                            value="reference"
+                            className={baseTriggerClass}
+                          >
+                            <FileText className="w-4 h-4" />
+                            Datos de Referencia
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="prices"
+                            className={baseTriggerClass}
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            Precios
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="conditions"
+                            className={baseTriggerClass}
+                          >
+                            <ClipboardList className="w-4 h-4" />
+                            Condiciones
+                          </TabsTrigger>
+                          <VisualizeTrigger baseTriggerClass={baseTriggerClass}>
+                            <Eye className="w-4 h-4" />
+                            Visualización
+                          </VisualizeTrigger>
+                        </TabsList>
+                        <ScrollArea className="mt-2 flex-1 min-h-0">
+                          <div className="px-3 py-6">
+                            <TabsContent
+                              value="reference"
+                              className="space-y-6"
+                            >
+                              <ClientCard client={data.client} />
+                              <ReferenceNameCard />
+                              <ReferencePhasesCard />
+                            </TabsContent>
+                            <TabsContent value="prices" className="space-y-6">
+                              <CreateQuotationProductsSection />
+                              <CreateQuotationServicesSection />
+                              <CreateQuotationTruckSelector />
+                              <CreateQuotationPickupSection />
+                              <CreateQuotationSummaryCard />
+                            </TabsContent>
+                            <TabsContent value="conditions">
+                              <CreateQuotationConditionCard />
+                            </TabsContent>
+                            <TabsContent value="visualize">
+                              <QuotationVisualizeSection
+                                mode="update"
+                                quotationId={quotationId}
+                                referenceData={data.client}
+                              />
+                            </TabsContent>
+                          </div>
+                        </ScrollArea>
+                      </QuotationPickupStoreProvider>
+                    </QuotationProductStoreProvider>
+                  </QuotationServiceStoreProvider>
                 </QuotationTruckStoreProvider>
               </QuotationReferenceStoreProvider>
             </QuotationExchangeRateProvider>
@@ -171,8 +170,8 @@ export function EditQuotationPage() {
       </div>
       <NegotiationChatFloating
         quotationId={Number(quotationId)}
-        quotationEstado={data.estado}
-        contactName={data.client.razon_social}
+        quotationEstado={data.status}
+        contactName={data.client.companyName}
         contactRole={RolesRecord.client}
       />
     </>
