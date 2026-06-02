@@ -23,6 +23,7 @@ export const useUpdateQuotation = ({
   const inventory = useQuotationProductStore((s) => s.items);
   const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
   const quotationName = useQuotationReferenceStore((s) => s.name);
+  const phases = useQuotationReferenceStore((s) => s.phases);
   const pickupCost = useQuotationPickupStore((s) => s.pickupCost);
   const pickupDate = useQuotationPickupStore((s) => s.pickupDate);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
@@ -40,27 +41,26 @@ export const useUpdateQuotation = ({
     await toast.promise(
       async () => {
         await updateQuotation(Number(quotationId), {
-          nombre: quotationName || "cotización",
-          condiciones: {
-            condiciones: conditions,
-            fechaEmision: emissionDate,
-            fechaVigencia: expirationDate,
-            observaciones: observations,
+          name: quotationName,
+          inventory: Object.values(inventory),
+          services: Object.values(servicios),
+          trucks,
+          pickupService: {
+            pickupCost,
+            pickupDate,
+            pickupAddress,
           },
-          costoRecojo: {
-            costo: pickupCost,
-            direccionRecojo: pickupAddress,
-            fechaRecojo: pickupDate,
+          quotationConditions: {
+            emissionDate,
+            expirationDate,
+            conditions,
+            observations,
           },
-          id_camion: trucks[0]?.plate ?? "",
-          productos: Object.values(inventory).map(
-            ({ nombre: _nombre, ...rest }) => rest,
-          ),
-          servicios: Object.values(servicios),
-          tasaCambio: {
-            tasaCompra: rate?.buyingRate ?? 0,
-            tasaVenta: rate?.sellingRate ?? 0,
+          quotationRate: {
+            sellingRate: rate?.sellingRate ?? 0,
+            buyingRate: rate?.buyingRate ?? 0,
           },
+          phases,
         });
         navigate("/intranet/cotizaciones");
       },
@@ -73,16 +73,17 @@ export const useUpdateQuotation = ({
   }, [
     quotationId,
     quotationName,
-    conditions,
-    emissionDate,
-    expirationDate,
-    observations,
-    pickupCost,
-    pickupAddress,
-    pickupDate,
-    trucks,
+    phases,
     inventory,
     servicios,
+    trucks,
+    pickupCost,
+    pickupDate,
+    pickupAddress,
+    emissionDate,
+    expirationDate,
+    conditions,
+    observations,
     rate,
     navigate,
   ]);

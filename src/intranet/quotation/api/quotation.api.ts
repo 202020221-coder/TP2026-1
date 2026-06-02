@@ -2,7 +2,6 @@ import type { Quotation, QuotationProduct, ServiceItem } from "../interfaces/quo
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
 import axiosInstance from "@/shared/api/axios.config";
 import type {
-  CreateQuotationBody,
   GetQuotationsResponse,
 } from "../interfaces/responses.dto";
 import type { GetQuotationQP } from "../interfaces/query-params.dto";
@@ -71,13 +70,18 @@ export const getQuotationForAdmin = async (
   };
 };
 
-export const createQuotation = async (data: CreateQuotationBody) => {
+type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">
+
+type CreateQuotationDTO = UpsertQuotationDTO & {
+  id_solicitud: number;
+  DNI_O_RUC: string;
+};
+
+export const createQuotation = async (data: CreateQuotationDTO) => {
   await axiosInstance.post("/cotizaciones", data);
 };
 
-export type UpdateQuotationBody = Omit<CreateQuotationBody, "id_solicitud" | "DNI_O_RUC">;
-
-export const updateQuotation = async (id: number, data: UpdateQuotationBody) => {
+export const updateQuotation = async (id: number, data: UpsertQuotationDTO) => {
   await axiosInstance.put(`/cotizaciones/${id}`, data);
 };
 
@@ -182,6 +186,7 @@ export const getAvailableTrucks = async ({
 //items de inventario
 import type { GetInventoryItemsResponse } from "../interfaces/responses.dto";
 import type { GetInventoryItemsQP } from "../interfaces/query-params.dto";
+import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 
 export const getInventoryItems = async ({
   limit = 6,
