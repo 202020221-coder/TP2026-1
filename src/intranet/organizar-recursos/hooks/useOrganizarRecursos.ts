@@ -202,6 +202,29 @@ export const useUpdateInventarioFromProyecto = () => {
   });
 };
 
+export const useInventarioPorServicio = (projectId: number, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ["inventario-por-servicio", projectId],
+    queryFn: () => organizarRecursosApi.getInventarioPorServicio(projectId),
+    select: (data) => data.data,
+    enabled: !!projectId && enabled,
+  });
+};
+
+export const useExportarInventarioPorServicio = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projectId }: { projectId: number }) =>
+      organizarRecursosApi.exportarInventarioPorServicio(projectId),
+    onSettled: (_, __, { projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ["inventario-del-proyecto", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["inventario-por-servicio", projectId] });
+    },
+    onSuccess: () => toast.success("Inventario importado al proyecto exitosamente"),
+    onError: () => toast.error("No se pudo importar el inventario"),
+  });
+};
+
 export const useUpdateCamionFromProyecto = () => {
   const queryClient = useQueryClient();
   return useMutation({

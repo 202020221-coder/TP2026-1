@@ -134,6 +134,26 @@ export interface InventarioDelProyectoItem {
   Objeto_Nombre: string;
 }
 
+export interface InventarioPorServicioItem {
+  id_inventario: number;
+  nombre_objeto: string;
+  estancia: string;
+  cantidad_requerida: number;
+  cantidad_en_inventario: number;
+  precio_compra: number;
+  servicios: string[];
+  costo: number;
+}
+
+export interface InventarioPorServicioResponse {
+  id_Proyecto: number;
+  id_cotizacion: number;
+  servicios_del_proyecto: { ID_Servicio: number; nombre: string }[];
+  total_objetos: number;
+  costo_total_faltante: number;
+  data: InventarioPorServicioItem[];
+}
+
 export interface Incidencia {
   id_incidencia: number;
   id_proyecto: number;

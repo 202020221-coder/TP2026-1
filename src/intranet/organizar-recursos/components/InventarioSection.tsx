@@ -32,6 +32,7 @@ import {
   useInventarioDelProyecto,
   useAllIncidencias,
 } from "../hooks/useOrganizarRecursos";
+import { ChecklistInventarioDialog } from "./ChecklistInventarioDialog";
 import type { InventarioDelProyectoItem } from "../interfaces/proyecto";
 import { formatDate } from "@/shared/lib/utils";
 import { ORGANIZAR_RECURSOS_DEFAULTS } from "../lib/constants";
@@ -157,6 +158,8 @@ export function InventarioSection({ projectId, canEdit }: InventarioSectionProps
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Objetos / Equipos</h3>
         {canEdit ? (
+          <div className="flex items-center gap-2">
+          <ChecklistInventarioDialog projectId={projectId} canEdit={canEdit} />
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-2">
@@ -312,6 +315,7 @@ export function InventarioSection({ projectId, canEdit }: InventarioSectionProps
             </form>
             </DialogContent>
           </Dialog>
+          </div>
         ) : (
           <span className="text-sm text-muted-foreground">Solo lectura</span>
         )}

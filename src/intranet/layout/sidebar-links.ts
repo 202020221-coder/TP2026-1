@@ -19,7 +19,15 @@ export const personnelEditableRoles = [
   RolesRecord.lawyer,
 ] as const;
 
-export const resourceEditableRoles = [RolesRecord.lawyer] as const;
+export const resourceEditableRoles = [
+  RolesRecord.lawyer,
+  RolesRecord.manager,
+  RolesRecord.projectAdmin,
+  RolesRecord.fieldSupervisor,
+] as const;
+
+
+
 
 export const canEditProjects = (role: UserRole | null | undefined) =>
   hasRole(role, projectEditableRoles);
