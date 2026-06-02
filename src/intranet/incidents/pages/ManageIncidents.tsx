@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
 import { IncidentObjectsModal, IncidentsTable } from "../components";
@@ -47,37 +47,94 @@ export function IncidentsManagementPage() {
       </div>
 
       <ListIncidentsProvider initialQueryParams={initialQueryParams}>
-        <IncidentsProjectHeader
+        <IncidentsContent
           projectId={projectId}
           projectNameFromState={navigationState?.projectName}
           clientNameFromState={navigationState?.clientName}
+          objectsModalOpen={objectsModalOpen}
+          onCloseObjectsModal={() => setObjectsModalOpen(false)}
+          onOpenObjectsModal={() => setObjectsModalOpen(true)}
         />
-
-        <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
-          <IncidentActionsPanel
-            projectId={projectId}
-            onOpenObjectsModal={() => setObjectsModalOpen(true)}
-          />
-        </div>
-
-        {projectId ? (
-          <IncidentObjectsModal
-            incidentId={projectId}
-            open={objectsModalOpen}
-            onClose={() => setObjectsModalOpen(false)}
-          />
-        ) : null}
       </ListIncidentsProvider>
     </>
   );
 }
 
-function IncidentActionsPanel({
+function IncidentsContent({
   projectId,
+  projectNameFromState,
+  clientNameFromState,
+  objectsModalOpen,
+  onCloseObjectsModal,
   onOpenObjectsModal,
 }: {
   projectId?: number;
+  projectNameFromState?: string | null;
+  clientNameFromState?: string;
+  objectsModalOpen: boolean;
+  onCloseObjectsModal: () => void;
   onOpenObjectsModal: () => void;
+}) {
+  const { result } = useIncidents();
+  const incidents = (result.data?.data ?? []) as Incident[];
+  const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (incidents.length === 0) {
+      setSelectedIncidentId(null);
+      return;
+    }
+
+    const selectedExists = incidents.some(
+      (incident) => incident.id_incidencia === selectedIncidentId,
+    );
+
+    if (!selectedExists) {
+      setSelectedIncidentId(incidents[0].id_incidencia);
+    }
+  }, [incidents, selectedIncidentId]);
+
+  const selectedIncident = incidents.find(
+    (incident) => incident.id_incidencia === selectedIncidentId,
+  ) ?? incidents[0];
+
+  return (
+    <>
+      <IncidentsProjectHeader
+        projectId={projectId}
+        projectNameFromState={projectNameFromState}
+        clientNameFromState={clientNameFromState}
+        selectedIncident={selectedIncident}
+      />
+
+      <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
+        <IncidentActionsPanel
+          onOpenObjectsModal={onOpenObjectsModal}
+          selectedIncidentId={selectedIncident?.id_incidencia}
+          onSelectIncident={setSelectedIncidentId}
+          selectedIncident={selectedIncident}
+        />
+      </div>
+
+      <IncidentObjectsSection
+        open={objectsModalOpen}
+        onClose={onCloseObjectsModal}
+        selectedIncidentId={selectedIncident?.id_incidencia}
+      />
+    </>
+  );
+}
+
+function IncidentActionsPanel({
+  onOpenObjectsModal,
+  selectedIncidentId,
+  onSelectIncident,
+  selectedIncident,
+}: {
+  onOpenObjectsModal: () => void;
+  selectedIncidentId?: number;
+  onSelectIncident: (incidentId: number) => void;
+  selectedIncident?: Incident;
 }) {
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
@@ -88,7 +145,10 @@ function IncidentActionsPanel({
       </div>
 
       <div className="w-full min-w-0 overflow-x-auto">
-        <IncidentsTable />
+        <IncidentsTable
+          selectedIncidentId={selectedIncidentId}
+          onSelectIncident={onSelectIncident}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4 w-full min-w-0">
@@ -96,7 +156,7 @@ function IncidentActionsPanel({
           variant="outline"
           className="h-10 w-full px-4 justify-center"
           onClick={onOpenObjectsModal}
-          disabled={!projectId}
+          disabled={!selectedIncidentId}
         >
           Objetos involucrados
         </Button>
@@ -112,6 +172,11 @@ function IncidentActionsPanel({
       </div>
 
       <div className="w-full min-w-0">
+        {!selectedIncidentId ? (
+          <p className="mb-2 text-xs text-amber-700">
+            Debe existir al menos una incidencia registrada para gestionar objetos involucrados.
+          </p>
+        ) : null}
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           Comentarios
         </p>
@@ -119,9 +184,33 @@ function IncidentActionsPanel({
           rows={5}
           placeholder="Escribe un comentario sobre la incidencia..."
           className="bg-muted/40 w-full max-w-full min-h-32 resize-y"
+          value={selectedIncident?.comentario ?? ""}
+          readOnly
         />
       </div>
     </div>
+  );
+}
+
+function IncidentObjectsSection({
+  open,
+  onClose,
+  selectedIncidentId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedIncidentId?: number;
+}) {
+  if (!selectedIncidentId) {
+    return null;
+  }
+
+  return (
+    <IncidentObjectsModal
+      incidentId={selectedIncidentId}
+      open={open}
+      onClose={onClose}
+    />
   );
 }
 
@@ -129,29 +218,28 @@ function IncidentsProjectHeader({
   projectId,
   projectNameFromState,
   clientNameFromState,
+  selectedIncident,
 }: {
   projectId?: number;
   projectNameFromState?: string | null;
   clientNameFromState?: string;
+  selectedIncident?: Incident;
 }) {
-  const { result, queryParams } = useIncidents();
+  const { queryParams } = useIncidents();
 
   if (!queryParams.id_proyecto && !projectId) {
     return null;
   }
 
-  const firstIncident = result.data?.data?.[0] as
-    | (Incident & { nombre?: string })
-    | undefined;
-
   const incidentName =
-    firstIncident?.nombre ??
-    (firstIncident ? `Incidencia ${firstIncident.id_incidencia}` : "-");
+    selectedIncident
+      ? `Incidencia ${selectedIncident.id_incidencia}`
+      : "-";
 
   const projectName =
-    firstIncident?.Cotizacion_Nombre ?? projectNameFromState ?? "-";
+    selectedIncident?.Cotizacion_Nombre ?? projectNameFromState ?? "-";
   const involvedCompany =
-    firstIncident?.empresa_involucrada ?? clientNameFromState ?? "-";
+    selectedIncident?.empresa_involucrada ?? clientNameFromState ?? "-";
 
   const statusStyles = new Map<IncidentState, string>([
     [
@@ -182,11 +270,11 @@ function IncidentsProjectHeader({
           </h2>
         </div>
 
-        {firstIncident?.estado ? (
+        {selectedIncident?.estado ? (
           <span
-            className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(firstIncident.estado) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
+            className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(selectedIncident.estado) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
           >
-            Estado de incidencia: {firstIncident.estado}
+            Estado de incidencia: {selectedIncident.estado}
           </span>
         ) : (
           <span className="inline-flex items-center self-start gap-2 rounded-full px-3 py-1 text-[13px] font-medium border bg-amber-50 text-amber-700 border-amber-300">

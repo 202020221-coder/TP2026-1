@@ -7,6 +7,7 @@ import type {
   GetIncidentObjectsResponse,
   GetIncidentInvolvedResponse,
 } from "../interfaces/responses.dto";
+import type { InvolvedObject } from "../interfaces/incident-quotation";
 
 // ── Interfaces para cuerpos de petición ─────────────────────────────────────
 
@@ -27,14 +28,117 @@ export interface UpdateIncidentBody {
 }
 
 export interface CreateIncidentObjectBody {
-  tipo: string;
-  descripcion: string;
+  categoria: "Objetos" | "Camiones";
+  objeto: string;
+  fecha_perdida?: string | null;
+  cantidad_involucrada: number;
+  cantidad_enviada: number;
+  ocurrencia: string;
+  ultima_ubicacion: string;
+  precio_remunerar?: number | null;
+  // Compatibilidad con backend legacy de incidencias/objetos.
+  cantidad?: number;
+  comentario?: string;
+  tipo?: "Objetos" | "Camiones";
+  descripcion?: string;
+  ocurrencia_inventario?: string | null;
+  ocurrencia_camion?: string | null;
 }
 
 export interface CreateIncidentInvolvedBody {
   nombre: string;
   rol: string;
 }
+
+type IncidentObjectRaw = Partial<{
+  id: number;
+  oid: number;
+  id_incidencia: number;
+  idIncidencia: number;
+  id_proyecto_inventario: number | null;
+  id_proyecto_camion: number | null;
+  categoria: string;
+  tipo: string;
+  objeto: string;
+  descripcion: string;
+  fecha_perdida: string | null;
+  fechaPerdida: string | null;
+  cantidad_involucrada: number;
+  cantidadInvolucrada: number;
+  cantidad_enviada: number;
+  cantidadEnviada: number;
+  cantidad: number;
+  ocurrencia_inventario: string | null;
+  ocurrencia_camion: string | null;
+  ocurrencia: string;
+  ultima_ubicacion: string;
+  ultimaUbicacion: string;
+  comentario: string;
+  precio_remunerar: number | null;
+  precioRemunerar: number | null;
+}>;
+
+const extractIncidentObjectsArray = (payload: unknown): IncidentObjectRaw[] => {
+  if (Array.isArray(payload)) {
+    return payload as IncidentObjectRaw[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (Array.isArray(record.data)) {
+      return record.data as IncidentObjectRaw[];
+    }
+  }
+
+  return [];
+};
+
+const toInvolvedObject = (raw: IncidentObjectRaw): InvolvedObject => {
+  const hasTruckSignals =
+    (raw.id_proyecto_camion !== null && raw.id_proyecto_camion !== undefined) ||
+    (raw.ocurrencia_camion !== null && raw.ocurrencia_camion !== undefined) ||
+    String(raw.categoria ?? "").toLowerCase().includes("camion") ||
+    String(raw.tipo ?? "").toLowerCase().includes("camion");
+
+  const categoria = hasTruckSignals ? "Camiones" : "Objetos";
+
+  const occurrence =
+    raw.ocurrencia ?? raw.ocurrencia_inventario ?? raw.ocurrencia_camion ?? "";
+
+  const quantity =
+    raw.cantidad_involucrada ?? raw.cantidad ?? raw.cantidadEnviada ?? 0;
+
+  const objectLabel =
+    raw.objeto ??
+    raw.descripcion ??
+    raw.comentario ??
+    (categoria === "Camiones"
+      ? `Camion #${raw.id_proyecto_camion ?? "-"}`
+      : `Objeto #${raw.id_proyecto_inventario ?? "-"}`);
+
+  const remunerationRaw = raw.precio_remunerar ?? raw.precioRemunerar ?? null;
+  const remuneration =
+    remunerationRaw === null || remunerationRaw === undefined
+      ? null
+      : Number(remunerationRaw);
+
+  return {
+    id: Number(raw.id ?? raw.oid ?? 0),
+    id_incidencia: Number(raw.id_incidencia ?? raw.idIncidencia ?? 0),
+    categoria,
+    objeto: String(objectLabel),
+    fecha_perdida: (raw.fecha_perdida ?? raw.fechaPerdida ?? null) as
+      | string
+      | null,
+    cantidad_involucrada: Number(quantity),
+    cantidad_enviada: Number(
+      raw.cantidad_enviada ?? raw.cantidadEnviada ?? raw.cantidad ?? quantity,
+    ),
+    ocurrencia: String(occurrence),
+    ultima_ubicacion: String(raw.ultima_ubicacion ?? raw.ultimaUbicacion ?? ""),
+    precio_remunerar: Number.isFinite(remuneration) ? remuneration : null,
+  };
+};
 
 // ── Incidencias ──────────────────────────────────────────────────────────────
 
@@ -82,10 +186,15 @@ export async function deleteIncident(id: number): Promise<void> {
 
 /** Listar objetos y camiones de la incidencia */
 export async function getIncidentObjects(id: number) {
-  const response = await axiosInstance.get<GetIncidentObjectsResponse>(
+  const response = await axiosInstance.get<unknown>(
     `/incidencias/${id}/objetos`,
   );
-  return response.data;
+
+  const objects = extractIncidentObjectsArray(response.data)
+    .map(toInvolvedObject)
+    .filter((item) => item.id > 0);
+
+  return objects as GetIncidentObjectsResponse;
 }
 
 /** Agregar objeto/camión a incidencia */
@@ -94,6 +203,30 @@ export async function addIncidentObject(
   body: CreateIncidentObjectBody,
 ): Promise<void> {
   await axiosInstance.post(`/incidencias/${id}/objetos`, body);
+}
+
+/** Actualizar objeto/camión de incidencia */
+export async function updateIncidentObject(
+  id: number,
+  oid: number,
+  body: CreateIncidentObjectBody,
+): Promise<void> {
+  try {
+    await axiosInstance.put(`/incidencias/${id}/objetos/${oid}`, body);
+    return;
+  } catch (error: unknown) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+
+    // En algunos entornos el backend no expone PUT para objetos de incidencia.
+    // Fallback: borrar y volver a registrar con POST.
+    if (status === 404 || status === 405) {
+      await axiosInstance.delete(`/incidencias/${id}/objetos/${oid}`);
+      await axiosInstance.post(`/incidencias/${id}/objetos`, body);
+      return;
+    }
+
+    throw error;
+  }
 }
 
 /** Eliminar objeto de incidencia */

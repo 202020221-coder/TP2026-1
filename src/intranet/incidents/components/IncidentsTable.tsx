@@ -11,7 +11,10 @@ import { IncidentsTableHeader } from "./IncidentsTableHeader";
 import { IncidentTableRow } from "./IncidentTableRow";
 import { useIncidents } from "../hooks/useIncidents";
 
-export const IncidentsTable: FC = () => {
+export const IncidentsTable: FC<{
+  selectedIncidentId?: number;
+  onSelectIncident?: (incidentId: number) => void;
+}> = ({ selectedIncidentId, onSelectIncident }) => {
   const { result, queryParams } = useIncidents();
   const { isPending, isFetching, isError, error, data } = result;
 
@@ -43,6 +46,8 @@ export const IncidentsTable: FC = () => {
                 <IncidentTableRow
                   incident={incident}
                   key={incident.id_incidencia}
+                  isSelected={incident.id_incidencia === selectedIncidentId}
+                  onSelect={onSelectIncident}
                 />
               ))}
             </>

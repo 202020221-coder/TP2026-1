@@ -16,7 +16,11 @@ import {
 import { EditIncidentModal } from "./EditIncidentModal";
 import { QuotationCommentsModal } from "./detail/QuotationCommentsModal";
 
-export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
+export const IncidentTableRow: FC<{
+  incident: Incident;
+  isSelected?: boolean;
+  onSelect?: (incidentId: number) => void;
+}> = ({ incident, isSelected = false, onSelect }) => {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -80,7 +84,12 @@ export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
         onClose={() => setCommentsOpen(false)}
       />
 
-      <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+      <TableRow
+        className={`border-b border-gray-100 transition-colors cursor-pointer ${
+          isSelected ? "bg-blue-50/60" : "hover:bg-gray-50"
+        }`}
+        onClick={() => onSelect?.(incident.id_incidencia)}
+      >
         {/* Nombre */}
         <TableCell className="font-medium text-gray-900">
           {displayName}
@@ -124,7 +133,10 @@ export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate(`/intranet/incidencias/${incident.id_incidencia}`)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    navigate(`/intranet/incidencias/${incident.id_incidencia}`);
+                  }}
                   className="h-8 w-8 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                   aria-label="Ver"
                 >
@@ -141,7 +153,10 @@ export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setCommentsOpen(true)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setCommentsOpen(true);
+                  }}
                   className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   aria-label="Comentarios"
                 >
@@ -158,7 +173,10 @@ export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setEditOpen(true)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setEditOpen(true);
+                  }}
                   className="h-8 w-8 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                   aria-label="Editar"
                 >
@@ -175,7 +193,8 @@ export const IncidentTableRow: FC<{ incident: Incident }> = ({ incident }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => {
+                  onClick={(event) => {
+                    event.stopPropagation();
                     const targetUrl = rowData.orden_compra_url ?? "/intranet/solicitudes";
                     navigate(targetUrl);
                   }}
