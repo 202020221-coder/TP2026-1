@@ -9,27 +9,22 @@ export const IncidentsTableHeader: FC = () => {
   return (
     <TableHeader className="[&_tr]:border-b border-gray-200">
       <TableRow className="hover:bg-white">
-        <TableHead className="text-gray-500 font-medium">ID</TableHead>
-        <TableHead className="text-gray-500 font-medium">Cliente</TableHead>
-        <TableHead className="text-gray-500 font-medium">Cotización</TableHead>
-        <TableHead className="text-gray-500 font-medium">
-          Empresa Involucrada
-        </TableHead>
-        <TableHead className="text-gray-500 font-medium">Comentario</TableHead>
+        <TableHead className="text-gray-500 font-medium">Nombre</TableHead>
+        <TableHead className="text-gray-500 font-medium">Fecha</TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
-          Remuneración
+          Versión
+        </TableHead>
+        <TableHead className="text-center text-gray-500 font-medium">
+          Precio Subtotal
         </TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
           Estado
         </TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
-          Objetos
-        </TableHead>
-        <TableHead className="text-center text-gray-500 font-medium">
-          Involucrados
-        </TableHead>
-        <TableHead className="text-center text-gray-500 font-medium">
           Acciones
+        </TableHead>
+        <TableHead className="text-center text-gray-500 font-medium">
+          Mensajes
         </TableHead>
       </TableRow>
     </TableHeader>

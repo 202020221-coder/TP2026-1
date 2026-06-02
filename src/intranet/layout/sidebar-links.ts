@@ -132,15 +132,14 @@ export const sidebarLinks: IMenu[] = [
     icon: "FileText",
   },
   {
-    title: "Gestionar Incidencias",
+    title: "Gestionar Incidencia",
     roles: [
       RolesRecord.projectAdmin,
       RolesRecord.manager,
-      RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
       RolesRecord.fieldWorker,
     ],
-    url: "/intranet/organizar-recursos/",
+    url: "/intranet/incidencias/",
     icon: "ClipboardList",
   },
   {

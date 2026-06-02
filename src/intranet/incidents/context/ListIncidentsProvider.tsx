@@ -4,12 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllIncidents } from "../api/incident.api";
 import { ListIncidentsContext } from "./ListIncidentsContext";
 
-export const ListIncidentsProvider: FC<{ children: ReactNode }> = ({
+export const ListIncidentsProvider: FC<{
+  children: ReactNode;
+  initialQueryParams?: Partial<GetIncidentsQP>;
+}> = ({
   children,
+  initialQueryParams,
 }) => {
   const [queryParams, setQueryParams] = useState<GetIncidentsQP>({
     page: 1,
     limit: 10,
+    ...initialQueryParams,
   });
 
   const result = useQuery({

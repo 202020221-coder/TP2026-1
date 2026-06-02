@@ -3,6 +3,8 @@ export const QuotationStatesRecord = {
   enviado: "Enviado",
   rechazado: "Rechazado",
   aprobado: "Aprobado",
+  disputado: "Disputado",
+  pagoRealizado: "Pago realizado",
 } as const;
 
 export type QuotationState =

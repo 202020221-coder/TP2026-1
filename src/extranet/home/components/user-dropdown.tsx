@@ -23,7 +23,8 @@ export function UserDropdown() {
 
   if (!user) return null;
 
-  const initials = `${user.nombres[0] ?? ""}${user.apellidos[0] ?? ""}`.toUpperCase();
+  const displayName = `${user.nombres ?? ""} ${user.apellidos ?? ""}`.trim() || "Usuario";
+  const initials = `${user.nombres?.[0] ?? ""}${user.apellidos?.[0] ?? ""}`.toUpperCase();
 
   const handleLogout = () => {
     clearSession();
@@ -36,7 +37,7 @@ export function UserDropdown() {
       <button
         onClick={() => setOpen(!open)}
         className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
-        title={`${user.nombres} ${user.apellidos}`}
+        title={displayName}
       >
         {initials}
       </button>
@@ -45,7 +46,7 @@ export function UserDropdown() {
         <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white/95 backdrop-blur-xl shadow-xl border border-white/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-semibold text-gray-900 truncate">
-              {user.nombres} {user.apellidos}
+              {displayName}
             </p>
             <p className="text-xs text-gray-500 truncate mt-0.5">{user.correo}</p>
           </div>

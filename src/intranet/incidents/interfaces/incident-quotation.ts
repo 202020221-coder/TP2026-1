@@ -1,4 +1,10 @@
-export type QuotationStatus = "Pendiente" | "Enviado" | "Rechazado" | "Aprobado";
+export type QuotationStatus =
+  | "Pendiente"
+  | "Enviado"
+  | "Aprobado"
+  | "Rechazado"
+  | "Disputado"
+  | "Pago realizado";
 
 export interface IncidentQuotation {
   id: number;
@@ -9,6 +15,7 @@ export interface IncidentQuotation {
   precio_subtotal: number | null;
   estado: QuotationStatus;
   mensajes: number;
+  mensajes_pendientes?: number;
 }
 
 export type InvolvedObjectCategory = "Objetos" | "Camiones";

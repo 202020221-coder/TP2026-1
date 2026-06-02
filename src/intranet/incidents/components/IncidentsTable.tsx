@@ -11,7 +11,10 @@ import { IncidentsTableHeader } from "./IncidentsTableHeader";
 import { IncidentTableRow } from "./IncidentTableRow";
 import { useIncidents } from "../hooks/useIncidents";
 
-export const IncidentsTable: FC = () => {
+export const IncidentsTable: FC<{
+  selectedIncidentId?: number;
+  onSelectIncident?: (incidentId: number) => void;
+}> = ({ selectedIncidentId, onSelectIncident }) => {
   const { result, queryParams } = useIncidents();
   const { isPending, isFetching, isError, error, data } = result;
 
@@ -24,14 +27,14 @@ export const IncidentsTable: FC = () => {
             <IncidentsTablePlaceholder rows={queryParams.limit ?? 10} />
           ) : isError ? (
             <TableRow>
-              <TableCell colSpan={10} className="text-center text-red-500 py-6">
+              <TableCell colSpan={7} className="text-center text-red-500 py-6">
                 {error.message}
               </TableCell>
             </TableRow>
           ) : data.data.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={10}
+                colSpan={7}
                 className="text-center text-gray-400 py-10"
               >
                 No se encontraron incidencias.
@@ -43,6 +46,8 @@ export const IncidentsTable: FC = () => {
                 <IncidentTableRow
                   incident={incident}
                   key={incident.id_incidencia}
+                  isSelected={incident.id_incidencia === selectedIncidentId}
+                  onSelect={onSelectIncident}
                 />
               ))}
             </>
