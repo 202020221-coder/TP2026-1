@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Table,
@@ -19,7 +19,6 @@ interface IncidentObjectsSectionProps {
   headerIcon: ReactNode;
   items: InvolvedObject[];
   isLoading: boolean;
-  onCreate: () => void;
   onView: (item: InvolvedObject) => void;
   onEdit: (item: InvolvedObject) => void;
   onDelete: (itemId: number) => void;
@@ -31,7 +30,6 @@ export function IncidentObjectsSection({
   headerIcon,
   items,
   isLoading,
-  onCreate,
   onView,
   onEdit,
   onDelete,
@@ -51,16 +49,6 @@ export function IncidentObjectsSection({
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 font-medium"
-          type="button"
-          onClick={onCreate}
-        >
-          <Plus size={14} />
-          Agregar Objeto
-        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-[16px] border-2 border-border">

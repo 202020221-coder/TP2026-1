@@ -178,6 +178,7 @@ export function IncidentObjectsModal({
               </div>
 
               <Button
+                variant="destructive"
                 className="mr-10 gap-2 font-medium"
                 size="sm"
                 type="button"
@@ -197,7 +198,6 @@ export function IncidentObjectsModal({
                 headerIcon={<Package size={14} />}
                 items={groupedObjects.Objetos}
                 isLoading={isLoading}
-                onCreate={() => openCreate("Objetos")}
                 onView={openView}
                 onEdit={openEdit}
                 onDelete={handleDelete}
@@ -209,7 +209,6 @@ export function IncidentObjectsModal({
                 headerIcon={<Truck size={14} />}
                 items={groupedObjects.Camiones}
                 isLoading={isLoading}
-                onCreate={() => openCreate("Camiones")}
                 onView={openView}
                 onEdit={openEdit}
                 onDelete={handleDelete}
