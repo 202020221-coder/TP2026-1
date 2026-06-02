@@ -14,10 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { ClipboardList, Loader2, Download } from "lucide-react";
+import { ClipboardList, Loader2, Download, CheckCircle2 } from "lucide-react";
 import {
   useInventarioPorServicio,
   useExportarInventarioPorServicio,
+  useInventarioDelProyecto,
 } from "../hooks/useOrganizarRecursos";
 
 interface ChecklistInventarioDialogProps {
@@ -32,8 +33,11 @@ export function ChecklistInventarioDialog({
   const [isOpen, setIsOpen] = useState(false);
 
   const { data, isLoading } = useInventarioPorServicio(projectId, isOpen);
+  const { data: inventarioAsignado } = useInventarioDelProyecto(projectId);
   const { mutate: exportar, isPending: isExporting } =
     useExportarInventarioPorServicio();
+
+  const yaImportado = (inventarioAsignado?.length ?? 0) > 0;
 
   const handleExportar = () => {
     exportar(
@@ -187,15 +191,22 @@ export function ChecklistInventarioDialog({
                 <div className="flex justify-end pt-2 flex-shrink-0">
                   <Button
                     onClick={handleExportar}
-                    disabled={isExporting}
+                    disabled={isExporting || yaImportado}
+                    variant={yaImportado ? "secondary" : "default"}
                     className="gap-2"
                   >
                     {isExporting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : yaImportado ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
                     ) : (
                       <Download className="h-4 w-4" />
                     )}
-                    {isExporting ? "Importando..." : "Importar al Proyecto"}
+                    {isExporting
+                      ? "Importando..."
+                      : yaImportado
+                      ? "Ya importado"
+                      : "Importar al Proyecto"}
                   </Button>
                 </div>
               )}
