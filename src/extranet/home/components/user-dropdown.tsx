@@ -3,7 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ExternalLink, LogOut } from "lucide-react";
-import { useSession, clearSession } from "@/security/session/hooks/stores/useSession.store";
+import {
+  useSession,
+  clearSession,
+} from "@/security/session/hooks/stores/useSession.store";
+import { getDefaultRouteByRole } from "@/extranet/auth/utils/navigation";
 
 export function UserDropdown() {
   const [open, setOpen] = useState(false);
@@ -23,8 +27,10 @@ export function UserDropdown() {
 
   if (!user) return null;
 
-  const displayName = `${user.nombres ?? ""} ${user.apellidos ?? ""}`.trim() || "Usuario";
-  const initials = `${user.nombres?.[0] ?? ""}${user.apellidos?.[0] ?? ""}`.toUpperCase();
+  const displayName =
+    `${user.nombres ?? ""} ${user.apellidos ?? ""}`.trim() || "Usuario";
+  const initials =
+    `${user.nombres?.[0] ?? ""}${user.apellidos?.[0] ?? ""}`.toUpperCase();
 
   const handleLogout = () => {
     clearSession();
@@ -48,12 +54,14 @@ export function UserDropdown() {
             <p className="text-sm font-semibold text-gray-900 truncate">
               {displayName}
             </p>
-            <p className="text-xs text-gray-500 truncate mt-0.5">{user.correo}</p>
+            <p className="text-xs text-gray-500 truncate mt-0.5">
+              {user.correo}
+            </p>
           </div>
           <div className="p-1.5 space-y-0.5">
             <button
               onClick={() => {
-                navigate("/intranet");
+                navigate(getDefaultRouteByRole(user.rol));
                 setOpen(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
