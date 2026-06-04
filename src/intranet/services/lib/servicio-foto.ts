@@ -22,3 +22,20 @@ export function resolveServicioFotoUrl(url: string | null | undefined): string {
   const origin = getApiOrigin();
   return trimmed.startsWith("/") ? `${origin}${trimmed}` : `${origin}/${trimmed}`;
 }
+
+export const SERVICIO_FOTO_ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
+export const SERVICIO_FOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+export function validateServicioFotoFile(file: File): string | null {
+  if (!file.type.startsWith("image/")) {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const allowed = ["jpg", "jpeg", "png", "webp", "gif"];
+    if (!ext || !allowed.includes(ext)) {
+      return "Solo se permiten imágenes (JPG, PNG, WEBP o GIF).";
+    }
+  }
+  if (file.size > SERVICIO_FOTO_MAX_BYTES) {
+    return "La imagen no debe superar 5 MB.";
+  }
+  return null;
+}

@@ -127,7 +127,37 @@ export const updateServicio = async (
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, reconstruirlo con los datos enviados
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, ...dto, activo: true } as Servicio;
+    return {
+      id,
+      nombre: dto.nombre ?? "",
+      descripcion: dto.descripcion ?? "",
+      precio_regular: dto.precio_regular ?? 0,
+      condicional_precio: dto.condicional_precio ?? "",
+      observaciones: dto.observaciones ?? "",
+      foto: null,
+      activo: dto.activo ?? true,
+    };
+  }
+  return toServicio(raw);
+};
+
+/** Ruta relativa: POST {VITE_API_URL}/servicios/:id/foto (ej. …/api/servicios/12/foto). */
+export const servicioFotoUploadPath = (id: number) => `/servicios/${id}/foto`;
+
+/** Sube o reemplaza la foto de un servicio (multipart, campo `foto`). */
+export const uploadServicioFoto = async (
+  id: number,
+  file: File,
+): Promise<Servicio> => {
+  const formData = new FormData();
+  formData.append("foto", file);
+  // No fijar Content-Type: axios añade el boundary del multipart automáticamente.
+  const response = await axiosInstance.post(servicioFotoUploadPath(id), formData, {
+    timeout: 60_000,
+  });
+  const raw = extractRaw(response.data);
+  if (!raw.ID_Servicio && !raw.id) {
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true };
   }
   return toServicio(raw);
 };
