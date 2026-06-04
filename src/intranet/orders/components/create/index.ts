@@ -1,5 +1,5 @@
 export {StepCatalogSelection} from './StepCatalogSelection';
-export {StepTruckSelection} from './StepTruckSelection';
+export { StepServicesSelection } from './StepServicesSelection';
 export {StepPreferences} from './StepPreferences';
 export {StepRequesterData} from './StepRequesterData';
 export {StepClientData} from './StepClientData';

@@ -1,21 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
-import {
-  Bell,
-  Cylinder,
-  Droplets,
-  Flame,
-  Settings,
-  ShieldCheck,
-  Truck,
-  Users,
-  Waves,
-  Wind,
-  Zap,
-} from "lucide-react";
 import { getServiciosPublicos } from "@/intranet/services/api/service.api";
 import type { Servicio } from "@/intranet/services/interfaces/service";
 import { resolveServicioFotoUrl } from "@/intranet/services/lib/servicio-foto";
+import { pickServicioIcon } from "@/intranet/services/lib/pick-servicio-icon";
 
 export const LANDING_SERVICES_QUERY_KEY = ["landing", "servicios"] as const;
 
@@ -41,29 +29,6 @@ export interface LandingService {
   };
 }
 
-const normalize = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-function pickIcon(nombre: string): LucideIcon {
-  const n = normalize(nombre);
-  if (n.includes("camion") || n.includes("cisterna")) return Truck;
-  if (n.includes("electrogeno") || n.includes("grupo")) return Zap;
-  if (n.includes("deteccion") || n.includes("alarma")) return Bell;
-  if (n.includes("bombeo") || n.includes("bomba")) return Waves;
-  if (n.includes("brigada") || n.includes("bombero")) return Users;
-  if (n.includes("ranurado")) return Settings;
-  if (n.includes("espuma")) return Droplets;
-  if (n.includes("aire") || n.includes("botella") || n.includes("cilindro"))
-    return Cylinder;
-  if (n.includes("termofusion") || n.includes("fusion")) return Flame;
-  if (n.includes("viento")) return Wind;
-  return ShieldCheck;
-}
-
 function mapServicio(servicio: Servicio): LandingService {
   return {
     key: `api-${servicio.id}`,
@@ -71,7 +36,7 @@ function mapServicio(servicio: Servicio): LandingService {
     name: servicio.nombre,
     description: servicio.descripcion,
     image: resolveServicioFotoUrl(servicio.foto),
-    icon: pickIcon(servicio.nombre),
+    icon: pickServicioIcon(servicio.nombre),
     isDynamic: true,
     observaciones: servicio.observaciones,
   };

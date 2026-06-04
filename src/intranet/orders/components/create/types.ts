@@ -79,3 +79,14 @@ export interface TruckOption {
   description: string;
   price: string | number;
 }
+
+/** Opción de servicio público para el paso 6 (selección de servicios). */
+export interface ServiceOption {
+  id: string;
+  serviceId: number;
+  name: string;
+  description: string;
+  price: string | number;
+  imageUrl?: string;
+  Icon: import("lucide-react").LucideIcon;
+}

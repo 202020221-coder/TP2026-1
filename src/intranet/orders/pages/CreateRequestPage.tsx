@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { Button } from "@/shared/components/ui/button";
 import { useDataFetching } from '../hooks/useDataFetching';
 import { usePrefillUserData } from '../hooks/usePrefillUserData';
+import { usePublicServicesSelection } from '../hooks/usePublicServicesSelection';
 import {
     CreateClient,
     CreateClientContact,
@@ -19,7 +20,7 @@ import {
     StepPreferences,
     StepRequesterData,
     StepServiceData,
-    StepTruckSelection,
+    StepServicesSelection,
 } from '../components/create';
 import type {
     PostClientContactDTO,
@@ -37,7 +38,6 @@ import type {
     SelectedProduct,
     SelectedTruck,
     ServiceFormData,
-    TruckOption,
 } from '../interfaces';
 
 export function CreateRequestPage() {
@@ -50,7 +50,11 @@ export function CreateRequestPage() {
     const [perfilPayload, setPerfilPayload] = useState<PostClientPerfilDTO | null>(null);
 
 
-    const { products, services, loading, error } = useDataFetching();
+    const { products, loading, error } = useDataFetching();
+    const {
+        serviceOptions,
+        isLoading: loadingPublicServices,
+    } = usePublicServicesSelection();
 
     const handleSubmitClient = async (
         clientData: PostClientDTO
@@ -305,27 +309,13 @@ export function CreateRequestPage() {
         setSelectedProducts((prev) => prev.filter(prod => prod.id !== id));
     };
 
-    const truckOptions: TruckOption[] = (services ?? []).map((s) => {
-        const rawId = (s as any).ID_Servicio ?? (s as any).Id_Objeto ?? (s as any).id ?? Date.now();
-        const name = (s as any).nombre ?? (s as any).nombre_objeto ?? (s as any).Fabricante_Nombre ?? `Servicio ${rawId}`;
-        const description = (s as any).descripcion ?? (s as any).observaciones ?? '';
-        const price = (s as any).precio_regular ?? (s as any).precio_comercial ?? '';
-
-        return {
-            id: `service-${rawId}`,
-            name,
-            description,
-            price,
-        };
-    });
-
     const steps = [
         { id: 1, label: 'Tipo de Cliente' },
         { id: 2, label: 'Datos del Cliente' },
         { id: 3, label: 'Solicitante' },
         { id: 4, label: 'Datos del Servicio' },
         { id: 5, label: 'Selección de Catálogo' },
-        { id: 6, label: 'Selección de Camiones' },
+        { id: 6, label: 'Selección de Servicios' },
         { id: 7, label: 'Preferencias' },
     ];
 
@@ -444,7 +434,7 @@ export function CreateRequestPage() {
                 {/* Estado de carga / error del hook */}
                 {loading && (
                     <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-                        <p className="text-sm text-yellow-800">Cargando catálogo y servicios...</p>
+                        <p className="text-sm text-yellow-800">Cargando catálogo...</p>
                     </div>
                 )}
 
@@ -502,13 +492,14 @@ export function CreateRequestPage() {
                 )}
 
                 {currentStep === 6 && (
-                    <StepTruckSelection
-                        truckOptions={truckOptions}
-                        selectedTrucks={selectedTrucks}
-                        onAddTruck={addTruckToCart}
-                        onUpdateTruckDays={updateTruckDays}
-                        onUpdateTruckQuantity={updateTruckQuantity}
-                        onRemoveTruck={removeTruck}
+                    <StepServicesSelection
+                        serviceOptions={serviceOptions}
+                        selectedServices={selectedTrucks}
+                        isLoading={loadingPublicServices}
+                        onAddService={addTruckToCart}
+                        onUpdateServiceDays={updateTruckDays}
+                        onUpdateServiceQuantity={updateTruckQuantity}
+                        onRemoveService={removeTruck}
                     />
                 )}
 
@@ -610,7 +601,7 @@ export function CreateRequestPage() {
                                     return;
                                 }
 
-                                // Step 6 -> crear servicios (camiones u otros)
+                                // Step 6 -> crear servicios asociados a la solicitud
                                 if (currentStep === 6) {
                                     if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
                                     const requestId = createdRequestId;
