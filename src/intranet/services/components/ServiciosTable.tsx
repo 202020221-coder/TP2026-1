@@ -12,28 +12,24 @@ import { ServiciosTableHeader } from "./ServiciosTableHeader";
 import { ServicioTableRow } from "./ServiciosTableRow";
 import { ServicioFormModal } from "./ServicioFormModal";
 import { ServiciosEliminadosModal } from "./ServiciosEliminadosModal";
-import { useServicioFilters } from "../hooks/useServicioFilters";
 
 export const ServiciosTable: FC = () => {
-  const { result, queryParams } = useServicios();
-  const { isPending, isError, error, data } = result;
+  const {
+    result,
+    servicios,
+    pageSize,
+    totalItems,
+    activeFilterCount,
+    filters,
+    updateFilter,
+    resetFilters,
+    filterOpen,
+    setFilterOpen,
+  } = useServicios();
+  const { isPending, isError, error } = result;
 
   const [addOpen, setAddOpen] = useState(false);
   const [eliminadosOpen, setEliminadosOpen] = useState(false);
-
-  // Solo servicios activos como base
-  const serviciosActivos = data?.data.filter((s) => s.activo) ?? [];
-
-  // Hook de filtros client-side
-  const {
-    filters,
-    filteredServicios,
-    updateFilter,
-    resetFilters,
-    activeCount,
-    open: filterOpen,
-    setOpen: setFilterOpen,
-  } = useServicioFilters(serviciosActivos);
 
   return (
     <>
@@ -41,7 +37,7 @@ export const ServiciosTable: FC = () => {
         onAddClick={() => setAddOpen(true)}
         onEliminadosClick={() => setEliminadosOpen(true)}
         filters={filters}
-        activeFilterCount={activeCount}
+        activeFilterCount={activeFilterCount}
         filterOpen={filterOpen}
         onFilterOpenChange={setFilterOpen}
         onUpdateFilter={updateFilter}
@@ -51,7 +47,7 @@ export const ServiciosTable: FC = () => {
           <ServiciosTableHeader />
           <TableBody>
             {isPending ? (
-              <ServiciosTablePlaceholder rows={queryParams.limit ?? 10} />
+              <ServiciosTablePlaceholder rows={pageSize} />
             ) : isError ? (
               <TableRow>
                 <TableCell
@@ -61,19 +57,19 @@ export const ServiciosTable: FC = () => {
                   {error.message}
                 </TableCell>
               </TableRow>
-            ) : filteredServicios.length === 0 ? (
+            ) : servicios.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
                   className="text-center text-gray-400 py-10"
                 >
-                  {activeCount > 0
+                  {totalItems === 0 && activeFilterCount > 0
                     ? "Ningún servicio coincide con los filtros aplicados."
                     : "No se encontraron servicios activos."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredServicios.map((servicio) => (
+              servicios.map((servicio) => (
                 <ServicioTableRow servicio={servicio} key={servicio.id} />
               ))
             )}

@@ -5,6 +5,8 @@ export interface Servicio {
   precio_regular: number;
   condicional_precio: string;
   observaciones: string;
+  /** URL o ruta de la imagen del servicio (según API). Null si no tiene. */
+  foto: string | null;
   activo: boolean;
 }
 

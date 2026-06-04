@@ -84,11 +84,11 @@ const TopControls: FC<TopProps> = ({
   onUpdateFilter,
   onResetFilters,
 }) => {
-  const { query, queryParams, result } = useServicios();
-  const [searchValue, setSearchValue] = useState(queryParams.search ?? "");
+  const { search, setSearch, result } = useServicios();
+  const [searchValue, setSearchValue] = useState(search ?? "");
 
   const debouncedSearch = useDebounced((value: string) => {
-    query({ ...queryParams, page: 1, search: value || undefined });
+    setSearch(value || undefined);
   }, 500);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,40 +149,38 @@ const TopControls: FC<TopProps> = ({
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BottomControls: FC = () => {
-  const { query, queryParams, result } = useServicios();
+  const {
+    result,
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    setPage,
+    setPageSize,
+  } = useServicios();
   const [pseudoPageStr, setPseudoPageStr] = useState("1");
 
   useEffect(() => {
-    setPseudoPageStr(
-      result.data ? result.data.pagination.page.toString() : "1"
-    );
-  }, [result.data?.pagination.page]);
+    setPseudoPageStr(page.toString());
+  }, [page]);
 
   const debouncedSetPage = useDebounced((v: string) => {
-    query({ ...queryParams, page: v === "" ? 1 : Number(v) });
+    setPage(v === "" ? 1 : Number(v));
   }, 1000);
 
   const nextDisabled =
-    result.isPending ||
-    result.isFetching ||
-    result.isError ||
-    result.data?.pagination.page === result.data?.pagination.totalPages;
+    result.isPending || result.isError || page >= totalPages;
 
   const backDisabled =
-    result.isPending ||
-    result.isFetching ||
-    result.isError ||
-    result.data?.pagination.page === 1;
+    result.isPending || result.isError || page <= 1;
 
   return result.data ? (
     <div className="grid grid-cols-1 md:grid-cols-4">
       <div className="col-span-1 flex gap-x-2 items-center">
         <Label>Tamaño de Página:</Label>
         <Select
-          onValueChange={(v) =>
-            query({ ...queryParams, page: 1, limit: Number(v) })
-          }
-          value={queryParams.limit?.toString()}
+          onValueChange={(v) => setPageSize(Number(v))}
+          value={pageSize.toString()}
         >
           <SelectTrigger className="w-20">
             <SelectValue placeholder="10" />
@@ -190,16 +188,10 @@ const BottomControls: FC = () => {
           <SelectContent>
             <SelectItem value="5">5</SelectItem>
             <SelectItem value="10">10</SelectItem>
-            <SelectItem
-              value="15"
-              disabled={result.data.pagination.total <= 10}
-            >
+            <SelectItem value="15" disabled={totalItems <= 10}>
               15
             </SelectItem>
-            <SelectItem
-              value="20"
-              disabled={result.data.pagination.total <= 15}
-            >
+            <SelectItem value="20" disabled={totalItems <= 15}>
               20
             </SelectItem>
           </SelectContent>
@@ -211,18 +203,14 @@ const BottomControls: FC = () => {
           className="w-40"
           variant="secondary"
           disabled={backDisabled}
-          onClick={() =>
-            query({ ...queryParams, page: result.data.pagination.page - 1 })
-          }
+          onClick={() => setPage(page - 1)}
         >
           <ArrowLeft /> Anterior
         </Button>
         <Button
           className="w-40"
           disabled={nextDisabled}
-          onClick={() =>
-            query({ ...queryParams, page: result.data.pagination.page + 1 })
-          }
+          onClick={() => setPage(page + 1)}
         >
           Siguiente <ArrowRight />
         </Button>
@@ -234,17 +222,17 @@ const BottomControls: FC = () => {
           type="number"
           step={1}
           min={1}
-          max={result.data.pagination.totalPages}
+          max={totalPages}
           value={pseudoPageStr}
           onChange={(e) => {
             setPseudoPageStr(e.target.value);
             debouncedSetPage(e.target.value);
           }}
-          disabled={result.data.pagination.totalPages === 1}
+          disabled={totalPages === 1}
           className="w-16"
         />
         <p>de</p>
-        <p>{result.data.pagination.totalPages}</p>
+        <p>{totalPages}</p>
       </div>
     </div>
   ) : null;

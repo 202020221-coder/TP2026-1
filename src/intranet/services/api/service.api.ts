@@ -10,6 +10,10 @@ import type {
   UpdatePersonalRequeridoDTO,
 } from "../interfaces/service";
 
+// Ruta del endpoint PÚBLICO de servicios para la landing (sin autenticación).
+// Cámbiala por la que definas en el backend (p. ej. "/servicios/publicos").
+export const PUBLIC_SERVICIOS_PATH = "/servicios/publicos";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos del backend (snake_case con ID_Servicio como PK)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,9 +25,20 @@ interface ServicioRaw {
   precio_regular: number;
   condicional_precio: string;
   observaciones: string;
+  foto?: string | null;
+  foto_url?: string | null;
+  imagen?: string | null;
+  url_imagen?: string | null;
   Estado?: "Activo" | "Desactivado"; // campo real del backend
   activo?: boolean;                   // por compatibilidad defensiva
 }
+
+const pickFotoFromRaw = (raw: ServicioRaw): string | null => {
+  const value = raw.foto ?? raw.foto_url ?? raw.imagen ?? raw.url_imagen ?? null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
 
 // Extrae el objeto ServicioRaw de cualquier forma que devuelva el backend:
 // - directamente: { ID_Servicio, nombre, ... }
@@ -58,6 +73,7 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   precio_regular: Number(raw.precio_regular ?? 0),
   condicional_precio: raw.condicional_precio ?? "",
   observaciones: raw.observaciones ?? "",
+  foto: pickFotoFromRaw(raw),
   activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
 });
 
@@ -79,6 +95,22 @@ export const getServicios = async (
     data: response.data.data.map(toServicio),
     pagination: response.data.pagination,
   };
+};
+
+/**
+ * Servicios para la landing pública (sin token).
+ * Cuando crees el endpoint público en el backend, ajusta la ruta aquí.
+ * Acepta tanto un array directo como { data: [...] } o { data: [...], pagination }.
+ */
+export const getServiciosPublicos = async (): Promise<Servicio[]> => {
+  const response = await axiosInstance.get(PUBLIC_SERVICIOS_PATH);
+  const raw = response.data;
+  const arr: ServicioRaw[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.data)
+      ? raw.data
+      : [];
+  return arr.map(toServicio);
 };
 
 export const createServicio = async (dto: CreateServicioDTO): Promise<Servicio> => {
@@ -106,7 +138,7 @@ export const toggleServicioActivo = async (id: number, currentActivo: boolean): 
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, construirlo manualmente
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", activo: !currentActivo };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo };
   }
   return toServicio(raw);
 };
