@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Button } from "@/shared/components/ui/button";
 import { useDataFetching } from '../hooks/useDataFetching';
+import { usePrefillUserData } from '../hooks/usePrefillUserData';
 import {
     CreateClient,
     CreateClientContact,
@@ -225,6 +226,24 @@ export function CreateRequestPage() {
         generalObservations: '',
         selectionObservations: '',
     });
+
+    // Autocompletado de datos del cliente/solicitante según el usuario logueado.
+    usePrefillUserData(setFormData, setPerfilData, setContactData);
+
+    // Autocompletado desde la landing ("Solicitar" en Nuestros Servicios).
+    const [searchParams] = useSearchParams();
+    useEffect(() => {
+        const desc = searchParams.get('desc');
+        const obs = searchParams.get('obs');
+        if (desc) {
+            setServiceData((prev) => ({ ...prev, descripcion: desc }));
+        }
+        if (obs) {
+            setPreferencesData((prev) => ({ ...prev, generalObservations: obs }));
+        }
+        // Solo al entrar con parámetros de prefill.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const clientOptions: ClientOption[] = [
         {

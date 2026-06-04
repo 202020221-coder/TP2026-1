@@ -1,4 +1,5 @@
 import { safeRequest } from "@/shared/api/safe-request";
+import axiosInstance from "@/shared/api/axios.config";
 import type {
   PostClientContactDTO,
   PostClientDTO,
@@ -8,6 +9,34 @@ import type {
   PostRequestResponseDTO,
   PostRequestServiceDTO,
 } from "../interfaces";
+
+// Empresas (clientes) a las que está asociado un perfil (por su DNI).
+// Incluye los datos de la empresa + el cargo/lugar de trabajo del contacto.
+export interface PerfilEmpresaContacto {
+  DNI_O_RUC?: string;
+  nombre_comercial?: string;
+  razon_social?: string;
+  rubro?: string;
+  ubicacion_facturacion?: string;
+  observacion?: string | null;
+  cargo_en_empresa?: string;
+  lugar_trabajo?: string;
+}
+
+// Trae las empresas/contactos asociados al perfil del usuario logueado.
+// Se usa para autocompletar la solicitud con los datos del cliente.
+export const GetPerfilEmpresasContacto = async (
+  dniPerfil: string,
+): Promise<PerfilEmpresaContacto[]> => {
+  const response = await axiosInstance.get<
+    PerfilEmpresaContacto[] | { data: PerfilEmpresaContacto[] }
+  >(`/perfiles/${encodeURIComponent(dniPerfil)}/empresas_contacto`);
+
+  const payload = response.data;
+  if (Array.isArray(payload)) return payload;
+  if (payload && Array.isArray(payload.data)) return payload.data;
+  return [];
+};
 
 //Crea cliente
 export const CreateClient = async (data: PostClientDTO) =>

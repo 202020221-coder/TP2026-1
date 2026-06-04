@@ -1,11 +1,35 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router'
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X } from 'lucide-react'
-import type { CartItem } from '../pages/HomePage'
 import { useLandingServices, type LandingService } from '../hooks/useLandingServices'
+
+/** Ruta del asistente de creación de solicitudes (cliente). */
+const CREATE_REQUEST_PATH = '/intranet/solicitudes/crear'
+
+/** Construye la descripción detallada y observaciones generales a partir del servicio. */
+function buildServiceRequestPrefill(service: LandingService): {
+  descripcion: string
+  observaciones: string
+} {
+  const detailedDesc = service.details?.description ?? service.description
+  const descripcion = `Solicito el servicio: ${service.name}.\n\n${detailedDesc}`.trim()
+
+  let observaciones = ''
+  if (service.isDynamic) {
+    observaciones = (service.observaciones ?? '').trim()
+  } else if (service.details) {
+    const feats = service.details.listItems?.length
+      ? `\nIncluye: ${service.details.listItems.join(', ')}.`
+      : ''
+    observaciones = `${service.details.highlightTitle}: ${service.details.highlightText}${feats}`.trim()
+  }
+
+  return { descripcion, observaciones }
+}
 
 const services = [
   { id: 2, name: 'Alquiler de Grupo Electrógeno MP-55', description: 'Energía de respaldo continua para sistemas críticos.', image: '/grupo_electrogeno_1775863736106.png', icon: Zap },
@@ -19,10 +43,6 @@ const services = [
   { id: 10, name: 'Alquiler de Bombas Contra Incendios', description: 'Bombas portátiles y estacionarias para refuerzo de caudal.', image: '/Bombas_ContraIncendios_20180427145918.png', icon: Wind },
   { id: 11, name: 'Recarga de Botellas de Aire Autocontenido', description: 'Servicio de llenado certificado para equipos de respiración.', image: '/recarga_botella.png', icon: Cylinder },
 ]
-
-interface Props {
-  onAddToCart: (item: Omit<CartItem, "id">) => void
-}
 
 const serviceDetails: Record<number, {
   description: string;
@@ -82,10 +102,22 @@ const staticServices: LandingService[] = services.map((s) => ({
   details: serviceDetails[s.id],
 }))
 
-export default function Services({ onAddToCart }: Props) {
+export default function Services() {
+  const navigate = useNavigate()
   const { apiServices } = useLandingServices()
   const [selectedService, setSelectedService] = useState<LandingService | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
+
+  const handleSolicitar = useCallback(
+    (service: LandingService) => {
+      const { descripcion, observaciones } = buildServiceRequestPrefill(service)
+      const params = new URLSearchParams()
+      params.set('desc', descripcion)
+      if (observaciones) params.set('obs', observaciones)
+      navigate(`${CREATE_REQUEST_PATH}?${params.toString()}`)
+    },
+    [navigate],
+  )
 
   // Servicios estáticos + servicios del backend con imagen (sin duplicar por nombre)
   const allServices = useMemo(() => {
@@ -179,7 +211,7 @@ export default function Services({ onAddToCart }: Props) {
                       className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onAddToCart({ name: service.name, price: 0, image: service.image || "", type: "service"})
+                        handleSolicitar(service)
                       }}
                     >
                       Solicitar
@@ -293,6 +325,12 @@ export default function Services({ onAddToCart }: Props) {
                   className="py-6 px-8 rounded-2xl text-lg font-semibold text-slate-500 border-slate-200 hover:bg-slate-50 flex-1"
                 >
                   Cerrar
+                </Button>
+                <Button
+                  onClick={() => handleSolicitar(selectedService)}
+                  className="py-6 px-8 rounded-2xl text-lg font-semibold bg-secondary text-white hover:bg-primary flex-1"
+                >
+                  Solicitar este servicio
                 </Button>
               </div>
             </div>

@@ -41,7 +41,7 @@ export function HomePage() {
     <div className="min-h-screen bg-background">
       <Header onLogin={handleLoginRedirect} />
       <Hero />
-      <Services onAddToCart={handleAddToCart} />
+      <Services />
       <Products onAddToCart={handleAddToCart} />
       <Features />
       <Footer />
