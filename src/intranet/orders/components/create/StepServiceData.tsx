@@ -35,6 +35,8 @@ export function StepServiceData({
                     value={serviceData.ubicacion}
                     onChange={(e) => onServiceDataChange('ubicacion', e.target.value)}
                     placeholder="Calle, numero, distrito"
+                    autoComplete="off"
+                    name="direccion-lugar-servicio"
                     className="min-h-20"
                 />
             </div>

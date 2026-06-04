@@ -45,12 +45,12 @@ export interface SelectedProduct {
 export interface SelectedTruck {
   id: string;
   truckId?: string;
+  serviceId?: number;
   name: string;
   description?: string;
-  intent: "alquilar" | "comprar";
-  quantity: number;
-  days?: number;
   price?: number | string;
+  direccionLugar: string;
+  observacionesEleccion: string;
 }
 
 export interface PreferencesData {

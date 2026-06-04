@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { Calendar, Minus, Plus, ShoppingCart, Trash2, Wrench } from "lucide-react";
+import { MapPin, ShoppingCart, Trash2, Wrench } from "lucide-react";
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { Textarea } from "@/shared/components/ui/textarea";
 import type { SelectedTruck, ServiceOption } from './types';
 
 function formatServicePrice(price: number | string | undefined): string | null {
@@ -16,14 +17,13 @@ interface StepServicesSelectionProps {
     selectedServices: SelectedTruck[];
     isLoading?: boolean;
     onAddService: (
-        serviceId: string,
+        serviceId: number,
         name: string,
-        intent: 'alquilar' | 'comprar',
         price?: number | string,
         description?: string,
     ) => void;
-    onUpdateServiceDays: (id: string, days: string) => void;
-    onUpdateServiceQuantity: (id: string, delta: number) => void;
+    onUpdateServiceDireccion: (id: string, direccion: string) => void;
+    onUpdateServiceObservaciones: (id: string, observaciones: string) => void;
     onRemoveService: (id: string) => void;
 }
 
@@ -38,11 +38,13 @@ function ServiceCardVisual({
 }) {
     if (imageUrl) {
         return (
-            <img
-                src={imageUrl}
-                alt={name}
-                className="mb-4 h-24 w-24 rounded-full object-cover ring-1 ring-blue-100"
-            />
+            <div className="mb-4 flex h-28 w-full items-center justify-center rounded-xl bg-slate-50 p-2 ring-1 ring-blue-100">
+                <img
+                    src={imageUrl}
+                    alt={name}
+                    className="max-h-full max-w-full object-contain"
+                />
+            </div>
         );
     }
 
@@ -58,8 +60,8 @@ export function StepServicesSelection({
     selectedServices,
     isLoading = false,
     onAddService,
-    onUpdateServiceDays,
-    onUpdateServiceQuantity,
+    onUpdateServiceDireccion,
+    onUpdateServiceObservaciones,
     onRemoveService,
 }: StepServicesSelectionProps) {
     return (
@@ -68,7 +70,7 @@ export function StepServicesSelection({
                 <div className="lg:col-span-7">
                     <h3 className="mb-2 text-xl font-semibold text-gray-800">Selección de Servicios</h3>
                     <p className="mb-6 text-sm text-gray-500">
-                        Busca y selecciona los servicios que deseas contratar o adquirir.
+                        Agrega los servicios que deseas incluir en la solicitud.
                     </p>
 
                     {isLoading ? (
@@ -108,30 +110,14 @@ export function StepServicesSelection({
                                                 className="flex-1 border-blue-200 bg-blue-50 px-2 text-xs text-blue-700 hover:bg-blue-100"
                                                 onClick={() =>
                                                     onAddService(
-                                                        service.id,
+                                                        service.serviceId,
                                                         service.name,
-                                                        'alquilar',
                                                         service.price,
                                                         service.description,
                                                     )
                                                 }
                                             >
-                                                Alquilar
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                className="flex-1 border-gray-300 px-2 text-xs text-gray-700 hover:bg-gray-50"
-                                                onClick={() =>
-                                                    onAddService(
-                                                        service.id,
-                                                        service.name,
-                                                        'comprar',
-                                                        service.price,
-                                                        service.description,
-                                                    )
-                                                }
-                                            >
-                                                Comprar
+                                                Agregar
                                             </Button>
                                         </div>
                                     </div>
@@ -172,48 +158,35 @@ export function StepServicesSelection({
                                     <h4 className="w-10/12 text-sm font-bold text-gray-800 uppercase">{item.name}</h4>
 
                                     <div className="mt-2 space-y-2 text-sm">
-                                        <div className="flex items-center text-gray-600">
-                                            <span className="w-20 font-medium">Intención:</span>
-                                            <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-xs capitalize">
-                                                {item.intent}
-                                            </span>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-gray-700">
+                                                Dirección del lugar <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <MapPin className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                                                <Input
+                                                    value={item.direccionLugar}
+                                                    onChange={(e) => onUpdateServiceDireccion(item.id, e.target.value)}
+                                                    placeholder="Ej: Av. Primavera 123, Surco"
+                                                    autoComplete="off"
+                                                    name={`direccion-servicio-${item.id}`}
+                                                    className="h-8 bg-white pl-8 text-xs"
+                                                />
+                                            </div>
                                         </div>
 
-                                        {item.intent === 'alquilar' && (
-                                            <div className="flex items-center text-gray-600">
-                                                <span className="w-20 font-medium">Días:</span>
-                                                <div className="relative">
-                                                    <Calendar className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-                                                    <Input
-                                                        type="number"
-                                                        min={1}
-                                                        value={item.days}
-                                                        onChange={(e) => onUpdateServiceDays(item.id, e.target.value)}
-                                                        className="h-7 w-24 bg-white pl-8 text-center text-xs"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center text-gray-600">
-                                            <span className="w-20 font-medium">Cantidad:</span>
-                                            <div className="flex items-center rounded border border-gray-200 bg-white">
-                                                <button
-                                                    className="rounded-l px-2 py-1 transition-colors hover:bg-gray-100"
-                                                    onClick={() => onUpdateServiceQuantity(item.id, -1)}
-                                                >
-                                                    <Minus size={14} />
-                                                </button>
-                                                <span className="w-8 border-x border-gray-100 bg-gray-50 px-3 text-center text-sm font-semibold">
-                                                    {item.quantity}
-                                                </span>
-                                                <button
-                                                    className="rounded-r px-2 py-1 transition-colors hover:bg-gray-100"
-                                                    onClick={() => onUpdateServiceQuantity(item.id, 1)}
-                                                >
-                                                    <Plus size={14} />
-                                                </button>
-                                            </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-gray-700">
+                                                Observaciones de su elección <span className="text-red-500">*</span>
+                                            </label>
+                                            <Textarea
+                                                value={item.observacionesEleccion}
+                                                onChange={(e) => onUpdateServiceObservaciones(item.id, e.target.value)}
+                                                placeholder="Ej: Atención solo en horario de mañana"
+                                                autoComplete="off"
+                                                name={`observaciones-servicio-${item.id}`}
+                                                className="min-h-20 bg-white text-xs"
+                                            />
                                         </div>
                                     </div>
                                 </div>

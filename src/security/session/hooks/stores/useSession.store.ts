@@ -36,6 +36,7 @@ export const createSession = ({
   useSession.setState({
     loggedUser: {
       correo: user.correo,
+      telefono_contacto: user.telefono_contacto,
       rol: user.rol,
       idusuario: user.idusuario,
       dni_perfil: user.dni_perfil,

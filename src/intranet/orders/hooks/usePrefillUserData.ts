@@ -10,7 +10,7 @@ import type {
 
 /**
  * Autocompleta la creación de solicitudes con los datos del usuario logueado:
- *  - Solicitante (Nombre, Apellido, DNI, Email): desde la sesión.
+ *  - Solicitante (Nombre, Apellido, DNI, Email, Celular): desde la sesión.
  *  - Datos del cliente/empresa: desde `/perfiles/{DNI_perfil}/empresas_contacto`.
  * Los campos sólo se rellenan si están vacíos; el usuario puede editarlos.
  */
@@ -18,6 +18,7 @@ export function usePrefillUserData(
   setFormData: Dispatch<SetStateAction<ClientFormData>>,
   setPerfilData: Dispatch<SetStateAction<PerfilFormData>>,
   setContactData: Dispatch<SetStateAction<ContactFormData>>,
+  setClientExists?: Dispatch<SetStateAction<boolean>>,
 ) {
   const loggedUser = useSession((state) => state.loggedUser);
   const hasRun = useRef(false);
@@ -38,6 +39,8 @@ export function usePrefillUserData(
       Nombre: prev.Nombre || (loggedUser.nombres ?? ""),
       Apellido: prev.Apellido || (loggedUser.apellidos ?? ""),
       correo_contacto: prev.correo_contacto || (loggedUser.correo ?? ""),
+      telefono_contacto:
+        prev.telefono_contacto || (loggedUser.telefono_contacto ?? ""),
     }));
     setContactData((prev) => ({ ...prev, DNI_perfil: prev.DNI_perfil || dni }));
 
@@ -48,6 +51,9 @@ export function usePrefillUserData(
         // Usa la última empresa asociada al perfil (la más reciente).
         const empresa = empresas[empresas.length - 1];
         if (!empresa) return;
+
+        // El cliente/empresa ya existe en la base de datos: no se debe recrear.
+        setClientExists?.(true);
 
         setFormData((prev) => ({
           ...prev,
@@ -65,6 +71,18 @@ export function usePrefillUserData(
           cargo_en_empresa: empresa.cargo_en_empresa || prev.cargo_en_empresa,
           lugar_trabajo: empresa.lugar_trabajo || prev.lugar_trabajo,
         }));
+
+        // El teléfono puede venir en cualquiera de las empresas asociadas,
+        // no necesariamente en la última; tomamos el primero disponible.
+        const telefonoEmpresa = empresas.find(
+          (e) => e.telefono_contacto,
+        )?.telefono_contacto;
+
+        setPerfilData((prev) => ({
+          ...prev,
+          telefono_contacto:
+            prev.telefono_contacto || telefonoEmpresa || "",
+        }));
       } catch (error) {
         // Si falla, el usuario completa los datos manualmente.
         console.warn(
@@ -74,5 +92,5 @@ export function usePrefillUserData(
         hasRun.current = false;
       }
     })();
-  }, [loggedUser, setFormData, setPerfilData, setContactData]);
+  }, [loggedUser, setFormData, setPerfilData, setContactData, setClientExists]);
 }

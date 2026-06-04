@@ -19,6 +19,7 @@ export interface PerfilEmpresaContacto {
   rubro?: string;
   ubicacion_facturacion?: string;
   observacion?: string | null;
+  telefono_contacto?: string | null;
   cargo_en_empresa?: string;
   lugar_trabajo?: string;
 }

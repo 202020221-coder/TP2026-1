@@ -11,7 +11,6 @@ export const OrdersTableHeader: FC = () => {
         {(user?.rol === RolesRecord.projectAdmin || user?.rol === RolesRecord.manager) && (
           <TableHead className="text-gray-500 font-medium">Cliente</TableHead>
         )}
-        <TableHead className="min-w-[220px]">Descripción</TableHead>
         <TableHead className="text-gray-500 font-medium">Ubicación</TableHead>
         <TableHead className="text-center text-gray-500 font-medium">
           Estado

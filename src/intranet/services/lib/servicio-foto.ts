@@ -1,15 +1,10 @@
-const getApiOrigin = () => {
+// Base completa del API (incluye el prefijo de ruta, p. ej. ".../api").
+// Las imágenes del backend se sirven bajo esa base (p. ej. /api/uploads/...),
+// por lo que NO se debe descartar el path quedándose solo con el origin.
+const getApiBase = () => {
   const baseUrl = import.meta.env.VITE_API_URL;
   if (typeof baseUrl === "string" && baseUrl.trim().length > 0) {
-    try {
-      return new URL(baseUrl).origin;
-    } catch {
-      try {
-        return new URL(baseUrl, window.location.origin).origin;
-      } catch {
-        return window.location.origin;
-      }
-    }
+    return baseUrl.trim().replace(/\/+$/, "");
   }
   return window.location.origin;
 };
@@ -19,8 +14,8 @@ export function resolveServicioFotoUrl(url: string | null | undefined): string {
   const trimmed = (url ?? "").trim();
   if (!trimmed) return "";
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  const origin = getApiOrigin();
-  return trimmed.startsWith("/") ? `${origin}${trimmed}` : `${origin}/${trimmed}`;
+  const base = getApiBase();
+  return trimmed.startsWith("/") ? `${base}${trimmed}` : `${base}/${trimmed}`;
 }
 
 export const SERVICIO_FOTO_ACCEPT = "image/jpeg,image/png,image/webp,image/gif";

@@ -11,7 +11,6 @@ import {
     CreateRequest,
     CreateRequestInventory,
     CreateRequestService,
-    UpdateRequest,
 } from '../api';
 import {
     StepCatalogSelection,
@@ -29,7 +28,6 @@ import type {
     PostRequestDTO,
     PostRequestInventoryDTO,
     PostRequestServiceDTO,
-    UpdateRequestDTO,
     ClientFormData,
     ClientOption,
     ContactFormData,
@@ -40,12 +38,24 @@ import type {
     ServiceFormData,
 } from '../interfaces';
 
+const buildSelectedServicesDetails = (services: SelectedTruck[]) =>
+    services
+        .map((service, index) =>
+            [
+                `Servicio ${index + 1}: ${service.name}`,
+                `Dirección del lugar: ${service.direccionLugar.trim()}`,
+                `Observaciones de su elección: ${service.observacionesEleccion.trim()}`,
+            ].join('\n'),
+        )
+        .join('\n---\n');
+
 export function CreateRequestPage() {
     const navigate = useNavigate();
     const [clientType, setClientType] = useState<'jurídica' | 'física' | null>(null);
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
     const [createdClientId, setCreatedClientId] = useState<number | null>(null);
     const [createdRequestId, setCreatedRequestId] = useState<number | null>(null);
+    const [clientAlreadyExists, setClientAlreadyExists] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [perfilPayload, setPerfilPayload] = useState<PostClientPerfilDTO | null>(null);
 
@@ -173,23 +183,6 @@ export function CreateRequestPage() {
         }
     };
 
-    const handleUpdateRequest = async (
-        requestId: number,
-        data: UpdateRequestDTO
-    ) => {
-        try {
-            const response = await UpdateRequest(requestId, data);
-
-            if ("error" in response) {
-                console.error("Error actualizando solicitud:", response.error);
-                return;
-            }
-
-            console.log("Solicitud actualizada:", response);
-        } catch (error) {
-            console.error("Error inesperado:", error);
-        }
-    };
     const [formData, setFormData] = useState<ClientFormData>({
         DNI_O_RUC: '',
         nombre_comercial: '',
@@ -232,7 +225,7 @@ export function CreateRequestPage() {
     });
 
     // Autocompletado de datos del cliente/solicitante según el usuario logueado.
-    usePrefillUserData(setFormData, setPerfilData, setContactData);
+    usePrefillUserData(setFormData, setPerfilData, setContactData, setClientAlreadyExists);
 
     // Autocompletado desde la landing ("Solicitar" en Nuestros Servicios).
     const [searchParams] = useSearchParams();
@@ -319,35 +312,39 @@ export function CreateRequestPage() {
         { id: 7, label: 'Preferencias' },
     ];
 
-    const addTruckToCart = (truckId: string, name: string, intent: 'alquilar' | 'comprar', price?: number | string, description?: string) => {
+    const addTruckToCart = (serviceId: number, name: string, price?: number | string, description?: string) => {
+        // Evita duplicar el mismo servicio en el carrito.
+        setSelectedTrucks((prev) => {
+            const alreadyExists = prev.some((truck) => truck.serviceId === serviceId);
+            if (alreadyExists) return prev;
+
         const newItem: SelectedTruck = {
-            id: `${truckId}-${Date.now()}`,
-            truckId,
+                id: `service-${serviceId}-${Date.now()}`,
+                serviceId,
+                truckId: `service-${serviceId}`,
             name,
             description,
-            intent,
-            quantity: 1,
-            days: intent === 'alquilar' ? 1 : undefined,
             price,
+                direccionLugar: '',
+                observacionesEleccion: '',
         };
-        setSelectedTrucks((prev) => [...prev, newItem]);
+            return [...prev, newItem];
+        });
     };
 
-    const updateTruckQuantity = (id: string, delta: number) => {
+    const updateTruckDireccion = (id: string, direccion: string) => {
         setSelectedTrucks((prev) => prev.map(truck => {
             if (truck.id === id) {
-                const newQuantity = Math.max(1, truck.quantity + delta);
-                return { ...truck, quantity: newQuantity };
+                return { ...truck, direccionLugar: direccion };
             }
             return truck;
         }));
     };
 
-    const updateTruckDays = (id: string, daysStr: string) => {
-        const days = Math.max(1, parseInt(daysStr) || 1);
+    const updateTruckObservaciones = (id: string, observaciones: string) => {
         setSelectedTrucks((prev) => prev.map(truck => {
-            if (truck.id === id && truck.intent === 'alquilar') {
-                return { ...truck, days };
+            if (truck.id === id) {
+                return { ...truck, observacionesEleccion: observaciones };
             }
             return truck;
         }));
@@ -497,8 +494,8 @@ export function CreateRequestPage() {
                         selectedServices={selectedTrucks}
                         isLoading={loadingPublicServices}
                         onAddService={addTruckToCart}
-                        onUpdateServiceDays={updateTruckDays}
-                        onUpdateServiceQuantity={updateTruckQuantity}
+                        onUpdateServiceDireccion={updateTruckDireccion}
+                        onUpdateServiceObservaciones={updateTruckObservaciones}
                         onRemoveService={removeTruck}
                     />
                 )}
@@ -535,6 +532,13 @@ export function CreateRequestPage() {
 
                                 // Step 2 -> crear cliente (perfil se guardará y se creará en el paso de contacto)
                                 if (currentStep === 2) {
+                                    // Si el cliente/empresa ya existe (autocompletado), no se recrea.
+                                    if (clientAlreadyExists) {
+                                        setCreatedClientId(Number(formData.DNI_O_RUC) || null);
+                                        setCurrentStep(3);
+                                        setIsProcessing(false);
+                                        return;
+                                    }
                                     const clientData = (formData as unknown) as PostClientDTO;
                                     const newClientId = await handleSubmitClient(clientData);
                                     if (newClientId || formData.DNI_O_RUC) { setCurrentStep(3); }
@@ -545,6 +549,12 @@ export function CreateRequestPage() {
 
                                 // Step 3 -> crear contacto del cliente (antes se creará el perfil si existe payload)
                                 if (currentStep === 3) {
+                                    // Si el cliente/perfil ya existe (autocompletado), no se recrea.
+                                    if (clientAlreadyExists) {
+                                        setCurrentStep(4);
+                                        setIsProcessing(false);
+                                        return;
+                                    }
                                     const clientIdentifier = createdClientId ?? Number(formData.DNI_O_RUC);
                                     if (!clientIdentifier || Number.isNaN(clientIdentifier)) { alert('Client ID no disponible. Crea el cliente primero.'); setIsProcessing(false); return; }
                                     const perfilDataPayload: PostClientPerfilDTO = {
@@ -582,50 +592,87 @@ export function CreateRequestPage() {
                                     return;
                                 }
 
-                                // Step 4 -> crear solicitud
+                                // Step 4 -> solo avanzar (la solicitud se crea al final)
                                 if (currentStep === 4) {
-                                    const requestData = (serviceData as unknown) as PostRequestDTO;
-                                    const newRequestId = await handleCreateRequest(requestData);
-                                    if (newRequestId) { setCreatedRequestId(newRequestId); }
                                     setCurrentStep(5);
+                                    setIsProcessing(false);
                                     return;
                                 }
 
-                                // Step 5 -> crear inventario asociado a la solicitud
+                                // Step 5 -> solo avanzar (selección de catálogo)
                                 if (currentStep === 5) {
-                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
-                                    const requestId = createdRequestId;
-                                    const inventoryData = {} as PostRequestInventoryDTO;
-                                    await handleSubmitRequestInventory(requestId, inventoryData);
                                     setCurrentStep(6);
+                                    setIsProcessing(false);
                                     return;
                                 }
 
-                                // Step 6 -> crear servicios asociados a la solicitud
+                                // Step 6 -> validar servicios y avanzar (aún no se crea nada)
                                 if (currentStep === 6) {
-                                    if (!createdRequestId) { alert('Request ID no disponible. Crea la solicitud primero.'); setIsProcessing(false); return; }
-                                    const requestId = createdRequestId;
-                                    const svcData = (serviceData as unknown) as PostRequestServiceDTO;
-                                    await handleCreateRequestService(requestId, svcData);
+                                    if (selectedTrucks.length === 0) {
+                                        alert('Debes agregar al menos un servicio.');
+                                        setIsProcessing(false);
+                                        return;
+                                    }
+
+                                    const missingRequiredFields = selectedTrucks.some(
+                                        (service) =>
+                                            service.direccionLugar.trim().length === 0 ||
+                                            service.observacionesEleccion.trim().length === 0,
+                                    );
+
+                                    if (missingRequiredFields) {
+                                        alert('Completa Dirección del lugar y Observaciones de su elección para todos los servicios agregados.');
+                                        setIsProcessing(false);
+                                        return;
+                                    }
+
                                     setCurrentStep(7);
                                     setIsProcessing(false);
                                     return;
                                 }
 
-                                // Step 7 -> actualizar solicitud final
+                                // Step 7 -> crear la solicitud completa en un solo envío
                                 if (currentStep === 7) {
-                                    if (!createdRequestId) { alert('Request ID no disponible.'); setIsProcessing(false); return; }
-                                    const requestId = createdRequestId;
-                                    const updateData: UpdateRequestDTO = {
-                                        Id_Cliente: serviceData.Id_Cliente,
+                                    // Evita duplicar si ya se creó en un intento anterior.
+                                    if (createdRequestId) {
+                                        navigate('/intranet/solicitudes', { replace: true });
+                                        return;
+                                    }
+
+                                    const selectedServiceNames = selectedTrucks.map((s) => s.name).join(', ');
+                                    const serviceSelectionDetails = buildSelectedServicesDetails(selectedTrucks);
+                                    const finalSelectionObservations = [
+                                        serviceSelectionDetails,
+                                        preferencesData.selectionObservations.trim()
+                                            ? `Observación final: ${preferencesData.selectionObservations.trim()}`
+                                            : '',
+                                    ].filter(Boolean).join('\n---\n');
+
+                                    const requestData: PostRequestDTO = {
+                                        Id_Cliente: serviceData.Id_Cliente || formData.DNI_O_RUC,
                                         descripcion: serviceData.descripcion,
                                         ubicacion: serviceData.ubicacion,
-                                        productoenvio: serviceData.productoenvio,
-                                        camionesenvio: serviceData.camionesenvio,
-                                        obsgenerales: preferencesData.generalObservations,
-                                        obseleccion: preferencesData.selectionObservations,
+                                        productoenvio: serviceData.productoenvio || null,
+                                        camionesenvio: selectedServiceNames || null,
+                                        obsgenerales: preferencesData.generalObservations || null,
+                                        obseleccion: finalSelectionObservations || null,
                                     };
-                                    await handleUpdateRequest(requestId, updateData);
+
+                                    const newRequestId = await handleCreateRequest(requestData);
+                                    if (!newRequestId) {
+                                        alert('No se pudo crear la solicitud. Revisa la consola.');
+                                        setIsProcessing(false);
+                                        return;
+                                    }
+                                    setCreatedRequestId(newRequestId);
+
+                                    // Asociaciones a la solicitud recién creada.
+                                    const inventoryData = {} as PostRequestInventoryDTO;
+                                    await handleSubmitRequestInventory(newRequestId, inventoryData);
+
+                                    const svcData = (serviceData as unknown) as PostRequestServiceDTO;
+                                    await handleCreateRequestService(newRequestId, svcData);
+
                                     navigate('/intranet/solicitudes', { replace: true });
                                 }
                             } catch (err) {
