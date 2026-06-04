@@ -27,6 +27,8 @@ export interface LandingService {
   description: string;
   image: string;
   icon: LucideIcon;
+  /** true si proviene del backend (endpoint público); false si es estático. */
+  isDynamic: boolean;
   /** Observaciones del servicio (solo para servicios del backend). */
   observaciones?: string;
   /** Detalle enriquecido (solo para los servicios estáticos de la landing). */
@@ -70,6 +72,7 @@ function mapServicio(servicio: Servicio): LandingService {
     description: servicio.descripcion,
     image: resolveServicioFotoUrl(servicio.foto),
     icon: pickIcon(servicio.nombre),
+    isDynamic: true,
     observaciones: servicio.observaciones,
   };
 }

@@ -8,7 +8,6 @@ import type { CartItem } from '../pages/HomePage'
 import { useLandingServices, type LandingService } from '../hooks/useLandingServices'
 
 const services = [
-  { id: 1, name: 'Sistemas preventivos contra incendios', description: 'Redes de rociadores, hidrantes y gabinetes certificados.', image: '/sistemas_preventivos_1775863722285.png', icon: ShieldCheck },
   { id: 2, name: 'Alquiler de Grupo Electrógeno MP-55', description: 'Energía de respaldo continua para sistemas críticos.', image: '/grupo_electrogeno_1775863736106.png', icon: Zap },
   { id: 3, name: 'Sistema de Detección de Incendios', description: 'Paneles inteligentes y detectores de humo de alta precisión.', image: '/deteccion_incendios_1775863750035.png', icon: Bell },
   { id: 4, name: 'Sistema de bombeo', description: 'Equipos de bombeo de gran capacidad para redes contra incendios.', image: '/sistema_bombeo_1775863772149.png', icon: Waves },
@@ -79,6 +78,7 @@ const staticServices: LandingService[] = services.map((s) => ({
   description: s.description,
   image: s.image,
   icon: s.icon,
+  isDynamic: false,
   details: serviceDetails[s.id],
 }))
 
@@ -162,8 +162,17 @@ export default function Services({ onAddToCart }: Props) {
                     <IconComponent className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                   </div>
 
-                  <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors">{service.name}</h3>
-                  <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
+                  <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors line-clamp-2">{service.name}</h3>
+                  {service.isDynamic ? (
+                    <>
+                      <p className="text-muted-foreground mb-2 line-clamp-2 leading-relaxed">{service.description}</p>
+                      {service.observaciones && service.observaciones.trim() && (
+                        <p className="text-sm text-muted-foreground/80 mb-6 line-clamp-2 leading-relaxed flex-1 whitespace-pre-line">{service.observaciones}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
+                  )}
 
                   <div className="flex items-center justify-between mt-auto pt-6 border-t border-border/50">
                     <Button
