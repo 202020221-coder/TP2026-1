@@ -15,7 +15,7 @@ export const QuotationTable: FC = () => {
   const { isPending, isFetching, isError, error, data } = result;
   return (
     <QuotationTableControls>
-      <Table>
+      <Table containerClassname="flex-1 overflow-auto flex-col">
         <QuotationTableHeader />
         <TableBody>
           {isPending || isFetching ? (

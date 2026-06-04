@@ -15,7 +15,12 @@ export interface IListInventarioContext {
   setPage: (value: number) => void;
   limit: number;
   setLimit: (value: number) => void;
-  filteredItems: InventarioItem[];
+  /** Ítems de la página actual (ya filtrados por estado/búsqueda). */
+  items: InventarioItem[];
+  /** Total de ítems tras aplicar los filtros (no la página). */
+  totalItems: number;
+  /** Total de páginas calculado sobre los ítems filtrados. */
+  totalPages: number;
 }
 
 export const ListInventarioContext =

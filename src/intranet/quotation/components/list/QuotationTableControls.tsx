@@ -1,6 +1,6 @@
 import { Input } from "@/shared/components/ui/input";
 import { ArrowLeft, ArrowRight, Eraser, Search } from "lucide-react";
-import { type FC, type ReactNode } from "react";
+import { useEffect, useState, type FC, type ReactNode } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import {
@@ -23,7 +23,7 @@ export const QuotationTableControls: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   return (
-    <div className="space-y-3">
+    <div className="flex flex-1 flex-col space-y-5 min-h-0">
       <TopControls />
       {children}
       <BottomControls />
@@ -88,14 +88,31 @@ const TopControls: FC = () => {
 const BottomControls: FC = () => {
   const { query, queryParams, result } = useQuotation();
   const pagination = result.data?.pagination;
+  const [pseudoPageStr, setPseudoPageStr] = useState("1");
+
+  useEffect(() => {
+    setPseudoPageStr(
+      pagination ? pagination.page.toString() : "1",
+    );
+  }, [pagination?.page]);
+
+  const debouncedSetPage = useDebounced((pageNumber: string) => {
+    query({
+      ...queryParams,
+      page: pageNumber === "" ? 1 : Number(pageNumber),
+    });
+  }, 1000);
 
   if (!pagination) return null;
+
+  const totalPages = Math.max(pagination.totalPages, 1);
 
   const nextDisabled =
     result.isPending ||
     result.isFetching ||
     result.isError ||
-    pagination.page >= pagination.totalPages;
+    pagination.page >= totalPages;
+
   const backDisabled =
     result.isPending ||
     result.isFetching ||
@@ -103,17 +120,17 @@ const BottomControls: FC = () => {
     pagination.page <= 1;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-      <div className="col-span-1 flex items-center gap-x-2">
-        <Label htmlFor="quotation-query-size">Tamaño de Página:</Label>
+    <div className="grid grid-cols-1 md:grid-cols-4">
+      <div className="col-span-1 flex gap-x-2 items-center">
+        <Label>Tamaño de Página:</Label>
         <Select
           onValueChange={(value) => {
             query({ ...queryParams, page: 1, per_page: Number(value) });
           }}
           value={(queryParams.per_page ?? pagination.limit).toString()}
         >
-          <SelectTrigger id="quotation-query-size">
-            <SelectValue placeholder="Seleccione un tamaño" />
+          <SelectTrigger className="w-20">
+            <SelectValue placeholder="10" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="5">5</SelectItem>
@@ -128,9 +145,9 @@ const BottomControls: FC = () => {
         </Select>
       </div>
 
-      <div className="col-span-1 md:col-span-2 flex justify-center gap-x-2">
+      <div className="col-span-2 flex justify-center gap-x-2">
         <Button
-          className="w-36"
+          className="w-40"
           variant="secondary"
           disabled={backDisabled}
           onClick={() => {
@@ -140,7 +157,7 @@ const BottomControls: FC = () => {
           <ArrowLeft /> Anterior
         </Button>
         <Button
-          className="w-36"
+          className="w-40"
           disabled={nextDisabled}
           onClick={() => {
             query({ ...queryParams, page: pagination.page + 1 });
@@ -150,8 +167,23 @@ const BottomControls: FC = () => {
         </Button>
       </div>
 
-      <div className="col-span-1 flex justify-end text-sm text-gray-600">
-        Página {pagination.page} de {pagination.totalPages}
+      <div className="col-span-1 flex gap-x-2 items-center w-fit">
+        <p>Página</p>
+        <Input
+          type="number"
+          step={1}
+          min={1}
+          max={totalPages}
+          value={pseudoPageStr}
+          onChange={(e) => {
+            setPseudoPageStr(e.target.value);
+            debouncedSetPage(e.target.value);
+          }}
+          disabled={totalPages === 1}
+          className="w-16"
+        />
+        <p>de</p>
+        <p>{totalPages}</p>
       </div>
     </div>
   );

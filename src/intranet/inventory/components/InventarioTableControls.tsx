@@ -22,30 +22,23 @@ export const InventarioTableControls: FC<{
     statusFilter,
     setStatusFilter,
     result,
-    filteredItems,
+    items,
     page,
     setPage,
     limit,
     setLimit,
+    totalItems,
+    totalPages,
   } = useInventario();
 
-  const pagination = result.data?.pagination;
-  const currentPage = pagination?.page ?? page;
-  const totalPages = pagination?.totalPages ?? 1;
-  const totalItems = pagination?.total ?? 0;
+  const currentPage = page;
   const paginationDisabled =
-    result.isPending || result.isFetching || result.isError || !pagination;
-  const hasItems = totalItems > 0 && filteredItems.length > 0;
+    result.isPending || result.isFetching || result.isError;
+  const hasItems = totalItems > 0 && items.length > 0;
   const startIndex = hasItems ? (currentPage - 1) * limit + 1 : 0;
-  const endIndex = hasItems
-    ? (currentPage - 1) * limit + filteredItems.length
-    : 0;
+  const endIndex = hasItems ? (currentPage - 1) * limit + items.length : 0;
 
   const handlePageChange = (nextPage: number) => {
-    if (!pagination) {
-      return;
-    }
-
     if (nextPage < 1 || nextPage > totalPages) {
       return;
     }
@@ -105,11 +98,13 @@ export const InventarioTableControls: FC<{
 
       {children}
 
-      {pagination && (
+      {result.data && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Por pagina</span>
+              <span className="text-sm text-muted-foreground">
+                Tamaño de Página
+              </span>
               <Select
                 value={String(limit)}
                 onValueChange={(value) => {
@@ -118,7 +113,6 @@ export const InventarioTableControls: FC<{
                     return;
                   }
                   setLimit(parsed);
-                  setPage(1);
                 }}
                 disabled={paginationDisabled}
               >
@@ -127,12 +121,16 @@ export const InventarioTableControls: FC<{
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="25" disabled={totalItems <= 10}>
+                    25
+                  </SelectItem>
+                  <SelectItem value="50" disabled={totalItems <= 25}>
+                    50
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <span className="text-sm text-muted-foreground">
-                {startIndex}-{endIndex}
+                {startIndex}-{endIndex} de {totalItems}
               </span>
             </div>
           </div>

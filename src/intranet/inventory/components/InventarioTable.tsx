@@ -15,7 +15,7 @@ export const InventarioTable: FC<{
   onEdit: (id: number) => void;
   onAdd: () => void;
 }> = ({ onEdit, onAdd }) => {
-  const { result, filteredItems } = useInventario();
+  const { result, items } = useInventario();
   const { isPending, isFetching, isError, error } = result;
 
   return (
@@ -31,7 +31,7 @@ export const InventarioTable: FC<{
                 {error.message}
               </TableCell>
             </TableRow>
-          ) : filteredItems.length === 0 ? (
+          ) : items.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={COLUMN_COUNT}
@@ -41,7 +41,7 @@ export const InventarioTable: FC<{
               </TableCell>
             </TableRow>
           ) : (
-            filteredItems.map((item) => (
+            items.map((item) => (
               <InventarioTableRow
                 key={item.Id_Objeto}
                 item={item}
