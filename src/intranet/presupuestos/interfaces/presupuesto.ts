@@ -81,3 +81,27 @@ export interface IncidenciaPresupuesto {
   comentario: string;
   estado?: string;
 }
+
+export interface ServicioDeCotizacion {
+  ID_Servicio: number;
+  nombre: string;
+}
+
+export interface ChecklistItemPresupuesto {
+  id_inventario: number;
+  nombre_objeto: string;
+  estancia: Estancia;
+  cantidad_requerida: number;
+  cantidad_en_inventario: number;
+  precio_compra: number;
+  servicios: string[];
+  costo: number;
+}
+
+export interface InventarioPorServicioPresupuestoResponse {
+  ID_Cotizacion: number;
+  servicios_de_cotizacion: ServicioDeCotizacion[];
+  total_objetos: number;
+  costo_total_faltante: number;
+  data: ChecklistItemPresupuesto[];
+}

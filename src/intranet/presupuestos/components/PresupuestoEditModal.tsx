@@ -9,6 +9,7 @@ import { MaterialDirectoTab } from "./tabs/MaterialDirectoTab";
 import { ManoObraTab } from "./tabs/ManoObraTab";
 import { ServicioTab } from "./tabs/ServicioTab";
 import { GastoAdminTab } from "./tabs/GastoAdminTab";
+import { ChecklistPresupuestoDialog } from "./ChecklistPresupuestoDialog";
 import type { Cotizacion } from "../interfaces/presupuesto";
 
 type Tab = "material" | "mano-obra" | "servicio" | "gasto-admin";
@@ -44,20 +45,23 @@ export function PresupuestoEditModal({ cotizacion, isOpen, onClose }: Props) {
           </div>
         </DialogHeader>
 
-        <div className="flex gap-3 flex-wrap pt-2 pb-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                activeTab === tab.id
-                  ? "bg-red-600 text-white"
-                  : "bg-red-100 text-red-800 hover:bg-red-200"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-3 pt-2 pb-1">
+          <div className="flex gap-3 flex-wrap">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-red-600 text-white"
+                    : "bg-red-100 text-red-800 hover:bg-red-200"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <ChecklistPresupuestoDialog cotizacionId={cotizacion.ID} />
         </div>
 
         <div className="flex-1 overflow-y-auto pt-2">

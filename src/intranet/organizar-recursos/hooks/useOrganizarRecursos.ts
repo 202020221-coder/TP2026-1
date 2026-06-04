@@ -69,7 +69,13 @@ export const useIncidenciasByProyecto = (projectId: number) => {
   return useQuery({
     queryKey: ["incidencias-proyecto", projectId],
     queryFn: () => organizarRecursosApi.getIncidenciasByProyecto(projectId),
-    select: (data) => data.data,
+    select: (data): Incidencia[] => {
+      const raw = data.data as unknown;
+      if (Array.isArray(raw)) return raw as Incidencia[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: Incidencia[] }).data;
+      return [];
+    },
     enabled: !!projectId,
   });
 };

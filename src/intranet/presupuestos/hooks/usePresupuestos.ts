@@ -87,3 +87,31 @@ export const useUpdatePresupuestoItem = (cotizacionId: number, tipo: TipoPresupu
     onSuccess: () => toast.success("Elemento actualizado"),
   });
 };
+
+export const useInventarioPorServicioPresupuesto = (
+  cotizacionId: number,
+  enabled: boolean = true
+) =>
+  useQuery({
+    queryKey: ["inventario-por-servicio-cotizacion", cotizacionId],
+    queryFn: () => presupuestosApi.getInventarioPorServicio(cotizacionId),
+    select: (d) => d.data,
+    enabled: !!cotizacionId && enabled,
+  });
+
+export const useExportarFaltantesInventario = (cotizacionId: number) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => presupuestosApi.exportarFaltantesInventario(cotizacionId),
+    onSettled: () => {
+      qc.invalidateQueries({
+        queryKey: ["inventario-por-servicio-cotizacion", cotizacionId],
+      });
+      qc.invalidateQueries({
+        queryKey: itemsKey(cotizacionId, "Material Directo"),
+      });
+    },
+    onSuccess: () => toast.success("Faltantes exportados al presupuesto exitosamente"),
+    onError: () => toast.error("No se pudieron exportar los faltantes"),
+  });
+};
