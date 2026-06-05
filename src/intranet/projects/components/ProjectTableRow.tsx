@@ -22,6 +22,7 @@ import {
   type ProjectState,
   ProjectStatesRecord,
 } from "../enum/project-state.record";
+import axiosInstance from "@/shared/api/axios.config";
 
 export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
   project,
@@ -60,6 +61,18 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
     return `${day}/${month}/${year}`;
   };
 
+  const handleSeePdf = async () => {
+    const response = await axiosInstance.get(
+      `/cotizaciones/${project.id_cotizacion}/orden-compra`,
+      {
+        responseType: "blob",
+      },
+    );
+    const blob = await response.data;
+    const fileUrl = window.URL.createObjectURL(blob);
+
+    window.open(fileUrl, "_blank");
+  };
   return (
     <>
       <EditProjectModal
@@ -149,7 +162,7 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                         projectName: project.Cotizacion_Nombre,
                         clientName: project.Cliente_Nombre,
                       },
-                    }
+                    },
                   )
                 }
               >
@@ -167,6 +180,7 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 hover:bg-red-50"
+                  onClick={handleSeePdf}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
