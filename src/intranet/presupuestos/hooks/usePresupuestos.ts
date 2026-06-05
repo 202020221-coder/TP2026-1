@@ -44,7 +44,13 @@ export const usePresupuestoItems = (cotizacionId: number, tipo: TipoPresupuesto)
   useQuery({
     queryKey: itemsKey(cotizacionId, tipo),
     queryFn: () => presupuestosApi.getItems(cotizacionId, tipo),
-    select: (d) => d.data,
+    select: (d): import("../interfaces/presupuesto").PresupuestoItem[] => {
+      const raw = d.data as unknown;
+      if (Array.isArray(raw)) return raw as import("../interfaces/presupuesto").PresupuestoItem[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: import("../interfaces/presupuesto").PresupuestoItem[] }).data;
+      return [];
+    },
     enabled: !!cotizacionId,
   });
 
