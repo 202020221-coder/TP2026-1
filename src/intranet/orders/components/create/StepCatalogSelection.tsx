@@ -1,4 +1,4 @@
-import { Calendar, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { Calendar, Minus, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import type { CatalogOption, SelectedProduct } from './types';
@@ -40,10 +40,8 @@ export function StepCatalogSelection({
                                 key={product.id}
                                 className="flex flex-col items-center rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md"
                             >
-                                <div className="mb-4 flex h-24 w-24 items-center justify-center text-blue-500">
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-blue-100 bg-slate-100 p-2 text-center text-[10px] font-semibold uppercase">
-                                        {product.category || 'Catálogo'}
-                                    </div>
+                                <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-slate-50 to-blue-50 text-blue-600 ring-1 ring-blue-100">
+                                    <Package size={40} aria-hidden />
                                 </div>
                                 <h4 className="mb-1 min-h-10 text-center text-sm font-semibold text-gray-800">
                                     {product.name}
@@ -51,9 +49,6 @@ export function StepCatalogSelection({
                                 <p className="mb-4 min-h-[30px] text-center text-[10px] text-gray-400">
                                     Garantía: {product.garantia}
                                 </p>
-                                <h4 className="mb-1 min-h-10 text-center text-sm font-semibold text-gray-800">
-                                    {product.precio_comercial}
-                                </h4>
                                 <div className="mt-auto flex w-full gap-2">
                                     <Button
                                         variant="outline"

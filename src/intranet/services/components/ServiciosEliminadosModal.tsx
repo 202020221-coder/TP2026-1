@@ -11,9 +11,8 @@ interface Props {
 }
 
 export const ServiciosEliminadosModal: FC<Props> = ({ onClose }) => {
-  const { result, toggleActivoMutation, toggleActivoLocal } = useServicios();
-
-  const serviciosDesactivados = result.data?.data.filter((s) => !s.activo) ?? [];
+  const { result, toggleActivoMutation, toggleActivoLocal, serviciosDesactivados } =
+    useServicios();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

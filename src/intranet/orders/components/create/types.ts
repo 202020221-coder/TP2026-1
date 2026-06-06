@@ -45,12 +45,12 @@ export interface SelectedProduct {
 export interface SelectedTruck {
   id: string;
   truckId?: string;
+  serviceId?: number;
   name: string;
   description?: string;
-  intent: "alquilar" | "comprar";
-  quantity: number;
-  days?: number;
   price?: number | string;
+  direccionLugar: string;
+  observacionesEleccion: string;
 }
 
 export interface PreferencesData {
@@ -78,4 +78,15 @@ export interface TruckOption {
   name: string;
   description: string;
   price: string | number;
+}
+
+/** Opción de servicio público para el paso 6 (selección de servicios). */
+export interface ServiceOption {
+  id: string;
+  serviceId: number;
+  name: string;
+  description: string;
+  price: string | number;
+  imageUrl?: string;
+  Icon: import("lucide-react").LucideIcon;
 }

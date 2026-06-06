@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState, type FC } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Servicio, CreateServicioDTO } from "../interfaces/service";
 import { useServicios } from "../hooks/useServicios";
+import { uploadServicioFoto } from "../api/service.api";
+import { validateServicioFotoFile } from "../lib/servicio-foto";
+import { ServicioFotoField } from "./ServicioFotoField";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   mode: "create" | "edit";
@@ -17,7 +22,6 @@ const EMPTY: CreateServicioDTO = {
   nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "",
 };
 
-// ── Subcomponentes definidos fuera del render para evitar re-montajes ─────────
 interface FieldProps {
   id: keyof CreateServicioDTO;
   label: string;
@@ -59,11 +63,15 @@ const FormField: FC<FieldProps> = ({ id, label, placeholder, type = "text", text
   </div>
 );
 
-// ── Componente principal ──────────────────────────────────────────────────────
+const SERVICIOS_QUERY_KEY = "servicios";
+
 export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
+  const queryClient = useQueryClient();
   const { createMutation, updateMutation } = useServicios();
   const [form, setForm] = useState<CreateServicioDTO>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof CreateServicioDTO, string>>>({});
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoError, setFotoError] = useState<string | undefined>();
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -80,8 +88,23 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
     } else {
       setForm(EMPTY);
     }
+    setFotoFile(null);
+    setFotoError(undefined);
     setErrors({});
   }, [mode, servicio]);
+
+  const handleFotoChange = (file: File | null) => {
+    if (file) {
+      const validationError = validateServicioFotoFile(file);
+      if (validationError) {
+        setFotoError(validationError);
+        setFotoFile(null);
+        return;
+      }
+    }
+    setFotoError(undefined);
+    setFotoFile(file);
+  };
 
   const validate = () => {
     const e: Partial<Record<keyof CreateServicioDTO, string>> = {};
@@ -104,9 +127,34 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
   const handleSave = async () => {
     if (!validate()) return;
     try {
-      if (mode === "create") await createMutation.mutateAsync(form);
-      else if (mode === "edit" && servicio) await updateMutation.mutateAsync({ id: servicio.id, dto: form });
-      onClose(); // solo cierra si fue exitoso
+      let servicioId: number;
+
+      if (mode === "create") {
+        const created = await createMutation.mutateAsync(form);
+        servicioId = created.id;
+      } else if (mode === "edit" && servicio) {
+        await updateMutation.mutateAsync({ id: servicio.id, dto: form });
+        servicioId = servicio.id;
+      } else {
+        return;
+      }
+
+      if (fotoFile) {
+        try {
+          await uploadServicioFoto(servicioId, fotoFile);
+          await queryClient.invalidateQueries({ queryKey: [SERVICIOS_QUERY_KEY] });
+        } catch {
+          toast.error(
+            mode === "create"
+              ? "Servicio creado, pero no se pudo subir la foto."
+              : "Servicio actualizado, pero no se pudo subir la foto.",
+          );
+          onClose();
+          return;
+        }
+      }
+
+      onClose();
     } catch {
       // El Provider ya muestra el toast de error — el modal permanece abierto
     }
@@ -116,13 +164,13 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
-        {/* Header */}
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-base font-semibold text-foreground">
             {mode === "create" ? "Agregar Servicio" : "Editar Servicio"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             disabled={isPending}
             className="rounded-full p-1.5 hover:bg-accent transition-colors text-muted-foreground"
@@ -131,8 +179,14 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-6 py-5 space-y-4 max-h-[72vh] overflow-y-auto">
+          <ServicioFotoField
+            currentFotoUrl={mode === "edit" ? servicio?.foto : null}
+            file={fotoFile}
+            onFileChange={handleFotoChange}
+            error={fotoError}
+            disabled={isPending}
+          />
           <FormField id="nombre"            label="Nombre del Servicio"   placeholder="Ej. Instalación de Rociadores" value={form.nombre}            error={errors.nombre}            onChange={handleChange} />
           <FormField id="descripcion"       label="Descripción"           placeholder="Describe el servicio en detalle..." value={form.descripcion}       error={errors.descripcion}       onChange={handleChange} textarea />
           <FormField id="precio_regular"    label="Precio Regular (S/)"   placeholder="0.00" type="number"             value={form.precio_regular}    error={errors.precio_regular}    onChange={handleChange} />
@@ -140,7 +194,6 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
           <FormField id="observaciones"     label="Observaciones"         placeholder="Notas adicionales..."            value={form.observaciones}     error={errors.observaciones}     onChange={handleChange} textarea />
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-border bg-muted/50">
           <Button variant="outline" onClick={onClose} disabled={isPending}>Cancelar</Button>
           <Button

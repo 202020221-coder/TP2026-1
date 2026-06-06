@@ -24,9 +24,6 @@ export const OrdersTablePlaceholder: FC<{ rows: number }> = ({ rows }) => {
             </TableCell>
           )}
           <TableCell>
-            <Skeleton className="h-4 w-65 bg-gray-50" />
-          </TableCell>
-          <TableCell>
             <Skeleton className="h-4 w-76 bg-gray-50" />
           </TableCell>
           <TableCell>

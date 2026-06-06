@@ -10,6 +10,10 @@ import type {
   UpdatePersonalRequeridoDTO,
 } from "../interfaces/service";
 
+// Ruta del endpoint PÚBLICO de servicios para la landing (sin autenticación).
+// Cámbiala por la que definas en el backend (p. ej. "/servicios/publicos").
+export const PUBLIC_SERVICIOS_PATH = "/servicios/publicos";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos del backend (snake_case con ID_Servicio como PK)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,9 +25,20 @@ interface ServicioRaw {
   precio_regular: number;
   condicional_precio: string;
   observaciones: string;
+  foto?: string | null;
+  foto_url?: string | null;
+  imagen?: string | null;
+  url_imagen?: string | null;
   Estado?: "Activo" | "Desactivado"; // campo real del backend
   activo?: boolean;                   // por compatibilidad defensiva
 }
+
+const pickFotoFromRaw = (raw: ServicioRaw): string | null => {
+  const value = raw.foto ?? raw.foto_url ?? raw.imagen ?? raw.url_imagen ?? null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
 
 // Extrae el objeto ServicioRaw de cualquier forma que devuelva el backend:
 // - directamente: { ID_Servicio, nombre, ... }
@@ -58,6 +73,7 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   precio_regular: Number(raw.precio_regular ?? 0),
   condicional_precio: raw.condicional_precio ?? "",
   observaciones: raw.observaciones ?? "",
+  foto: pickFotoFromRaw(raw),
   activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
 });
 
@@ -81,6 +97,22 @@ export const getServicios = async (
   };
 };
 
+/**
+ * Servicios para la landing pública (sin token).
+ * Cuando crees el endpoint público en el backend, ajusta la ruta aquí.
+ * Acepta tanto un array directo como { data: [...] } o { data: [...], pagination }.
+ */
+export const getServiciosPublicos = async (): Promise<Servicio[]> => {
+  const response = await axiosInstance.get(PUBLIC_SERVICIOS_PATH);
+  const raw = response.data;
+  const arr: ServicioRaw[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.data)
+      ? raw.data
+      : [];
+  return arr.map(toServicio);
+};
+
 export const createServicio = async (dto: CreateServicioDTO): Promise<Servicio> => {
   const response = await axiosInstance.post("/servicios", dto);
   const raw = extractRaw(response.data);
@@ -95,7 +127,37 @@ export const updateServicio = async (
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, reconstruirlo con los datos enviados
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, ...dto, activo: true } as Servicio;
+    return {
+      id,
+      nombre: dto.nombre ?? "",
+      descripcion: dto.descripcion ?? "",
+      precio_regular: dto.precio_regular ?? 0,
+      condicional_precio: dto.condicional_precio ?? "",
+      observaciones: dto.observaciones ?? "",
+      foto: null,
+      activo: dto.activo ?? true,
+    };
+  }
+  return toServicio(raw);
+};
+
+/** Ruta relativa: POST {VITE_API_URL}/servicios/:id/foto (ej. …/api/servicios/12/foto). */
+export const servicioFotoUploadPath = (id: number) => `/servicios/${id}/foto`;
+
+/** Sube o reemplaza la foto de un servicio (multipart, campo `foto`). */
+export const uploadServicioFoto = async (
+  id: number,
+  file: File,
+): Promise<Servicio> => {
+  const formData = new FormData();
+  formData.append("foto", file);
+  // No fijar Content-Type: axios añade el boundary del multipart automáticamente.
+  const response = await axiosInstance.post(servicioFotoUploadPath(id), formData, {
+    timeout: 60_000,
+  });
+  const raw = extractRaw(response.data);
+  if (!raw.ID_Servicio && !raw.id) {
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true };
   }
   return toServicio(raw);
 };
@@ -106,7 +168,7 @@ export const toggleServicioActivo = async (id: number, currentActivo: boolean): 
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, construirlo manualmente
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", activo: !currentActivo };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo };
   }
   return toServicio(raw);
 };

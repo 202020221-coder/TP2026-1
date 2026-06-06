@@ -46,8 +46,8 @@ const TopControls: FC = () => {
     query({ ...queryParams, page: 1, nombre: nameSearch });
   }, 1000);
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-      <div className="col-span-1 md:col-span-3 relative">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <div className="col-span-1 md:col-span-7 relative">
         <Input
           placeholder="Buscar por nombre"
           className="pl-8"
@@ -59,14 +59,14 @@ const TopControls: FC = () => {
           size={20}
         />
       </div>
-      <div className="col-span-1 md:col-span-2 flex gap-x-2">
+      <div className="col-span-1 md:col-span-5 flex gap-x-2 md:justify-end">
         <Select
           onValueChange={(value) => {
             query({ ...queryParams, page: 1, estado: value as OrderState });
           }}
           value={queryParams.estado || ""}
         >
-          <SelectTrigger>
+          <SelectTrigger className="md:w-60">
             <SelectValue placeholder="Seleccione un estado" />
           </SelectTrigger>
           <SelectContent>
@@ -123,8 +123,8 @@ const BottomControls: FC = () => {
 
   return (
     result.data && (
-      <div className="grid grid-cols-1 md:grid-cols-4">
-        <div className="col-span-1 flex gap-x-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-y-3 md:gap-y-0 items-center">
+        <div className="col-span-1 flex gap-x-2 items-center">
           <Label htmlFor="query-size">Tamaño de Página:</Label>
           <Select
             onValueChange={(value) => {
@@ -132,7 +132,7 @@ const BottomControls: FC = () => {
             }}
             value={queryParams.limit?.toString()}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-20">
               <SelectValue placeholder="Seleccione un tamaño de página" />
             </SelectTrigger>
             <SelectContent>
@@ -180,7 +180,7 @@ const BottomControls: FC = () => {
             Siguiente <ArrowRight />
           </Button>
         </div>
-        <div className="col-span-1 flex gap-x-2 items-center w-fit">
+        <div className="col-span-1 flex gap-x-2 items-center w-fit md:justify-self-end">
           <p>Página</p>
           <Input
             type="number"
@@ -193,6 +193,7 @@ const BottomControls: FC = () => {
               debouncedSetPage(e.target.value);
             }}
             disabled={result.data.pagination.totalPages === 1}
+            className="w-16"
           />
           <p>de</p>
           <p>{Math.max(result.data.pagination.totalPages, 1)}</p>

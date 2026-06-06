@@ -5,7 +5,6 @@ import { Button } from "@/shared/components/ui/button";
 import {
   Eye,
   FileArchive,
-  FileText,
   Mail,
   MapPin,
   Trash2,
@@ -63,14 +62,6 @@ export const OrderTableRow: FC<{
           </div>
         </TableCell>
       )}
-      <TableCell className="text-sm text-gray-600">
-        <div className="flex items-center gap-2">
-          <FileText className="mt-0.5 aspect-square w-5 shrink-0 text-gray-400" />
-          <span className="block max-w-[220px] text-sm text-gray-600 line-clamp-2 wrap-break-word overflow-x-auto py-4">
-            {order.descripcion}
-          </span>
-        </div>
-      </TableCell>
       <TableCell className="text-gray-700">
         <div className="flex items-start gap-2">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />

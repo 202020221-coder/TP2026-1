@@ -1,13 +1,37 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router'
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X } from 'lucide-react'
-import type { CartItem } from '../pages/HomePage'
+import { useLandingServices, type LandingService } from '../hooks/useLandingServices'
+
+/** Ruta del asistente de creación de solicitudes (cliente). */
+const CREATE_REQUEST_PATH = '/intranet/solicitudes/crear'
+
+/** Construye la descripción detallada y observaciones generales a partir del servicio. */
+function buildServiceRequestPrefill(service: LandingService): {
+  descripcion: string
+  observaciones: string
+} {
+  const detailedDesc = service.details?.description ?? service.description
+  const descripcion = `Solicito el servicio: ${service.name}.\n\n${detailedDesc}`.trim()
+
+  let observaciones = ''
+  if (service.isDynamic) {
+    observaciones = (service.observaciones ?? '').trim()
+  } else if (service.details) {
+    const feats = service.details.listItems?.length
+      ? `\nIncluye: ${service.details.listItems.join(', ')}.`
+      : ''
+    observaciones = `${service.details.highlightTitle}: ${service.details.highlightText}${feats}`.trim()
+  }
+
+  return { descripcion, observaciones }
+}
 
 const services = [
-  { id: 1, name: 'Sistemas preventivos contra incendios', description: 'Redes de rociadores, hidrantes y gabinetes certificados.', image: '/sistemas_preventivos_1775863722285.png', icon: ShieldCheck },
   { id: 2, name: 'Alquiler de Grupo Electrógeno MP-55', description: 'Energía de respaldo continua para sistemas críticos.', image: '/grupo_electrogeno_1775863736106.png', icon: Zap },
   { id: 3, name: 'Sistema de Detección de Incendios', description: 'Paneles inteligentes y detectores de humo de alta precisión.', image: '/deteccion_incendios_1775863750035.png', icon: Bell },
   { id: 4, name: 'Sistema de bombeo', description: 'Equipos de bombeo de gran capacidad para redes contra incendios.', image: '/sistema_bombeo_1775863772149.png', icon: Waves },
@@ -19,12 +43,6 @@ const services = [
   { id: 10, name: 'Alquiler de Bombas Contra Incendios', description: 'Bombas portátiles y estacionarias para refuerzo de caudal.', image: '/Bombas_ContraIncendios_20180427145918.png', icon: Wind },
   { id: 11, name: 'Recarga de Botellas de Aire Autocontenido', description: 'Servicio de llenado certificado para equipos de respiración.', image: '/recarga_botella.png', icon: Cylinder },
 ]
-
-interface Props {
-  onAddToCart: (item: Omit<CartItem, "id">) => void
-}
-
-type Service = (typeof services)[0]
 
 const serviceDetails: Record<number, {
   description: string;
@@ -70,9 +88,43 @@ const serviceDetails: Record<number, {
   }
 }
 
-export default function Services({ onAddToCart }: Props) {
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+const normalize = (value: string) =>
+  value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+const staticServices: LandingService[] = services.map((s) => ({
+  key: `static-${s.id}`,
+  id: s.id,
+  name: s.name,
+  description: s.description,
+  image: s.image,
+  icon: s.icon,
+  isDynamic: false,
+  details: serviceDetails[s.id],
+}))
+
+export default function Services() {
+  const navigate = useNavigate()
+  const { apiServices } = useLandingServices()
+  const [selectedService, setSelectedService] = useState<LandingService | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
+
+  const handleSolicitar = useCallback(
+    (service: LandingService) => {
+      const { descripcion, observaciones } = buildServiceRequestPrefill(service)
+      const params = new URLSearchParams()
+      params.set('desc', descripcion)
+      if (observaciones) params.set('obs', observaciones)
+      navigate(`${CREATE_REQUEST_PATH}?${params.toString()}`)
+    },
+    [navigate],
+  )
+
+  // Servicios estáticos + servicios del backend con imagen (sin duplicar por nombre)
+  const allServices = useMemo(() => {
+    const staticNames = new Set(staticServices.map((s) => normalize(s.name)))
+    const extras = apiServices.filter((s) => !staticNames.has(normalize(s.name)))
+    return [...staticServices, ...extras]
+  }, [apiServices])
 
   const closeModal = useCallback(() => {
     setIsModalVisible(false)
@@ -95,13 +147,7 @@ export default function Services({ onAddToCart }: Props) {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [closeModal])
 
-  const details = selectedService ? serviceDetails[selectedService.id] || {
-    description: `${selectedService.description} Nuestro enfoque garantiza la máxima eficiencia y cumplimiento de los más altos estándares internacionales en ingeniería de protección contra incendios.`,
-    highlightTitle: "Cumplimiento Normativo NFPA 20",
-    highlightText: "Todos nuestros equipos y procedimientos están rigurosamente alineados con la normativa NFPA 20, asegurando que su instalación cumpla con los estándares globales de seguridad y operatividad para sistemas de bombeo y redes contra incendios.",
-    listTitle: "Nuestros servicios incluyen:",
-    listItems: ['Montaje Especializado', 'Mantenimiento Preventivo', 'Diseño de Ingeniería', 'Sistemas FM200', 'Sistemas de CO2', 'Soporte Técnico 24/7']
-  } : null
+  const details = selectedService?.details ?? null
 
   return (
     <section id="servicios" className="py-24 bg-background relative overflow-hidden">
@@ -119,11 +165,11 @@ export default function Services({ onAddToCart }: Props) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => {
+          {allServices.map((service) => {
             const IconComponent = service.icon
             return (
               <Card
-                key={service.id}
+                key={service.key}
                 onClick={() => setSelectedService(service)}
                 className="group flex flex-col rounded-2xl bg-card border-border hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden cursor-pointer"
               >
@@ -148,15 +194,24 @@ export default function Services({ onAddToCart }: Props) {
                     <IconComponent className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
                   </div>
 
-                  <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors">{service.name}</h3>
-                  <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
+                  <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors line-clamp-2">{service.name}</h3>
+                  {service.isDynamic ? (
+                    <>
+                      <p className="text-muted-foreground mb-2 line-clamp-2 leading-relaxed">{service.description}</p>
+                      {service.observaciones && service.observaciones.trim() && (
+                        <p className="text-sm text-muted-foreground/80 mb-6 line-clamp-2 leading-relaxed flex-1 whitespace-pre-line">{service.observaciones}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
+                  )}
 
                   <div className="flex items-center justify-between mt-auto pt-6 border-t border-border/50">
                     <Button
                       className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onAddToCart({ name: service.name, price: 0, image: service.image || "", type: "service"})
+                        handleSolicitar(service)
                       }}
                     >
                       Solicitar
@@ -170,7 +225,7 @@ export default function Services({ onAddToCart }: Props) {
       </div>
 
       {/* Modal Section */}
-      {selectedService && details && (
+      {selectedService && (
         <div
           className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${isModalVisible ? 'opacity-100' : 'opacity-0'}`}
         >
@@ -186,11 +241,17 @@ export default function Services({ onAddToCart }: Props) {
           >
             {/* Header Image */}
             <div className="relative h-64 sm:h-80 w-full overflow-hidden">
-              <img
-                src={selectedService.image}
-                alt={selectedService.name}
-                className="w-full h-full object-cover"
-              />
+              {selectedService.image ? (
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <selectedService.icon className="w-20 h-20 text-muted-foreground/30" />
+                </div>
+              )}
               <button
                 onClick={closeModal}
                 className="absolute top-4 right-4 bg-black/20 hover:bg-black/40 backdrop-blur-md text-white p-2 rounded-full transition-colors"
@@ -212,36 +273,49 @@ export default function Services({ onAddToCart }: Props) {
 
               {/* Description */}
               <p className="text-slate-600 text-lg mb-8 leading-relaxed">
-                {details.description}
+                {details ? details.description : selectedService.description}
               </p>
 
-              {/* Technical / Highlight Block */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 mb-8">
-                <h4 className="font-bold text-secondary mb-2 flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-primary" />
-                  {details.highlightTitle}
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">
-                  {details.highlightText}
-                </p>
-              </div>
+              {details ? (
+                <>
+                  {/* Technical / Highlight Block */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 mb-8">
+                    <h4 className="font-bold text-secondary mb-2 flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-primary" />
+                      {details.highlightTitle}
+                    </h4>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      {details.highlightText}
+                    </p>
+                  </div>
 
-              {/* Inclusion / Features List */}
-              <div className="mb-10">
-                <h4 className="font-bold text-secondary text-xl mb-4">
-                  {details.listTitle}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
-                  {details.listItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <div className="flex-shrink-0 w-5 h-5 bg-red-50 rounded-full flex items-center justify-center">
-                        <Check className="w-3 h-3 text-red-600 stroke-[3px]" />
-                      </div>
-                      <span className="text-slate-600 font-medium">{item}</span>
+                  {/* Inclusion / Features List */}
+                  <div className="mb-10">
+                    <h4 className="font-bold text-secondary text-xl mb-4">
+                      {details.listTitle}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
+                      {details.listItems.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <div className="flex-shrink-0 w-5 h-5 bg-red-50 rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-red-600 stroke-[3px]" />
+                          </div>
+                          <span className="text-slate-600 font-medium">{item}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </>
+              ) : (
+                selectedService.observaciones && selectedService.observaciones.trim() && (
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 mb-10">
+                    <h4 className="font-bold text-secondary mb-2">Observaciones</h4>
+                    <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-line">
+                      {selectedService.observaciones}
+                    </p>
+                  </div>
+                )
+              )}
 
               {/* Footer Actions */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100">
@@ -251,6 +325,12 @@ export default function Services({ onAddToCart }: Props) {
                   className="py-6 px-8 rounded-2xl text-lg font-semibold text-slate-500 border-slate-200 hover:bg-slate-50 flex-1"
                 >
                   Cerrar
+                </Button>
+                <Button
+                  onClick={() => handleSolicitar(selectedService)}
+                  className="py-6 px-8 rounded-2xl text-lg font-semibold bg-secondary text-white hover:bg-primary flex-1"
+                >
+                  Solicitar este servicio
                 </Button>
               </div>
             </div>

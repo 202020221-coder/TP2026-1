@@ -27,7 +27,7 @@ export const OrdersTable: FC = () => {
             <OrdersTablePlaceholder rows={queryParams.limit ?? 10} />
           ) : isError ? (
             <TableRow className="">
-              <TableCell colSpan={6}>{error.message}</TableCell>
+              <TableCell colSpan={5}>{error.message}</TableCell>
             </TableRow>
           ) : (
             <>
@@ -39,7 +39,7 @@ export const OrdersTable: FC = () => {
                 </>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-16">
+                  <TableCell colSpan={5} className="py-16">
                     <div className="flex flex-col justify-center items-center text-center">
                       <PackageOpen
                         strokeWidth={1}
