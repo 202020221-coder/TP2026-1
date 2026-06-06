@@ -6,6 +6,7 @@ import type {
   AddPresupuestoItemPayload,
   GastoRealPayload,
   IncidenciaPresupuesto,
+  InventarioPorServicioPresupuestoResponse,
 } from "../interfaces/presupuesto";
 
 export const presupuestosApi = {
@@ -48,4 +49,14 @@ export const presupuestosApi = {
     axiosInstance.get(`/cotizaciones/${cotizacionId}/orden-compra`, {
       responseType: "blob",
     }),
+
+  getInventarioPorServicio: (cotizacionId: number) =>
+    axiosInstance.get<InventarioPorServicioPresupuestoResponse>(
+      `/cotizaciones/${cotizacionId}/inventario-por-servicio`
+    ),
+
+  exportarFaltantesInventario: (cotizacionId: number) =>
+    axiosInstance.post(
+      `/presupuestos/cotizacion/${cotizacionId}/faltantes-inventario/exportar`
+    ),
 };

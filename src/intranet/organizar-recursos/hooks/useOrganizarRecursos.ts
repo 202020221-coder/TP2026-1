@@ -7,7 +7,13 @@ export const useInventarioDelProyecto = (projectId: number) => {
   return useQuery({
     queryKey: ["inventario-del-proyecto", projectId],
     queryFn: () => organizarRecursosApi.getInventarioDelProyecto(projectId),
-    select: (data) => data.data,
+    select: (data): import("../interfaces/proyecto").InventarioDelProyectoItem[] => {
+      const raw = data.data as unknown;
+      if (Array.isArray(raw)) return raw as import("../interfaces/proyecto").InventarioDelProyectoItem[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: import("../interfaces/proyecto").InventarioDelProyectoItem[] }).data;
+      return [];
+    },
     enabled: !!projectId,
   });
 };
@@ -50,7 +56,13 @@ export const useCamionesByProyecto = (projectId: number) => {
   return useQuery({
     queryKey: ["camiones-proyecto", projectId],
     queryFn: () => organizarRecursosApi.getCamionesByProyecto(projectId),
-    select: (data) => data.data,
+    select: (data): import("../interfaces/proyecto").Camion[] => {
+      const raw = data.data as unknown;
+      if (Array.isArray(raw)) return raw as import("../interfaces/proyecto").Camion[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: import("../interfaces/proyecto").Camion[] }).data;
+      return [];
+    },
     enabled: !!projectId,
   });
 };
@@ -69,7 +81,13 @@ export const useIncidenciasByProyecto = (projectId: number) => {
   return useQuery({
     queryKey: ["incidencias-proyecto", projectId],
     queryFn: () => organizarRecursosApi.getIncidenciasByProyecto(projectId),
-    select: (data) => data.data,
+    select: (data): Incidencia[] => {
+      const raw = data.data as unknown;
+      if (Array.isArray(raw)) return raw as Incidencia[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: Incidencia[] }).data;
+      return [];
+    },
     enabled: !!projectId,
   });
 };

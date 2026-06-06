@@ -44,7 +44,13 @@ export const usePresupuestoItems = (cotizacionId: number, tipo: TipoPresupuesto)
   useQuery({
     queryKey: itemsKey(cotizacionId, tipo),
     queryFn: () => presupuestosApi.getItems(cotizacionId, tipo),
-    select: (d) => d.data,
+    select: (d): import("../interfaces/presupuesto").PresupuestoItem[] => {
+      const raw = d.data as unknown;
+      if (Array.isArray(raw)) return raw as import("../interfaces/presupuesto").PresupuestoItem[];
+      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
+        return (raw as { data: import("../interfaces/presupuesto").PresupuestoItem[] }).data;
+      return [];
+    },
     enabled: !!cotizacionId,
   });
 
@@ -85,5 +91,33 @@ export const useUpdatePresupuestoItem = (cotizacionId: number, tipo: TipoPresupu
       qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
     },
     onSuccess: () => toast.success("Elemento actualizado"),
+  });
+};
+
+export const useInventarioPorServicioPresupuesto = (
+  cotizacionId: number,
+  enabled: boolean = true
+) =>
+  useQuery({
+    queryKey: ["inventario-por-servicio-cotizacion", cotizacionId],
+    queryFn: () => presupuestosApi.getInventarioPorServicio(cotizacionId),
+    select: (d) => d.data,
+    enabled: !!cotizacionId && enabled,
+  });
+
+export const useExportarFaltantesInventario = (cotizacionId: number) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => presupuestosApi.exportarFaltantesInventario(cotizacionId),
+    onSettled: () => {
+      qc.invalidateQueries({
+        queryKey: ["inventario-por-servicio-cotizacion", cotizacionId],
+      });
+      qc.invalidateQueries({
+        queryKey: itemsKey(cotizacionId, "Material Directo"),
+      });
+    },
+    onSuccess: () => toast.success("Faltantes exportados al presupuesto exitosamente"),
+    onError: () => toast.error("No se pudieron exportar los faltantes"),
   });
 };
