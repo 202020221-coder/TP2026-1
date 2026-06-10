@@ -15,3 +15,4 @@ export { IncidentInvolvedObjects } from "./detail/IncidentInvolvedObjects";
 export { IncidentObjectsModal as IncidentDetailObjectsModal } from "./detail/IncidentObjectsModal";
 export { CreateIncidentQuotationModal } from "./detail/CreateIncidentQuotationModal";
 export { QuotationCommentsModal } from "./detail/QuotationCommentsModal";
+export { SumaGastosModal } from "./detail/SumaGastosModal";

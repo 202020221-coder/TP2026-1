@@ -15,6 +15,7 @@ import {
   type IncidentState,
   IncidentStatesRecord,
 } from "../enum/incident-state.record";
+import { SumaGastosModal } from "../components/detail/SumaGastosModal";
 
 type IncidentsNavigationState = {
   projectId?: number;
@@ -29,6 +30,7 @@ export function IncidentsManagementPage() {
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
   const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
+  const [sumaGastosModalOpen, setSumaGastosModalOpen] = useState(false);
   const projectId = Number.isInteger(projectIdRaw) && projectIdRaw > 0
     ? projectIdRaw
     : navigationState?.projectId;
@@ -62,6 +64,9 @@ export function IncidentsManagementPage() {
           personnelModalOpen={personnelModalOpen}
           onClosePersonnelModal={() => setPersonnelModalOpen(false)}
           onOpenPersonnelModal={() => setPersonnelModalOpen(true)}
+          sumaGastosModalOpen={sumaGastosModalOpen}
+          onCloseSumaGastosModal={() => setSumaGastosModalOpen(false)}
+          onOpenSumaGastosModal={() => setSumaGastosModalOpen(true)}
         />
       </ListIncidentsProvider>
     </>
@@ -78,6 +83,9 @@ function IncidentsContent({
   personnelModalOpen,
   onClosePersonnelModal,
   onOpenPersonnelModal,
+  sumaGastosModalOpen,
+  onCloseSumaGastosModal,
+  onOpenSumaGastosModal,
 }: {
   projectId?: number;
   projectNameFromState?: string | null;
@@ -88,6 +96,9 @@ function IncidentsContent({
   personnelModalOpen: boolean;
   onClosePersonnelModal: () => void;
   onOpenPersonnelModal: () => void;
+  sumaGastosModalOpen: boolean;
+  onCloseSumaGastosModal: () => void;
+  onOpenSumaGastosModal: () => void;
 }) {
   const { result } = useIncidents();
   const incidents = (result.data?.data ?? []) as Incident[];
@@ -125,6 +136,7 @@ function IncidentsContent({
         <IncidentActionsPanel
           onOpenObjectsModal={onOpenObjectsModal}
           onOpenPersonnelModal={onOpenPersonnelModal}
+          onOpenSumaGastosModal={onOpenSumaGastosModal}
           selectedIncidentId={selectedIncident?.id_incidencia}
           onSelectIncident={setSelectedIncidentId}
           selectedIncident={selectedIncident}
@@ -142,6 +154,14 @@ function IncidentsContent({
         onClose={onClosePersonnelModal}
         selectedIncidentId={selectedIncident?.id_incidencia}
       />
+      {selectedIncident && (
+        <SumaGastosModal
+          incidentId={selectedIncident.id_incidencia}
+          cotizacionId={selectedIncident.cotizacion_remuneracion}
+          open={sumaGastosModalOpen}
+          onClose={onCloseSumaGastosModal}
+        />
+      )}
     </>
   );
 }
@@ -149,12 +169,14 @@ function IncidentsContent({
 function IncidentActionsPanel({
   onOpenObjectsModal,
   onOpenPersonnelModal,
+  onOpenSumaGastosModal,
   selectedIncidentId,
   onSelectIncident,
   selectedIncident,
 }: {
   onOpenObjectsModal: () => void;
   onOpenPersonnelModal: () => void;
+  onOpenSumaGastosModal: () => void;
   selectedIncidentId?: number;
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
@@ -191,7 +213,12 @@ function IncidentActionsPanel({
         >
           Personal involucrados
         </Button>
-        <Button variant="outline" className="h-10 w-full px-4 justify-center">
+        <Button
+          variant="outline"
+          className="h-10 w-full px-4 justify-center"
+          onClick={onOpenSumaGastosModal}
+          disabled={!selectedIncidentId}
+        >
           Suma de gastos
         </Button>
         <Button variant="outline" className="h-10 w-full px-4 justify-center">
