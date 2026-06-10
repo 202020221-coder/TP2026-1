@@ -2,67 +2,43 @@ import axiosInstance from "@/shared/api/axios.config";
 import type {
   InventarioRequerido,
   CreateInventarioObjetoRequeridoDTO,
-  CreateInventarioCamionRequeridoDTO,
   UpdateInventarioRequeridoDTO,
 } from "../interfaces/service";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Normalización de respuesta
+// Normalización
+// El backend usa clave compuesta (ID_Servicio + Id_Objeto) — NO hay id propio.
+// El campo {idObjeto} en la URL es siempre Id_Objeto.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type RawItem = Record<string, unknown>;
 
-const toInventarioRequerido = (raw: RawItem, servicioId: number): InventarioRequerido => {
-  // Determinar tipo por presencia de Placa
-  const hasPlaca = !!(raw.Placa ?? raw.placa);
-  const tipo: "objeto" | "camion" = hasPlaca ? "camion" : "objeto";
-
-  // El `id` debe ser el ID del REGISTRO en la tabla SERVICIO_INVENTARIO_REQUERIDO,
-  // NO el Id_Objeto del catálogo. El backend puede devolverlo como `id`, `ID`, o
-  // `id_inventario_requerido`. Solo como último recurso usamos Id_Objeto (y lo
-  // guardamos aparte en Id_Objeto para no mezclar los campos).
-  const recordId = (raw.id ?? raw.ID ?? raw.id_inventario_requerido ?? raw.id_requerido ?? 0) as number;
-
-  return {
-    id: recordId,
-    ID_Servicio: (raw.ID_Servicio ?? servicioId) as number,
-    tipo,
-    // Objeto
-    Id_Objeto: (raw.Id_Objeto ?? raw.ID_Objeto ?? raw.idObjeto) as number | undefined,
-    nombre_objeto: (raw.nombre_objeto ?? raw.Objeto_Nombre ?? "") as string,
-    cantidad: Number(raw.cantidad_objeto ?? raw.cantidad ?? 0),
-    metodo_traslado: (raw.metodo_traslado ?? "") as string,
-    // Para objetos: estado viene del inventario; para camiones: del campo propio
-    estado: (raw.estado ?? "") as string,
-    razon: (raw.razon ?? "") as string,
-    // Camión
-    Placa: (raw.Placa ?? raw.placa ?? "") as string,
-    nombre_camion: (raw.nombre_camion ?? raw.Camion_Nombre ?? "") as string,
-    tipo_camion: (raw.tipo_camion ?? "") as string,
-    estado_camion: (raw.estado_camion ?? raw.Estado ?? raw.estado ?? "") as string,
-  };
-};
+const toInventarioRequerido = (raw: RawItem, servicioId: number): InventarioRequerido => ({
+  // ✅ id = Id_Objeto (clave compuesta con ID_Servicio — único por registro)
+  id: (raw.Id_Objeto ?? raw.id_objeto ?? 0) as number,
+  Id_Objeto: (raw.Id_Objeto ?? raw.id_objeto ?? 0) as number,
+  ID_Servicio: (raw.ID_Servicio ?? servicioId) as number,
+  nombre_objeto: (raw.nombre_objeto ?? "") as string,
+  cantidad: Number(raw.cantidad ?? 0),
+  estancia: (raw.estancia ?? "") as string,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INVENTARIO REQUERIDO DEL SERVICIO
-// Endpoint base: /servicios/{id}/inventario-requerido
+// GET /servicios/{id}/inventario-requerido
 // ─────────────────────────────────────────────────────────────────────────────
-
 export const getInventarioRequerido = async (
   servicioId: number,
 ): Promise<InventarioRequerido[]> => {
   const response = await axiosInstance.get(`/servicios/${servicioId}/inventario-requerido`);
   const raw = response.data;
   const arr: RawItem[] = Array.isArray(raw) ? raw : (raw?.data ?? []);
-  // DEBUG: muestra en consola los campos reales que devuelve el backend
-  if (arr.length > 0) {
-    console.log("[InventarioRequerido] Primer item raw:", arr[0]);
-    console.log("[InventarioRequerido] Campos disponibles:", Object.keys(arr[0]));
-  }
   return arr.map((r) => toInventarioRequerido(r, servicioId));
 };
 
-// POST objeto: envía Id_Objeto + cantidad_objeto + metodo_traslado + estado + razon
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /servicios/{id}/inventario-requerido
+// Body: { Id_Objeto, cantidad, estancia }
+// ─────────────────────────────────────────────────────────────────────────────
 export const createObjetoRequerido = async (
   servicioId: number,
   dto: CreateInventarioObjetoRequeridoDTO,
@@ -75,20 +51,10 @@ export const createObjetoRequerido = async (
   return toInventarioRequerido(raw, servicioId);
 };
 
-// POST camión: envía solo Placa + tipo_camion + razon
-export const createCamionRequerido = async (
-  servicioId: number,
-  dto: CreateInventarioCamionRequeridoDTO,
-): Promise<InventarioRequerido> => {
-  const response = await axiosInstance.post(
-    `/servicios/${servicioId}/inventario-requerido`,
-    dto,
-  );
-  const raw: RawItem = response.data?.data ?? response.data ?? {};
-  return toInventarioRequerido(raw, servicioId);
-};
-
-// PUT: solo actualiza razon (objeto) o tipo_camion + razon (camión)
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /servicios/{id}/inventario-requerido/{idObjeto}
+// idObjeto = Id_Objeto   Body: { cantidad, estancia }
+// ─────────────────────────────────────────────────────────────────────────────
 export const updateInventarioRequerido = async (
   servicioId: number,
   idObjeto: number,
@@ -100,6 +66,10 @@ export const updateInventarioRequerido = async (
   );
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /servicios/{id}/inventario-requerido/{idObjeto}
+// idObjeto = Id_Objeto
+// ─────────────────────────────────────────────────────────────────────────────
 export const deleteInventarioRequerido = async (
   servicioId: number,
   idObjeto: number,
@@ -108,14 +78,14 @@ export const deleteInventarioRequerido = async (
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CATÁLOGOS EXTERNOS
+// Catálogos externos
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface CatalogoInventarioItem {
   Id_Objeto: number;
   nombre_objeto: string;
   cantidad: number;
-  lugar_almacenaje: string; // usado como metodo_traslado
+  lugar_almacenaje: string;
   estado: string;
 }
 
@@ -141,17 +111,11 @@ export const getCatalogoInventario = async (): Promise<CatalogoInventarioItem[]>
 export const getCatalogoCamiones = async (): Promise<CatalogoCamion[]> => {
   const response = await axiosInstance.get("/camiones", { params: { page: 1, limit: 100 } });
   const raw = response.data;
-  // El trucks.base.api.ts usa unwrapPagination: puede venir como { data: { data: [...] } } o { data: [...] }
   let arr: RawItem[] = [];
-  if (Array.isArray(raw)) {
-    arr = raw;
-  } else if (Array.isArray(raw?.data)) {
-    arr = raw.data;
-  } else if (Array.isArray(raw?.data?.data)) {
-    arr = raw.data.data;
-  } else if (raw?.pagination?.data) {
-    arr = raw.pagination.data;
-  }
+  if (Array.isArray(raw)) arr = raw;
+  else if (Array.isArray(raw?.data)) arr = raw.data;
+  else if (Array.isArray(raw?.data?.data)) arr = raw.data.data;
+  else if (raw?.pagination?.data) arr = raw.pagination.data;
   return arr.map((r) => ({
     Placa: (r.Placa ?? r.placa ?? "") as string,
     nombre: (r.nombre ?? r.Camion_Nombre ?? "") as string,

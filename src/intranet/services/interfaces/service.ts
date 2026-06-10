@@ -39,45 +39,28 @@ export type UpdatePersonalRequeridoDTO = Partial<CreatePersonalRequeridoDTO>;
 
 // ── Inventario Requerido del Servicio ─────────────────────────────────────────
 // Tabla: SERVICIO_INVENTARIO_REQUERIDO
+// Clave compuesta: (ID_Servicio, Id_Objeto) — NO hay id autoincremental
 // Endpoint: /servicios/{id}/inventario-requerido
 
 export interface InventarioRequerido {
+  // id = Id_Objeto (usado como identificador único en la UI)
   id: number;
+  Id_Objeto: number;
   ID_Servicio: number;
-  tipo: "objeto" | "camion";
-  // Objeto (readonly desde /inventario)
-  Id_Objeto?: number;
   nombre_objeto: string;
   cantidad: number;
-  metodo_traslado: string;
-  estado: string;
-  razon: string;           //  editable
-  // Camión (readonly desde /camiones)
-  Placa: string;
-  nombre_camion: string;
-  tipo_camion: string;     //  editable
-  estado_camion: string;
+  estancia: string;         // ✏️ editable (antes llamado razon/metodo_traslado)
 }
 
-// DTO objeto — POST body que acepta el backend
-// Basado en patrón InventarioRequestPayload (organizar-recursos)
+// POST: { Id_Objeto, cantidad, estancia }
 export interface CreateInventarioObjetoRequeridoDTO {
   Id_Objeto: number;
-  cantidad_objeto: number;   // backend valida > 0
-  metodo_traslado: string;
-  estado: string;
-  razon: string;
+  cantidad: number;          // backend valida > 0
+  estancia: string;
 }
 
-// DTO camión — POST body para camiones
-export interface CreateInventarioCamionRequeridoDTO {
-  Placa: string;
-  tipo_camion: string;
-  razon: string;
-}
-
-// PUT: solo los campos editables
+// PUT: { cantidad, estancia }
 export interface UpdateInventarioRequeridoDTO {
-  razon?: string;
-  tipo_camion?: string;
+  cantidad?: number;
+  estancia?: string;
 }
