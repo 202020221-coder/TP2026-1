@@ -118,11 +118,13 @@ const BottomControls: FC = () => {
   const { query, queryParams, result } = useIncidents();
   const [pseudoPageStr, setPseudoPageStr] = useState("1");
 
+  const pagination = result.data?.pagination;
+
   useEffect(() => {
     setPseudoPageStr(
-      result.data ? result.data.pagination.page.toString() : "1"
+      pagination ? pagination.page.toString() : "1"
     );
-  }, [result.data?.pagination.page]);
+  }, [pagination?.page]);
 
   const handlePageChange = (pageNumber: string) => {
     query({ ...queryParams, page: pageNumber === "" ? 1 : Number(pageNumber) });
@@ -133,94 +135,94 @@ const BottomControls: FC = () => {
     result.isPending ||
     result.isFetching ||
     result.isError ||
-    result.data?.pagination.page === result.data?.pagination.totalPages;
+    (pagination ? pagination.page === pagination.totalPages : true);
 
   const backDisabled =
     result.isPending ||
     result.isFetching ||
     result.isError ||
-    result.data?.pagination.page === 1;
+    (pagination ? pagination.page === 1 : true);
+
+  if (!pagination) return null;
 
   return (
-    result.data && (
-      <div className="grid grid-cols-1 md:grid-cols-4">
-        <div className="col-span-1 flex gap-x-2 items-center">
-          <Label htmlFor="query-size">Tamaño de Página:</Label>
-          <Select
-            onValueChange={(value) => {
-              query({ ...queryParams, page: 1, limit: Number(value) });
-            }}
-            value={queryParams.limit?.toString()}
-          >
-            <SelectTrigger className="w-20">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem
-                value="15"
-                disabled={result.data.pagination.total <= 10}
-              >
-                15
-              </SelectItem>
-              <SelectItem
-                value="20"
-                disabled={result.data.pagination.total <= 15}
-              >
-                20
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="col-span-2 flex justify-center gap-x-2">
-          <Button
-            className="w-40"
-            variant="secondary"
-            disabled={backDisabled}
-            onClick={() => {
-              query({
-                ...queryParams,
-                page: result.data.pagination.page - 1,
-              });
-            }}
-          >
-            <ArrowLeft /> Anterior
-          </Button>
-          <Button
-            className="w-40"
-            disabled={nextDisabled}
-            onClick={() => {
-              query({
-                ...queryParams,
-                page: result.data.pagination.page + 1,
-              });
-            }}
-          >
-            Siguiente <ArrowRight />
-          </Button>
-        </div>
-
-        <div className="col-span-1 flex gap-x-2 items-center w-fit">
-          <p>Página</p>
-          <Input
-            type="number"
-            step={1}
-            min={1}
-            max={result.data.pagination.totalPages}
-            value={pseudoPageStr}
-            className="w-16"
-            onChange={(e) => {
-              setPseudoPageStr(e.target.value);
-              debouncedSetPage(e.target.value);
-            }}
-            disabled={result.data.pagination.totalPages === 1}
-          />
-          <p>de</p>
-          <p>{result.data.pagination.totalPages}</p>
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-4">
+      <div className="col-span-1 flex gap-x-2 items-center">
+        <Label htmlFor="query-size">Tamaño de Página:</Label>
+        <Select
+          onValueChange={(value) => {
+            query({ ...queryParams, page: 1, limit: Number(value) });
+          }}
+          value={queryParams.limit?.toString()}
+        >
+          <SelectTrigger className="w-20">
+            <SelectValue placeholder="10" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem
+              value="15"
+              disabled={pagination.total <= 10}
+            >
+              15
+            </SelectItem>
+            <SelectItem
+              value="20"
+              disabled={pagination.total <= 15}
+            >
+              20
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-    )
+
+      <div className="col-span-2 flex justify-center gap-x-2">
+        <Button
+          className="w-40"
+          variant="secondary"
+          disabled={backDisabled}
+          onClick={() => {
+            query({
+              ...queryParams,
+              page: pagination.page - 1,
+            });
+          }}
+        >
+          <ArrowLeft /> Anterior
+        </Button>
+        <Button
+          className="w-40"
+          disabled={nextDisabled}
+          onClick={() => {
+            query({
+              ...queryParams,
+              page: pagination.page + 1,
+            });
+          }}
+        >
+          Siguiente <ArrowRight />
+        </Button>
+      </div>
+
+      <div className="col-span-1 flex gap-x-2 items-center w-fit">
+        <p>Página</p>
+        <Input
+          type="number"
+          step={1}
+          min={1}
+          max={pagination.totalPages}
+          value={pseudoPageStr}
+          className="w-16"
+          onChange={(e) => {
+            setPseudoPageStr(e.target.value);
+            debouncedSetPage(e.target.value);
+          }}
+          disabled={pagination.totalPages === 1}
+        />
+        <p>de</p>
+        <p>{pagination.totalPages}</p>
+      </div>
+    </div>
   );
 };

@@ -1,15 +1,17 @@
 import { useState, type FC, type ReactNode } from "react";
 import { type GetIncidentsQP } from "../interfaces/query-params.dto";
 import { useQuery } from "@tanstack/react-query";
-import { getAllIncidents } from "../api/incident.api";
+import { getAllIncidents, getIncidentsByProject } from "../api/incident.api";
 import { ListIncidentsContext } from "./ListIncidentsContext";
 
 export const ListIncidentsProvider: FC<{
   children: ReactNode;
   initialQueryParams?: Partial<GetIncidentsQP>;
+  projectId?: number;
 }> = ({
   children,
   initialQueryParams,
+  projectId,
 }) => {
   const [queryParams, setQueryParams] = useState<GetIncidentsQP>({
     page: 1,
@@ -17,9 +19,15 @@ export const ListIncidentsProvider: FC<{
     ...initialQueryParams,
   });
 
+  const hasProjectFilter = Boolean(projectId && projectId > 0);
+
   const result = useQuery({
-    queryKey: ["incidents", queryParams],
-    queryFn: () => getAllIncidents(queryParams),
+    queryKey: hasProjectFilter
+      ? ["incidents", "project", projectId]
+      : ["incidents", queryParams],
+    queryFn: hasProjectFilter
+      ? () => getIncidentsByProject(projectId!)
+      : () => getAllIncidents(queryParams),
   });
 
   const query = (queryParams: GetIncidentsQP) => {
