@@ -8,6 +8,10 @@ import type {
   GetIncidentInvolvedResponse,
 } from "../interfaces/responses.dto";
 import type { InvolvedObject } from "../interfaces/incident-quotation";
+import type {
+  IncidentInvolved,
+  IncidentInvolvedRaw,
+} from "../interfaces/incident";
 
 // ── Interfaces para cuerpos de petición ─────────────────────────────────────
 
@@ -45,10 +49,19 @@ export interface CreateIncidentObjectBody {
   ocurrencia_camion?: string | null;
 }
 
+/** Body para `POST /incidencias/{id}/involucrados` (aún no conectado en UI). */
 export interface CreateIncidentInvolvedBody {
-  nombre: string;
-  rol: string;
+  dni_involucrado?: string | null;
+  id_trabajo?: number | null;
+  descargo?: string;
+  comentario?: string;
+  nombre?: string | null;
+  Involucrado_Nombre?: string;
+  Involucrado_Apellido?: string;
 }
+
+/** Body para `PUT /incidencias/{id}/involucrados/{ivid}` (aún no conectado en UI). */
+export type UpdateIncidentInvolvedBody = CreateIncidentInvolvedBody;
 
 type IncidentObjectRaw = Partial<{
   id: number;
@@ -237,17 +250,66 @@ export async function deleteIncidentObject(
   await axiosInstance.delete(`/incidencias/${id}/objetos/${oid}`);
 }
 
+const extractIncidentInvolvedArray = (payload: unknown): IncidentInvolvedRaw[] => {
+  if (Array.isArray(payload)) {
+    return payload as IncidentInvolvedRaw[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (Array.isArray(record.data)) {
+      return record.data as IncidentInvolvedRaw[];
+    }
+  }
+
+  return [];
+};
+
+const buildInvolvedName = (raw: IncidentInvolvedRaw): string => {
+  const fromProfile = raw.nombre?.trim();
+  if (fromProfile) {
+    return fromProfile;
+  }
+
+  const fullName = `${raw.Involucrado_Nombre ?? ""} ${raw.Involucrado_Apellido ?? ""}`
+    .trim();
+  return fullName;
+};
+
+const toIncidentInvolved = (raw: IncidentInvolvedRaw): IncidentInvolved => {
+  const perfilRegistrado = raw.Perfil_Registrado?.trim() || null;
+
+  return {
+    id: Number(raw.id),
+    id_incidencia: Number(raw.id_incidencia),
+    id_trabajo: raw.id_trabajo ?? null,
+    dni: raw.dni_involucrado?.trim() || null,
+    nombre: buildInvolvedName(raw),
+    cargo: perfilRegistrado,
+    descargo_persona: raw.descargo?.trim() ?? "",
+    comentario_empresa: raw.comentario?.trim() ?? "",
+    trabajo_comentario: raw.Trabajo_Comentario?.trim() ?? "",
+    tiene_relacion_empresa: perfilRegistrado !== null,
+    perfil_registrado: perfilRegistrado,
+  };
+};
+
 // ── Involucrados de incidencia ────────────────────────────────────────────────
 
 /** Listar involucrados de la incidencia */
 export async function getIncidentInvolved(id: number) {
-  const response = await axiosInstance.get<GetIncidentInvolvedResponse>(
+  const response = await axiosInstance.get<unknown>(
     `/incidencias/${id}/involucrados`,
   );
-  return response.data;
+
+  const involved = extractIncidentInvolvedArray(response.data)
+    .map(toIncidentInvolved)
+    .filter((item) => item.id > 0);
+
+  return involved as GetIncidentInvolvedResponse;
 }
 
-/** Agregar involucrado a incidencia */
+/** Crear involucrado — `POST /incidencias/{id}/involucrados` (sin conectar en UI). */
 export async function addIncidentInvolved(
   id: number,
   body: CreateIncidentInvolvedBody,
@@ -255,7 +317,16 @@ export async function addIncidentInvolved(
   await axiosInstance.post(`/incidencias/${id}/involucrados`, body);
 }
 
-/** Eliminar involucrado de incidencia */
+/** Actualizar involucrado — `PUT /incidencias/{id}/involucrados/{ivid}` (sin conectar en UI). */
+export async function updateIncidentInvolved(
+  id: number,
+  ivid: number,
+  body: UpdateIncidentInvolvedBody,
+): Promise<void> {
+  await axiosInstance.put(`/incidencias/${id}/involucrados/${ivid}`, body);
+}
+
+/** Eliminar involucrado — `DELETE /incidencias/{id}/involucrados/{ivid}` (sin conectar en UI). */
 export async function deleteIncidentInvolved(
   id: number,
   ivid: number,

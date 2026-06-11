@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
-import { IncidentObjectsModal, IncidentsTable } from "../components";
+import {
+  IncidentObjectsModal,
+  IncidentPersonnelModal,
+  IncidentsTable,
+} from "../components";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ListIncidentsProvider } from "../context/ListIncidentsProvider";
@@ -24,6 +28,7 @@ export function IncidentsManagementPage() {
   const navigationState = location.state as IncidentsNavigationState | null;
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
+  const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
   const projectId = Number.isInteger(projectIdRaw) && projectIdRaw > 0
     ? projectIdRaw
     : navigationState?.projectId;
@@ -54,6 +59,9 @@ export function IncidentsManagementPage() {
           objectsModalOpen={objectsModalOpen}
           onCloseObjectsModal={() => setObjectsModalOpen(false)}
           onOpenObjectsModal={() => setObjectsModalOpen(true)}
+          personnelModalOpen={personnelModalOpen}
+          onClosePersonnelModal={() => setPersonnelModalOpen(false)}
+          onOpenPersonnelModal={() => setPersonnelModalOpen(true)}
         />
       </ListIncidentsProvider>
     </>
@@ -67,6 +75,9 @@ function IncidentsContent({
   objectsModalOpen,
   onCloseObjectsModal,
   onOpenObjectsModal,
+  personnelModalOpen,
+  onClosePersonnelModal,
+  onOpenPersonnelModal,
 }: {
   projectId?: number;
   projectNameFromState?: string | null;
@@ -74,6 +85,9 @@ function IncidentsContent({
   objectsModalOpen: boolean;
   onCloseObjectsModal: () => void;
   onOpenObjectsModal: () => void;
+  personnelModalOpen: boolean;
+  onClosePersonnelModal: () => void;
+  onOpenPersonnelModal: () => void;
 }) {
   const { result } = useIncidents();
   const incidents = (result.data?.data ?? []) as Incident[];
@@ -110,6 +124,7 @@ function IncidentsContent({
       <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
         <IncidentActionsPanel
           onOpenObjectsModal={onOpenObjectsModal}
+          onOpenPersonnelModal={onOpenPersonnelModal}
           selectedIncidentId={selectedIncident?.id_incidencia}
           onSelectIncident={setSelectedIncidentId}
           selectedIncident={selectedIncident}
@@ -121,17 +136,25 @@ function IncidentsContent({
         onClose={onCloseObjectsModal}
         selectedIncidentId={selectedIncident?.id_incidencia}
       />
+
+      <IncidentPersonnelSection
+        open={personnelModalOpen}
+        onClose={onClosePersonnelModal}
+        selectedIncidentId={selectedIncident?.id_incidencia}
+      />
     </>
   );
 }
 
 function IncidentActionsPanel({
   onOpenObjectsModal,
+  onOpenPersonnelModal,
   selectedIncidentId,
   onSelectIncident,
   selectedIncident,
 }: {
   onOpenObjectsModal: () => void;
+  onOpenPersonnelModal: () => void;
   selectedIncidentId?: number;
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
@@ -160,7 +183,12 @@ function IncidentActionsPanel({
         >
           Objetos involucrados
         </Button>
-        <Button variant="outline" className="h-10 w-full px-4 justify-center">
+        <Button
+          variant="outline"
+          className="h-10 w-full px-4 justify-center"
+          onClick={onOpenPersonnelModal}
+          disabled={!selectedIncidentId}
+        >
           Personal involucrados
         </Button>
         <Button variant="outline" className="h-10 w-full px-4 justify-center">
@@ -207,6 +235,28 @@ function IncidentObjectsSection({
 
   return (
     <IncidentObjectsModal
+      incidentId={selectedIncidentId}
+      open={open}
+      onClose={onClose}
+    />
+  );
+}
+
+function IncidentPersonnelSection({
+  open,
+  onClose,
+  selectedIncidentId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedIncidentId?: number;
+}) {
+  if (!selectedIncidentId) {
+    return null;
+  }
+
+  return (
+    <IncidentPersonnelModal
       incidentId={selectedIncidentId}
       open={open}
       onClose={onClose}

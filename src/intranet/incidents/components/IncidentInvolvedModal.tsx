@@ -8,14 +8,13 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getIncidentInvolved,
-  addIncidentInvolved,
-  deleteIncidentInvolved,
-} from "../api/incident.api";
+import { useQuery } from "@tanstack/react-query";
+import { getIncidentInvolved } from "../api/incident.api";
 import { toast } from "sonner";
 import { Trash2, Plus, Users } from "lucide-react";
+
+const WRITE_NOT_CONNECTED_MESSAGE =
+  "Los endpoints de creación y edición aún no están conectados.";
 
 interface IncidentInvolvedModalProps {
   incidentId: number;
@@ -28,8 +27,6 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
   open,
   onClose,
 }) => {
-  const queryClient = useQueryClient();
-  const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ nombre: "", rol: "" });
 
   const { data: involved, isPending } = useQuery({
@@ -38,39 +35,17 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
     enabled: open,
   });
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!form.nombre.trim() || !form.rol.trim()) {
       toast.error("Completa todos los campos.");
       return;
     }
-    setAdding(true);
-    try {
-      await addIncidentInvolved(incidentId, form);
-      await queryClient.invalidateQueries({
-        queryKey: ["incident-involved", incidentId],
-      });
-      toast.success("Involucrado agregado.");
-      setForm({ nombre: "", rol: "" });
-    } catch {
-      toast.error("No se pudo agregar el involucrado.");
-    } finally {
-      setAdding(false);
-    }
+
+    toast.info(WRITE_NOT_CONNECTED_MESSAGE);
   };
 
-  const handleDelete = (ivid: number) => {
-    toast.promise(
-      deleteIncidentInvolved(incidentId, ivid).then(() =>
-        queryClient.invalidateQueries({
-          queryKey: ["incident-involved", incidentId],
-        })
-      ),
-      {
-        loading: "Eliminando...",
-        success: "Involucrado eliminado.",
-        error: "No se pudo eliminar.",
-      }
-    );
+  const handleDelete = () => {
+    toast.info(WRITE_NOT_CONNECTED_MESSAGE);
   };
 
   return (
@@ -83,7 +58,6 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Lista de involucrados */}
         <div className="mt-2 space-y-2 max-h-52 overflow-y-auto pr-1">
           {isPending ? (
             <p className="text-sm text-gray-400">Cargando...</p>
@@ -97,13 +71,15 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
                   <span className="text-sm font-medium text-gray-700">
                     {inv.nombre}
                   </span>
-                  <span className="text-xs text-gray-500">{inv.rol}</span>
+                  <span className="text-xs text-gray-500">
+                    {inv.cargo ?? inv.perfil_registrado ?? inv.dni ?? "—"}
+                  </span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-red-400 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => handleDelete(inv.id)}
+                  onClick={handleDelete}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -116,7 +92,6 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
           )}
         </div>
 
-        {/* Formulario de agregar */}
         <div className="border-t pt-4 grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor="inv-nombre">Nombre</Label>
@@ -137,9 +112,9 @@ export const IncidentInvolvedModal: FC<IncidentInvolvedModalProps> = ({
             />
           </div>
           <div className="col-span-2 flex justify-end">
-            <Button onClick={handleAdd} disabled={adding} className="gap-1">
+            <Button onClick={handleAdd} className="gap-1">
               <Plus className="w-4 h-4" />
-              {adding ? "Agregando..." : "Agregar Involucrado"}
+              Agregar Involucrado
             </Button>
           </div>
         </div>
