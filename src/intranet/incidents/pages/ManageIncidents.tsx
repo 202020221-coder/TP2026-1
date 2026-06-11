@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useSearchParams } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
-import { IncidentObjectsModal, IncidentsTable } from "../components";
+import {
+  IncidentObjectsModal,
+  IncidentPersonnelModal,
+  IncidentsTable,
+} from "../components";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ListIncidentsProvider } from "../context/ListIncidentsProvider";
@@ -26,6 +30,7 @@ export function IncidentsManagementPage() {
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
   const [sumaGastosModalOpen, setSumaGastosModalOpen] = useState(false);
+  const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
   const projectId = Number.isInteger(projectIdRaw) && projectIdRaw > 0
     ? projectIdRaw
     : navigationState?.projectId;
@@ -59,6 +64,9 @@ export function IncidentsManagementPage() {
           sumaGastosModalOpen={sumaGastosModalOpen}
           onCloseSumaGastosModal={() => setSumaGastosModalOpen(false)}
           onOpenSumaGastosModal={() => setSumaGastosModalOpen(true)}
+          personnelModalOpen={personnelModalOpen}
+          onClosePersonnelModal={() => setPersonnelModalOpen(false)}
+          onOpenPersonnelModal={() => setPersonnelModalOpen(true)}
         />
       </ListIncidentsProvider>
     </>
@@ -75,6 +83,9 @@ function IncidentsContent({
   sumaGastosModalOpen,
   onCloseSumaGastosModal,
   onOpenSumaGastosModal,
+  personnelModalOpen,
+  onClosePersonnelModal,
+  onOpenPersonnelModal,
 }: {
   projectId?: number;
   projectNameFromState?: string | null;
@@ -85,6 +96,9 @@ function IncidentsContent({
   sumaGastosModalOpen: boolean;
   onCloseSumaGastosModal: () => void;
   onOpenSumaGastosModal: () => void;
+  personnelModalOpen: boolean;
+  onClosePersonnelModal: () => void;
+  onOpenPersonnelModal: () => void;
 }) {
   const { result } = useIncidents();
   const incidents = (result.data?.data ?? []) as Incident[];
@@ -122,6 +136,7 @@ function IncidentsContent({
         <IncidentActionsPanel
           onOpenObjectsModal={onOpenObjectsModal}
           onOpenSumaGastosModal={onOpenSumaGastosModal}
+          onOpenPersonnelModal={onOpenPersonnelModal}
           selectedIncidentId={selectedIncident?.id_incidencia}
           onSelectIncident={setSelectedIncidentId}
           selectedIncident={selectedIncident}
@@ -142,6 +157,11 @@ function IncidentsContent({
           onClose={onCloseSumaGastosModal}
         />
       )}
+      <IncidentPersonnelSection
+        open={personnelModalOpen}
+        onClose={onClosePersonnelModal}
+        selectedIncidentId={selectedIncident?.id_incidencia}
+      />
     </>
   );
 }
@@ -149,12 +169,14 @@ function IncidentsContent({
 function IncidentActionsPanel({
   onOpenObjectsModal,
   onOpenSumaGastosModal,
+  onOpenPersonnelModal,
   selectedIncidentId,
   onSelectIncident,
   selectedIncident,
 }: {
   onOpenObjectsModal: () => void;
   onOpenSumaGastosModal: () => void;
+  onOpenPersonnelModal: () => void;
   selectedIncidentId?: number;
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
@@ -183,7 +205,12 @@ function IncidentActionsPanel({
         >
           Objetos involucrados
         </Button>
-        <Button variant="outline" className="h-10 w-full px-4 justify-center">
+        <Button
+          variant="outline"
+          className="h-10 w-full px-4 justify-center"
+          onClick={onOpenPersonnelModal}
+          disabled={!selectedIncidentId}
+        >
           Personal involucrados
         </Button>
         <Button
@@ -235,6 +262,28 @@ function IncidentObjectsSection({
 
   return (
     <IncidentObjectsModal
+      incidentId={selectedIncidentId}
+      open={open}
+      onClose={onClose}
+    />
+  );
+}
+
+function IncidentPersonnelSection({
+  open,
+  onClose,
+  selectedIncidentId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedIncidentId?: number;
+}) {
+  if (!selectedIncidentId) {
+    return null;
+  }
+
+  return (
+    <IncidentPersonnelModal
       incidentId={selectedIncidentId}
       open={open}
       onClose={onClose}

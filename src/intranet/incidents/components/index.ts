@@ -6,6 +6,7 @@ export { IncidentTableRow } from "./IncidentTableRow";
 export { EditIncidentModal } from "./EditIncidentModal";
 export { CreateIncidentModal } from "./CreateIncidentModal";
 export { IncidentObjectsModal } from "./IncidentObjectsModal";
+export { IncidentPersonnelModal } from "./IncidentPersonnelModal";
 export { IncidentInvolvedModal } from "./IncidentInvolvedModal";
 // Detail view components
 export { IncidentWorkflowStatus } from "./detail/IncidentWorkflowStatus";
