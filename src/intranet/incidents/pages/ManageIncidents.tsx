@@ -53,7 +53,7 @@ export function IncidentsManagementPage() {
         </h1>
       </div>
 
-      <ListIncidentsProvider initialQueryParams={initialQueryParams}>
+      <ListIncidentsProvider initialQueryParams={initialQueryParams} projectId={projectId}>
         <IncidentsContent
           projectId={projectId}
           projectNameFromState={navigationState?.projectName}
