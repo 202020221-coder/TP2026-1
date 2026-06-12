@@ -98,6 +98,34 @@ export interface ChecklistItemPresupuesto {
   costo: number;
 }
 
+// Interfaz para los items del endpoint /real (campos reales del backend)
+export interface PresupuestoRealItem {
+  ID: number;
+  ID_Cotizacion: number;
+  tipo: TipoPresupuesto;
+  realizacion_gastos: RealizacionGastos;
+  nombre_gasto: string;
+  costo_unitario?: string;
+  cantidad?: string;
+  costo_total: string;
+  moneda: Moneda;
+  estancia?: Estancia;
+  costo_x_hora?: string;
+  hora_total?: string;
+  dias_trabajados?: number;
+  costo_real?: string;
+  prueba?: string;
+  razon?: string;
+  diferencia?: string;
+  ID_Incidencia?: number;
+}
+
+export interface ProyectoResumen {
+  id_Proyecto: number;
+  id_cotizacion: number;
+  Proyecto_Nombre: string;
+}
+
 export interface InventarioPorServicioPresupuestoResponse {
   ID_Cotizacion: number;
   servicios_de_cotizacion: ServicioDeCotizacion[];

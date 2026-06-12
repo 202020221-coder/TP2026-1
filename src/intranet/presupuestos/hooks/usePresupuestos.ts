@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { presupuestosApi } from "../api/presupuestos.api";
-import type { AddPresupuestoItemPayload, GastoRealPayload, TipoPresupuesto } from "../interfaces/presupuesto";
+import type { AddPresupuestoItemPayload, GastoRealPayload, PresupuestoRealItem, TipoPresupuesto } from "../interfaces/presupuesto";
 import { toast } from "sonner";
 
 export const useIncidencias = () =>
@@ -103,6 +103,37 @@ export const useInventarioPorServicioPresupuesto = (
     queryFn: () => presupuestosApi.getInventarioPorServicio(cotizacionId),
     select: (d) => d.data,
     enabled: !!cotizacionId && enabled,
+  });
+
+export const usePresupuestoReal = (
+  cotizacionId: number,
+  tipo: TipoPresupuesto,
+  incidentId?: number,
+) =>
+  useQuery({
+    queryKey: ["presupuesto-real", cotizacionId, tipo, incidentId],
+    queryFn: () =>
+      presupuestosApi.getPresupuestoReal(cotizacionId, tipo, incidentId),
+    select: (d): PresupuestoRealItem[] => {
+      const raw = d.data as unknown;
+      if (Array.isArray(raw)) return raw as PresupuestoRealItem[];
+      if (
+        raw &&
+        typeof raw === "object" &&
+        Array.isArray((raw as { data?: unknown }).data)
+      )
+        return (raw as { data: PresupuestoRealItem[] }).data;
+      return [];
+    },
+    enabled: !!cotizacionId,
+  });
+
+export const useProyectoCotizacionId = (proyectoId: number | undefined) =>
+  useQuery({
+    queryKey: ["proyecto-cotizacion-id", proyectoId],
+    queryFn: () => presupuestosApi.getProyecto(proyectoId!),
+    select: (d) => (d.data as { id_cotizacion?: number }).id_cotizacion ?? null,
+    enabled: !!proyectoId,
   });
 
 export const useExportarFaltantesInventario = (cotizacionId: number) => {

@@ -2,6 +2,8 @@ import axiosInstance from "@/shared/api/axios.config";
 import type {
   CotizacionListResponse,
   PresupuestoItem,
+  PresupuestoRealItem,
+  ProyectoResumen,
   TipoPresupuesto,
   AddPresupuestoItemPayload,
   GastoRealPayload,
@@ -59,4 +61,17 @@ export const presupuestosApi = {
     axiosInstance.post(
       `/presupuestos/cotizacion/${cotizacionId}/faltantes-inventario/exportar`
     ),
+
+  getPresupuestoReal: (
+    cotizacionId: number,
+    tipo: TipoPresupuesto,
+    ID_Incidencia?: number,
+  ) =>
+    axiosInstance.get<PresupuestoRealItem[]>(
+      `/presupuestos/cotizacion/${cotizacionId}/real`,
+      { params: { tipo, ...(ID_Incidencia ? { ID_Incidencia } : {}) } },
+    ),
+
+  getProyecto: (proyectoId: number) =>
+    axiosInstance.get<ProyectoResumen>(`/proyectos/${proyectoId}`),
 };
