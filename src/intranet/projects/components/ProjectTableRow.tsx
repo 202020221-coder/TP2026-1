@@ -168,6 +168,22 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
               >
                 Gestionar Incidencias
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate(
+                    `/intranet/informes?id_proyecto=${project.id_Proyecto}`,
+                    {
+                      state: {
+                        projectId: project.id_Proyecto,
+                        projectName: project.Cotizacion_Nombre,
+                        clientName: project.Cliente_Nombre,
+                      },
+                    },
+                  )
+                }
+              >
+                Gestionar Informe
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>

@@ -40,6 +40,10 @@ const IncidentsNavigation = lazy(
   () => import("@/intranet/incidents/routing/Navigation"),
 );
 
+const InformesNavigation = lazy(
+  () => import("@/intranet/informes/routing/Navigation"),
+);
+
 //Order matters since it defines hierarchy, this hierarchy makes the routing work properly
 export const routes: IRoute[] = [
   {
@@ -101,6 +105,11 @@ export const routes: IRoute[] = [
   {
     path: "/incidencias/*",
     Component: IncidentsNavigation,
+    isPrivate: true,
+  },
+  {
+    path: "/informes/*",
+    Component: InformesNavigation,
     isPrivate: true,
   },
 ];
