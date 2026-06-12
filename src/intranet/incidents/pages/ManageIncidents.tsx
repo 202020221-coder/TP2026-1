@@ -137,7 +137,7 @@ function IncidentsContent({
       {selectedIncident && (
         <SumaGastosModal
           incidentId={selectedIncident.id_incidencia}
-          cotizacionId={selectedIncident.cotizacion_remuneracion}
+          idProyecto={selectedIncident.id_proyecto}
           open={sumaGastosModalOpen}
           onClose={onCloseSumaGastosModal}
         />

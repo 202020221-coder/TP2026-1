@@ -9,10 +9,13 @@ import {
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { X, FileText, ExternalLink } from "lucide-react";
-import { usePresupuestoItems } from "@/intranet/presupuestos/hooks/usePresupuestos";
+import { X, FileText, ExternalLink, Loader2 } from "lucide-react";
+import {
+  usePresupuestoReal,
+  useProyectoCotizacionId,
+} from "@/intranet/presupuestos/hooks/usePresupuestos";
 import type {
-  PresupuestoItem,
+  PresupuestoRealItem,
   TipoPresupuesto,
 } from "@/intranet/presupuestos/interfaces/presupuesto";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
@@ -64,7 +67,7 @@ const MOCK_INCIDENT_QUOTATIONS: IncidentQuotation[] = [
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface SumaGastosModalProps {
   incidentId: number;
-  cotizacionId: number | null | undefined;
+  idProyecto: number | undefined;
   open: boolean;
   onClose: () => void;
 }
@@ -72,11 +75,15 @@ interface SumaGastosModalProps {
 // ── Main modal ────────────────────────────────────────────────────────────────
 export const SumaGastosModal: FC<SumaGastosModalProps> = ({
   incidentId,
-  cotizacionId,
+  idProyecto,
   open,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>("material");
+
+  // Obtener id_cotizacion del proyecto para usar en el endpoint /real
+  const { data: cotizacionId, isLoading: loadingProyecto } =
+    useProyectoCotizacionId(idProyecto);
 
   if (!open) return null;
 
@@ -132,37 +139,47 @@ export const SumaGastosModal: FC<SumaGastosModalProps> = ({
 
         {/* ── Scrollable Content ── */}
         <div className="flex flex-col gap-4 p-6 overflow-y-auto flex-1 min-h-0">
-          {/* Tabs */}
-          <div className="flex gap-2 flex-wrap">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-red-600 text-white"
-                    : "bg-red-100 text-red-800 hover:bg-red-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {loadingProyecto ? (
+            <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Cargando datos del proyecto...
+            </div>
+          ) : (
+            <>
+              {/* Tabs */}
+              <div className="flex gap-2 flex-wrap">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-red-600 text-white"
+                        : "bg-red-100 text-red-800 hover:bg-red-200"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-          {/* Active tab table */}
-          {TABS.map((tab) =>
-            activeTab === tab.id ? (
-              <SumaGastosTabTable
-                key={tab.id}
-                cotizacionId={cotizacionId}
-                tipo={tab.tipo}
-              />
-            ) : null,
+              {/* Active tab table */}
+              {TABS.map((tab) =>
+                activeTab === tab.id ? (
+                  <SumaGastosTabTable
+                    key={tab.id}
+                    cotizacionId={cotizacionId ?? null}
+                    tipo={tab.tipo}
+                    incidentId={incidentId}
+                  />
+                ) : null,
+              )}
+
+              {/* Summary section */}
+              <SumaGastosSummary incidentId={incidentId} />
+            </>
           )}
-
-          {/* Summary section */}
-          <SumaGastosSummary incidentId={incidentId} />
         </div>
       </div>
     </div>
@@ -171,16 +188,16 @@ export const SumaGastosModal: FC<SumaGastosModalProps> = ({
 
 // ── Per-tab read-only table ───────────────────────────────────────────────────
 const SumaGastosTabTable: FC<{
-  cotizacionId: number | null | undefined;
+  cotizacionId: number | null;
   tipo: TipoPresupuesto;
-}> = ({ cotizacionId, tipo }) => {
+  incidentId: number;
+}> = ({ cotizacionId, tipo, incidentId }) => {
   const hasCotizacion = !!cotizacionId;
 
-  // cotizacionId es la cotización creada específicamente para esta incidencia,
-  // por lo que todos sus ítems le pertenecen — no se necesita filtro adicional.
-  const { data: items = [], isLoading } = usePresupuestoItems(
+  const { data: items = [], isLoading } = usePresupuestoReal(
     cotizacionId ?? 0,
     tipo,
+    incidentId,
   );
 
   return (
@@ -225,7 +242,7 @@ const SumaGastosTabTable: FC<{
                 colSpan={9}
                 className="text-center py-8 text-muted-foreground italic text-sm"
               >
-                No hay cotización asociada a esta incidencia.
+                No se encontró cotización asociada al proyecto de esta incidencia.
               </TableCell>
             </TableRow>
           ) : isLoading ? (
@@ -250,12 +267,12 @@ const SumaGastosTabTable: FC<{
 
 // ── Single read-only row ──────────────────────────────────────────────────────
 const realizacionStyles: Record<string, string> = {
-  anulada:           "bg-gray-100  text-gray-500  border-gray-200",
-  "en preparacion":  "bg-blue-50   text-blue-700  border-blue-200",
-  "durante servicio":"bg-green-50  text-green-700 border-green-200",
+  anulada:            "bg-gray-100  text-gray-500  border-gray-200",
+  "en preparacion":   "bg-blue-50   text-blue-700  border-blue-200",
+  "durante servicio": "bg-green-50  text-green-700 border-green-200",
 };
 
-const GastoReadOnlyRow: FC<{ item: PresupuestoItem }> = ({ item }) => {
+const GastoReadOnlyRow: FC<{ item: PresupuestoRealItem }> = ({ item }) => {
   const badgeClass =
     realizacionStyles[item.realizacion_gastos ?? ""] ??
     "bg-gray-100 text-gray-500 border-gray-200";
@@ -298,21 +315,21 @@ const GastoReadOnlyRow: FC<{ item: PresupuestoItem }> = ({ item }) => {
         S/ {parseFloat(item.costo_total).toFixed(2)}
       </TableCell>
 
-      {/* Gasto real */}
+      {/* Gasto real (campo "costo_real" en el backend) */}
       <TableCell className="text-right font-mono text-sm text-gray-700">
-        {item.gasto_real
-          ? `S/ ${parseFloat(item.gasto_real).toFixed(2)}`
+        {item.costo_real
+          ? `S/ ${parseFloat(item.costo_real).toFixed(2)}`
           : "—"}
       </TableCell>
 
-      {/* Evidencia */}
+      {/* Evidencia (campo "prueba" en el backend) */}
       <TableCell className="text-center">
-        {item.evidencia_url ? (
+        {item.prueba ? (
           <Button
             variant="outline"
             size="sm"
             className="h-7 gap-1 text-xs"
-            onClick={() => window.open(item.evidencia_url, "_blank")}
+            onClick={() => window.open(item.prueba, "_blank")}
           >
             <FileText size={11} />
             Ver PDF
@@ -322,14 +339,12 @@ const GastoReadOnlyRow: FC<{ item: PresupuestoItem }> = ({ item }) => {
         )}
       </TableCell>
 
-      {/* Razón */}
+      {/* Razón (campo "razon" en el backend) */}
       <TableCell
         className="text-sm text-gray-600 max-w-[160px] truncate"
-        title={item.razon_gasto_real ?? ""}
+        title={item.razon ?? ""}
       >
-        {item.razon_gasto_real || (
-          <span className="text-gray-400 italic">—</span>
-        )}
+        {item.razon || <span className="text-gray-400 italic">—</span>}
       </TableCell>
     </TableRow>
   );
@@ -340,33 +355,15 @@ const GastoRowSkeleton: FC = () => (
   <>
     {Array.from({ length: 3 }).map((_, i) => (
       <TableRow key={i} className="border-b border-gray-100">
-        <TableCell>
-          <Skeleton className="h-4 w-8 bg-gray-100" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-4 w-36 bg-gray-100" />
-        </TableCell>
-        <TableCell className="text-center">
-          <Skeleton className="h-4 w-10 mx-auto bg-gray-100" />
-        </TableCell>
-        <TableCell className="text-right">
-          <Skeleton className="h-4 w-20 ml-auto bg-gray-100" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-5 w-28 rounded-full bg-gray-100" />
-        </TableCell>
-        <TableCell className="text-right">
-          <Skeleton className="h-4 w-20 ml-auto bg-gray-100" />
-        </TableCell>
-        <TableCell className="text-right">
-          <Skeleton className="h-4 w-20 ml-auto bg-gray-100" />
-        </TableCell>
-        <TableCell className="text-center">
-          <Skeleton className="h-7 w-16 mx-auto bg-gray-100 rounded" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-4 w-28 bg-gray-100" />
-        </TableCell>
+        <TableCell><Skeleton className="h-4 w-8 bg-gray-100" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-36 bg-gray-100" /></TableCell>
+        <TableCell className="text-center"><Skeleton className="h-4 w-10 mx-auto bg-gray-100" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto bg-gray-100" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-28 rounded-full bg-gray-100" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto bg-gray-100" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto bg-gray-100" /></TableCell>
+        <TableCell className="text-center"><Skeleton className="h-7 w-16 mx-auto bg-gray-100 rounded" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-28 bg-gray-100" /></TableCell>
       </TableRow>
     ))}
   </>
@@ -374,15 +371,12 @@ const GastoRowSkeleton: FC = () => (
 
 // ── Summary section ───────────────────────────────────────────────────────────
 const SumaGastosSummary: FC<{ incidentId: number }> = ({ incidentId }) => {
-  // Mirror the mock-data approach of IncidentQuotationsTable until real API is wired
   const quotations: IncidentQuotation[] = MOCK_INCIDENT_QUOTATIONS.map(
     (q) => ({ ...q, id_incidencia: incidentId }),
   );
 
-  // Sums by state (cotizaciones de incidencia)
   const totalCotizaciones = quotations.reduce(
-    (s, q) => s + (q.precio_subtotal ?? 0),
-    0,
+    (s, q) => s + (q.precio_subtotal ?? 0), 0,
   );
   const totalPagado = quotations
     .filter((q) => q.estado === "Pago realizado")
@@ -407,10 +401,10 @@ const SumaGastosSummary: FC<{ incidentId: number }> = ({ incidentId }) => {
             value="S/. 0.00"
           />
           <div className="pl-3 border-l border-border flex flex-col gap-2">
-            <SummaryRow label="según Mano de obra"              value="S/. 0.00" small />
-            <SummaryRow label="según Material directo"          value="S/. 0.00" small />
-            <SummaryRow label="según Servicio"                  value="S/. 0.00" small />
-            <SummaryRow label="según Gastos administrativos"    value="S/. 0.00" small />
+            <SummaryRow label="según Mano de obra"           value="S/. 0.00" small />
+            <SummaryRow label="según Material directo"       value="S/. 0.00" small />
+            <SummaryRow label="según Servicio"               value="S/. 0.00" small />
+            <SummaryRow label="según Gastos administrativos" value="S/. 0.00" small />
           </div>
         </div>
       </div>
@@ -422,18 +416,9 @@ const SumaGastosSummary: FC<{ incidentId: number }> = ({ incidentId }) => {
             Total
           </p>
           <div className="flex flex-col gap-2.5">
-            <SummaryRow
-              label="Diferencia entre gastos y cotizado"
-              value="S/. 0.00"
-            />
-            <SummaryRow
-              label="Diferencia entre gastos y remuneraciones confirmadas"
-              value="S/. 0.00"
-            />
-            <SummaryRow
-              label="Diferencia entre gastos y remuneraciones pagadas"
-              value="S/. 0.00"
-            />
+            <SummaryRow label="Diferencia entre gastos y cotizado"                    value="S/. 0.00" />
+            <SummaryRow label="Diferencia entre gastos y remuneraciones confirmadas"  value="S/. 0.00" />
+            <SummaryRow label="Diferencia entre gastos y remuneraciones pagadas"      value="S/. 0.00" />
           </div>
         </div>
 
@@ -444,22 +429,10 @@ const SumaGastosSummary: FC<{ incidentId: number }> = ({ incidentId }) => {
             Cotizaciones
           </p>
           <div className="flex flex-col gap-2.5">
-            <SummaryRow
-              label="Costos cubiertos por cotizaciones"
-              value={fmt(totalCotizaciones)}
-            />
-            <SummaryRow
-              label="Costo ya pagado en cotizaciones"
-              value={fmt(totalPagado)}
-            />
-            <SummaryRow
-              label="Cantidad en cotizaciones aprobadas"
-              value={fmt(totalAprobado)}
-            />
-            <SummaryRow
-              label="Cantidad en cotizaciones no aprobadas"
-              value={fmt(totalEnviado)}
-            />
+            <SummaryRow label="Costos cubiertos por cotizaciones"       value={fmt(totalCotizaciones)} />
+            <SummaryRow label="Costo ya pagado en cotizaciones"         value={fmt(totalPagado)} />
+            <SummaryRow label="Cantidad en cotizaciones aprobadas"      value={fmt(totalAprobado)} />
+            <SummaryRow label="Cantidad en cotizaciones no aprobadas"   value={fmt(totalEnviado)} />
           </div>
         </div>
       </div>
@@ -467,9 +440,12 @@ const SumaGastosSummary: FC<{ incidentId: number }> = ({ incidentId }) => {
   );
 };
 
-// ── Helper components / utils ─────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
-  `S/. ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `S/. ${n.toLocaleString("es-PE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 const SummaryRow: FC<{ label: string; value: string; small?: boolean }> = ({
   label,
@@ -477,9 +453,7 @@ const SummaryRow: FC<{ label: string; value: string; small?: boolean }> = ({
   small,
 }) => (
   <div className="flex items-center justify-between gap-4">
-    <span
-      className={`text-muted-foreground leading-snug ${small ? "text-xs" : "text-sm"}`}
-    >
+    <span className={`text-muted-foreground leading-snug ${small ? "text-xs" : "text-sm"}`}>
       {label}
     </span>
     <span className="font-mono text-sm font-medium text-foreground whitespace-nowrap">
