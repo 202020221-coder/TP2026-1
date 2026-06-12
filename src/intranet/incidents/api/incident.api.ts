@@ -7,6 +7,7 @@ import type {
   GetIncidentObjectsResponse,
   GetIncidentInvolvedResponse,
 } from "../interfaces/responses.dto";
+import type { Incident } from "../interfaces/incident";
 import type { InvolvedObject } from "../interfaces/incident-quotation";
 
 // ── Interfaces para cuerpos de petición ─────────────────────────────────────
@@ -142,8 +143,59 @@ const toInvolvedObject = (raw: IncidentObjectRaw): InvolvedObject => {
 
 // ── Incidencias ──────────────────────────────────────────────────────────────
 
+// Forma cruda del endpoint /incidencias/proyecto/{id} (no incluye paginación).
+interface ProjectIncidentsRaw {
+  id_Proyecto?: number;
+  Proyecto_Nombre?: string;
+  total?: number;
+  data?: Incident[];
+}
+
+/**
+ * Normaliza la respuesta del endpoint por proyecto a la forma paginada estándar,
+ * aplicando búsqueda / estado / paginación del lado del cliente, ya que ese
+ * endpoint no soporta esos parámetros.
+ */
+function buildIncidentsByProjectResponse(
+  raw: ProjectIncidentsRaw,
+  params: GetIncidentsQP,
+): GetIncidentsResponse {
+  const all = Array.isArray(raw.data) ? raw.data : [];
+
+  const search = params.buscar?.trim().toLowerCase();
+  const filtered = all.filter((inc) => {
+    const matchesEstado = !params.estado || inc.estado === params.estado;
+    const matchesSearch =
+      !search ||
+      inc.comentario?.toLowerCase().includes(search) ||
+      inc.Cliente_Nombre?.toLowerCase().includes(search);
+    return matchesEstado && matchesSearch;
+  });
+
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 10;
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const start = (page - 1) * limit;
+
+  return {
+    data: filtered.slice(start, start + limit),
+    pagination: { total, page, limit, totalPages },
+  };
+}
+
 /** Listar todas las incidencias */
 export async function getAllIncidents(params: GetIncidentsQP) {
+  // El endpoint global /incidencias?id_proyecto= NO filtra por proyecto en el
+  // backend (devuelve todas las incidencias). Para una vista por proyecto usamos
+  // el endpoint dedicado que sí filtra, normalizando su respuesta.
+  if (params.id_proyecto != null) {
+    const response = await axiosInstance.get<ProjectIncidentsRaw>(
+      `/incidencias/proyecto/${params.id_proyecto}`,
+    );
+    return buildIncidentsByProjectResponse(response.data, params);
+  }
+
   const response = await axiosInstance.get<GetIncidentsResponse>(
     `/incidencias?${toSearchParams(params)}`,
   );
