@@ -6,7 +6,7 @@ import { ListProjectsProvider } from "../context/ListProjectsProvider";
 import { ActiveProjectsTable } from "../components/ActiveProjectsTable";
 import { ClientProjectsTable } from "../components/ClientProjectsTable";
 import { Button } from "@/shared/components/ui/button";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, LayoutList } from "lucide-react";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 
 export function ProjectsManagementPage() {
@@ -23,13 +23,22 @@ export function ProjectsManagementPage() {
         <h1 className="text-2xl font-bold text-gray-800">
           Gestionar Proyectos
         </h1>
-        {!isClient && !showActive && (
+        {!isClient && (
           <Button
             className="font-semibold rounded-full px-5"
-            onClick={() => setShowActive(true)}
+            onClick={() => setShowActive(!showActive)}
           >
-            <PlayCircle className="w-4 h-4 mr-1" />
-            Ver proyectos ejecutados
+            {showActive ? (
+              <>
+                <LayoutList className="w-4 h-4 mr-1" />
+                Ver todos los proyectos
+              </>
+            ) : (
+              <>
+                <PlayCircle className="w-4 h-4 mr-1" />
+                Ver proyectos ejecutados
+              </>
+            )}
           </Button>
         )}
       </div>

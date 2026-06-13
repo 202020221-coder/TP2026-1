@@ -48,7 +48,7 @@ interface ActiveProjectsTableProps {
 }
 
 export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
-  onVerTodos,
+  onVerTodos: _onVerTodos,
 }) => {
   const [buscar, setBuscar] = useState("");
   const [estado, setEstado] = useState<ProjectState | "">("");
@@ -199,21 +199,14 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
       <div className="flex flex-1 flex-col space-y-3">
         {/* Top controls */}
         <div className="flex flex-wrap gap-2 items-start justify-between">
-          <div className="flex gap-2 flex-1 min-w-[200px] max-w-md">
-            <div className="relative flex-1">
-              <Input
-                placeholder="Buscar por nombre"
-                className="pl-8"
-                onChange={(e) => debouncedSearch(e.target.value)}
-              />
-              <Search className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400" size={16} />
-            </div>
-            <Button
-              className="whitespace-nowrap font-semibold rounded-full px-5"
-              onClick={onVerTodos}
-            >
-              Ver todos los proyectos
-            </Button>
+          {/* Solo buscador */}
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Input
+              placeholder="Buscar por nombre"
+              className="pl-8"
+              onChange={(e) => debouncedSearch(e.target.value)}
+            />
+            <Search className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400" size={16} />
           </div>
 
           <div className="flex items-center gap-2">
