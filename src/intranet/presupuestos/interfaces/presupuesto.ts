@@ -114,6 +114,8 @@ export interface PresupuestoRealItem {
   hora_total?: string;
   dias_trabajados?: number;
   costo_real?: string;
+  precio_real?: string;
+  aumentos?: string;
   prueba?: string;
   razon?: string;
   diferencia?: string;

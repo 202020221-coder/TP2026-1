@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/shared/components/ui/dialog";
@@ -12,6 +14,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/shared/components/ui/select";
 import { Plus, Pencil, Loader2 } from "lucide-react";
+import { inventoryApi } from "@/intranet/inventory/api/inventory.api";
+import type { InventarioItem } from "@/intranet/inventory/interfaces/inventory.interface";
 import {
   usePresupuestoItems,
   useAddPresupuestoItem,
@@ -44,6 +48,7 @@ function ItemForm({
   submitLabel,
   control,
   register,
+  setValue,
   errors,
   total,
 }: {
@@ -52,17 +57,125 @@ function ItemForm({
   submitLabel: string;
   control: ReturnType<typeof useForm<FormData>>["control"];
   register: ReturnType<typeof useForm<FormData>>["register"];
+  setValue: ReturnType<typeof useForm<FormData>>["setValue"];
   errors: ReturnType<typeof useForm<FormData>>["formState"]["errors"];
   total: string;
 }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const nombreValue = useWatch({ control, name: "nombre_gasto" });
+
+  const { data: inventarioData, isLoading: loadingInventario } = useQuery({
+    queryKey: ["inventario", "presupuesto-material-search"],
+    queryFn: () => inventoryApi.getAll(1, 500),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const inventoryItems = inventarioData?.data ?? [];
+
+  useEffect(() => {
+    setSearchTerm(nombreValue ?? "");
+  }, [nombreValue]);
+
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
+      return [];
+    }
+
+    return inventoryItems
+      .filter((item) => {
+        const haystack = [
+          item.nombre_objeto,
+          String(item.Id_Objeto),
+          item.Fabricante_Nombre ?? "",
+          item.numero_serial ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(term);
+      })
+      .slice(0, 8);
+  }, [inventoryItems, searchTerm]);
+
+  const handleSelectItem = (item: InventarioItem) => {
+    const nombre = item.nombre_objeto;
+    const precio = Number(item.precio_comercial ?? 0);
+
+    setValue("nombre_gasto", nombre, { shouldValidate: true, shouldDirty: true });
+    setValue("costo_unitario", precio, { shouldValidate: true, shouldDirty: true });
+    setSearchTerm(nombre);
+    setIsDropdownOpen(false);
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label className="text-sm font-medium">Nombre *</label>
-        <Input
-          placeholder="Ej: Rociadores sprinkler x120"
-          {...register("nombre_gasto", { required: "El nombre es requerido" })}
-          className="mt-1"
+        <Controller
+          name="nombre_gasto"
+          control={control}
+          rules={{ required: "El nombre es requerido" }}
+          render={({ field }) => (
+            <div className="relative mt-1">
+              <Input
+                placeholder="Buscar en inventario o escribir nombre..."
+                value={searchTerm}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setSearchTerm(value);
+                  field.onChange(value);
+                  setIsDropdownOpen(true);
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+                onBlur={() => setIsDropdownOpen(false)}
+                autoComplete="off"
+              />
+
+              {isDropdownOpen &&
+              (searchTerm.trim().length > 0 || loadingInventario) ? (
+                <div
+                  className="absolute z-50 mt-1 w-full rounded-md border bg-card shadow-md"
+                  onMouseDown={(event) => event.preventDefault()}
+                >
+                  <div className="max-h-56 overflow-auto">
+                    {loadingInventario ? (
+                      <div className="space-y-2 px-3 py-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                      </div>
+                    ) : filteredItems.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Sin resultados en inventario.
+                      </div>
+                    ) : (
+                      filteredItems.map((item) => (
+                        <button
+                          key={item.Id_Objeto}
+                          type="button"
+                          className="flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm hover:bg-muted/60"
+                          onClick={() => handleSelectItem(item)}
+                        >
+                          <span className="font-medium text-foreground">
+                            {item.nombre_objeto}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ID {item.Id_Objeto}
+                            {item.precio_comercial != null
+                              ? ` · S/. ${Number(item.precio_comercial).toFixed(2)}`
+                              : ""}
+                            {item.Fabricante_Nombre
+                              ? ` · ${item.Fabricante_Nombre}`
+                              : ""}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
         />
         {errors.nombre_gasto && <p className="text-sm text-destructive mt-1">{errors.nombre_gasto.message}</p>}
       </div>
@@ -183,7 +296,8 @@ export function MaterialDirectoTab({ cotizacionId }: Props) {
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Agregar Material Directo</DialogTitle></DialogHeader>
             <ItemForm onSubmit={onAdd} isPending={isAdding} submitLabel="Agregar Material"
-              control={addForm.control} register={addForm.register} errors={addForm.formState.errors} total={addTotal} />
+              control={addForm.control} register={addForm.register} setValue={addForm.setValue}
+              errors={addForm.formState.errors} total={addTotal} />
           </DialogContent>
         </Dialog>
       </div>
@@ -193,7 +307,8 @@ export function MaterialDirectoTab({ cotizacionId }: Props) {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Editar Material Directo</DialogTitle></DialogHeader>
           <ItemForm onSubmit={onEdit} isPending={isUpdating} submitLabel="Guardar Cambios"
-            control={editForm.control} register={editForm.register} errors={editForm.formState.errors} total={editTotal} />
+            control={editForm.control} register={editForm.register} setValue={editForm.setValue}
+            errors={editForm.formState.errors} total={editTotal} />
         </DialogContent>
       </Dialog>
 

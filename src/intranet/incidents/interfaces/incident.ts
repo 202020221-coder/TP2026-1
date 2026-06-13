@@ -25,7 +25,8 @@ export interface IncidentInvolvedRaw {
   descargo: string | null;
   comentario: string | null;
   nombre: string | null;
-  Perfil_Registrado: string | null;
+  cargo: string | null;
+  Perfil_Registrado: boolean | string | null;
   Trabajo_Comentario: string | null;
   Involucrado_Nombre: string | null;
   Involucrado_Apellido: string | null;

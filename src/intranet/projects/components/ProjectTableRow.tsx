@@ -17,7 +17,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import { toast } from "sonner";
+import { GastoRealModal } from "@/intranet/presupuestos/components/GastoRealModal";
+import type { Cotizacion } from "@/intranet/presupuestos/interfaces/presupuesto";
 import type { Project } from "../interfaces/project";
+import { projectToCotizacion } from "../lib/project-to-cotizacion";
 import {
   type ProjectState,
   ProjectStatesRecord,
@@ -30,6 +34,9 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
+  const [gastoRealCotizacion, setGastoRealCotizacion] =
+    useState<Cotizacion | null>(null);
+  const [isGastoRealOpen, setIsGastoRealOpen] = useState(false);
   const navigate = useNavigate();
 
   const statusStyles = new Map<ProjectState, string>([
@@ -73,6 +80,18 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
 
     window.open(fileUrl, "_blank");
   };
+
+  const handleGestionarGastos = () => {
+    const cotizacion = projectToCotizacion(project);
+    if (!cotizacion) {
+      toast.error("Este proyecto no tiene una cotización asociada.");
+      return;
+    }
+
+    setGastoRealCotizacion(cotizacion);
+    setIsGastoRealOpen(true);
+  };
+
   return (
     <>
       <EditProjectModal
@@ -85,6 +104,15 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
         projectId={detailProjectId ?? 0}
         open={detailProjectId !== null}
         onClose={() => setDetailProjectId(null)}
+      />
+
+      <GastoRealModal
+        cotizacion={gastoRealCotizacion}
+        isOpen={isGastoRealOpen}
+        onClose={() => {
+          setIsGastoRealOpen(false);
+          setGastoRealCotizacion(null);
+        }}
       />
 
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -147,10 +175,8 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
               >
                 Organizar recursos
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate("/intranet/presupuestos")}
-              >
-                Gestionar Presupuesto
+              <DropdownMenuItem onClick={handleGestionarGastos}>
+                Gestionar gastos
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>

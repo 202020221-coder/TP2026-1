@@ -1,4 +1,7 @@
 import axiosInstance from "@/shared/api/axios.config";
+import { getAllProjects } from "@/intranet/projects/api/project.api";
+import { getIncidentsByProject } from "@/intranet/incidents/api/incident.api";
+import type { Incident } from "@/intranet/incidents/interfaces/incident";
 import type {
   CotizacionListResponse,
   PresupuestoItem,
@@ -46,6 +49,28 @@ export const presupuestosApi = {
 
   getIncidencias: () =>
     axiosInstance.get<IncidenciaPresupuesto[]>("/incidencias"),
+
+  getIncidenciasPorCotizacion: async (
+    cotizacionId: number,
+  ): Promise<IncidenciaPresupuesto[]> => {
+    const projects = await getAllProjects({ page: 1, limit: 1000 });
+    const proyecto = projects.data.find((p) => p.id_cotizacion === cotizacionId);
+    if (!proyecto) return [];
+
+    const response = await getIncidentsByProject(proyecto.id_Proyecto);
+    const raw = response.data as unknown;
+    const incidents: Incident[] = Array.isArray(raw)
+      ? raw
+      : raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data)
+        ? ((raw as { data: Incident[] }).data)
+        : [];
+
+    return incidents.map((inc) => ({
+      id_incidencia: inc.id_incidencia,
+      comentario: inc.comentario,
+      estado: inc.estado,
+    }));
+  },
 
   getOrdenCompraPdf: (cotizacionId: number) =>
     axiosInstance.get(`/cotizaciones/${cotizacionId}/orden-compra`, {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,10 @@ import {
   useInventarioPorServicioPresupuesto,
   useExportarFaltantesInventario,
 } from "../hooks/usePresupuestos";
+import {
+  isChecklistExported,
+  markChecklistExported,
+} from "../lib/checklist-export-storage";
 
 interface ChecklistPresupuestoDialogProps {
   cotizacionId: number;
@@ -28,7 +32,13 @@ export function ChecklistPresupuestoDialog({
   cotizacionId,
 }: ChecklistPresupuestoDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasExported, setHasExported] = useState(false);
+  const [hasExported, setHasExported] = useState(() =>
+    isChecklistExported(cotizacionId),
+  );
+
+  useEffect(() => {
+    setHasExported(isChecklistExported(cotizacionId));
+  }, [cotizacionId]);
 
   const { data, isLoading } = useInventarioPorServicioPresupuesto(
     cotizacionId,
@@ -40,14 +50,14 @@ export function ChecklistPresupuestoDialog({
   const inventarioSuficiente = (data?.costo_total_faltante ?? 0) === 0;
 
   const handleExportar = () => {
-    exportar(undefined, {
-      onSuccess: () => setHasExported(true),
-    });
-  };
+    if (hasExported) return;
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) setHasExported(false);
+    exportar(undefined, {
+      onSuccess: () => {
+        markChecklistExported(cotizacionId);
+        setHasExported(true);
+      },
+    });
   };
 
   return (
@@ -62,7 +72,7 @@ export function ChecklistPresupuestoDialog({
         Checklist
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl">
@@ -194,6 +204,12 @@ export function ChecklistPresupuestoDialog({
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2 flex-shrink-0">
+                {hasExported && (
+                  <span className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Los faltantes ya fueron exportados al presupuesto
+                  </span>
+                )}
                 {inventarioSuficiente && !hasExported && (
                   <span className="text-sm text-green-600 font-medium flex items-center gap-1">
                     <CheckCircle2 className="h-4 w-4" />
