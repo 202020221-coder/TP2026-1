@@ -7,6 +7,7 @@ interface IListIncidentsContext {
   result: UseQueryResult<GetIncidentsResponse, Error>;
   query: (queryParams: GetIncidentsQP) => void;
   queryParams: GetIncidentsQP;
+  clientId?: string;
 }
 
 export const ListIncidentsContext = createContext<IListIncidentsContext | null>(

@@ -241,6 +241,7 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
                       projectId: project.id_Proyecto,
                       projectName: project.Cotizacion_Nombre ?? project.descripcion_servicio,
                       clientName: project.Cliente_Nombre,
+                      clientId: project.Id_Cliente,
                     },
                   },
                 )

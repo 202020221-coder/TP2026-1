@@ -15,7 +15,7 @@ import { getIncidentById } from "../api/incident.api";
 import { IncidentWorkflowStatus } from "../components/detail/IncidentWorkflowStatus";
 import { IncidentQuotationsTable } from "../components/detail/IncidentQuotationsTable";
 import { CreateIncidentQuotationModal } from "../components/detail/CreateIncidentQuotationModal";
-import { IncidentObjectsModal } from "../components/detail/IncidentObjectsModal";
+import { IncidentObjectsModal } from "../components/IncidentObjectsModal";
 
 export function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -118,6 +118,21 @@ export function IncidentDetailPage() {
                 </span>
                 <p className="text-sm font-semibold text-foreground">
                   {incident.Cliente_Nombre}
+                </p>
+              </div>
+
+              {/* Nombre de la incidencia */}
+              <div className="flex flex-col gap-1">
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <FileText size={10} />
+                  Nombre de incidencia
+                </span>
+                <p className="text-sm font-semibold text-foreground">
+                  {incident.nombre_incidencia ?? (
+                    <span className="text-muted-foreground italic font-normal text-xs">
+                      Sin nombre
+                    </span>
+                  )}
                 </p>
               </div>
 

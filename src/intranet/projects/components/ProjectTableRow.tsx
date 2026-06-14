@@ -202,6 +202,7 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                         projectId: project.id_Proyecto,
                         projectName: project.Cotizacion_Nombre,
                         clientName: project.Cliente_Nombre,
+                        clientId: project.Id_Cliente,
                       },
                     },
                   )

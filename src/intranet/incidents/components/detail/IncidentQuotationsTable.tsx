@@ -20,6 +20,8 @@ import {
   Pencil,
   FileCheck,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getIncidentQuotations } from "../../api/incident.api";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import { QuotationCommentsModal } from "./QuotationCommentsModal";
@@ -34,65 +36,6 @@ const quotationStatusStyles = new Map<QuotationState, string>([
   ["Pago realizado", "bg-violet-100 text-violet-700 border-violet-300"],
 ]);
 
-// ── Mock data (replace with real API call when backend is ready) ─────────────
-const MOCK_QUOTATIONS: IncidentQuotation[] = [
-  {
-    id: 1,
-    id_incidencia: 0,
-    nombre: "COT-INC-001",
-    fecha_envio: "2025-05-10",
-    version: 1,
-    precio_subtotal: 15800.0,
-    estado: "Aprobado",
-    mensajes: 3,
-    mensajes_pendientes: 0,
-  },
-  {
-    id: 2,
-    id_incidencia: 0,
-    nombre: "COT-INC-002",
-    fecha_envio: "2025-05-18",
-    version: 2,
-    precio_subtotal: 17200.5,
-    estado: "Enviado",
-    mensajes: 4,
-    mensajes_pendientes: 2,
-  },
-  {
-    id: 3,
-    id_incidencia: 0,
-    nombre: "COT-INC-003",
-    fecha_envio: null,
-    version: 3,
-    precio_subtotal: null,
-    estado: "Pendiente",
-    mensajes: 0,
-    mensajes_pendientes: 0,
-  },
-  {
-    id: 4,
-    id_incidencia: 0,
-    nombre: "COT-INC-004",
-    fecha_envio: "2025-05-22",
-    version: 1,
-    precio_subtotal: 18900.0,
-    estado: "Disputado",
-    mensajes: 6,
-    mensajes_pendientes: 3,
-  },
-  {
-    id: 5,
-    id_incidencia: 0,
-    nombre: "COT-INC-005",
-    fecha_envio: "2025-05-28",
-    version: 2,
-    precio_subtotal: 22500.0,
-    estado: "Pago realizado",
-    mensajes: 2,
-    mensajes_pendientes: 0,
-  },
-];
-
 interface IncidentQuotationsTableProps {
   incidentId: number;
 }
@@ -100,12 +43,11 @@ interface IncidentQuotationsTableProps {
 export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
   incidentId,
 }) => {
-  // NOTE: replace isFetching with a real useQuery hook once the endpoint exists
-  const isFetching = false;
-  const quotations = MOCK_QUOTATIONS.map((q) => ({
-    ...q,
-    id_incidencia: incidentId,
-  }));
+  const { data: quotations = [], isFetching } = useQuery({
+    queryKey: ["incident-quotations", incidentId],
+    queryFn: () => getIncidentQuotations(incidentId),
+    enabled: incidentId > 0,
+  });
 
   const [commentsOpen, setCommentsOpen] = useState<number | null>(null);
 

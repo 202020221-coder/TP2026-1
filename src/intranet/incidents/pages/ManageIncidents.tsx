@@ -6,6 +6,7 @@ import {
   IncidentPersonnelModal,
   IncidentsTable,
 } from "../components";
+import { CreateIncidentQuotationModal } from "../components/detail/CreateIncidentQuotationModal";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ListIncidentsProvider } from "../context/ListIncidentsProvider";
@@ -21,6 +22,7 @@ type IncidentsNavigationState = {
   projectId?: number;
   projectName?: string | null;
   clientName?: string;
+  clientId?: string;
 };
 
 export function IncidentsManagementPage() {
@@ -53,7 +55,7 @@ export function IncidentsManagementPage() {
         </h1>
       </div>
 
-      <ListIncidentsProvider initialQueryParams={initialQueryParams} projectId={projectId}>
+      <ListIncidentsProvider initialQueryParams={initialQueryParams} projectId={projectId} clientId={navigationState?.clientId}>
         <IncidentsContent
           projectId={projectId}
           projectNameFromState={navigationState?.projectName}
@@ -181,13 +183,26 @@ function IncidentActionsPanel({
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
 }) {
+  const [createQuotationOpen, setCreateQuotationOpen] = useState(false);
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
       <div>
-        <Button className="h-10 px-5 font-medium">
+        <Button
+          className="h-10 px-5 font-medium"
+          onClick={() => setCreateQuotationOpen(true)}
+          disabled={!selectedIncidentId}
+        >
           Crear cotizacion de incidencia
         </Button>
       </div>
+
+      {selectedIncident && (
+        <CreateIncidentQuotationModal
+          incidentId={selectedIncident.id_incidencia}
+          open={createQuotationOpen}
+          onClose={() => setCreateQuotationOpen(false)}
+        />
+      )}
 
       <div className="w-full min-w-0 overflow-x-auto">
         <IncidentsTable
@@ -309,9 +324,11 @@ function IncidentsProjectHeader({
   }
 
   const incidentName =
-    selectedIncident
-      ? `Incidencia ${selectedIncident.id_incidencia}`
-      : "-";
+    selectedIncident?.nombre_incidencia
+      ? selectedIncident.nombre_incidencia
+      : selectedIncident
+        ? `Incidencia #${selectedIncident.id_incidencia}`
+        : "-";
 
   const projectName =
     selectedIncident?.Cotizacion_Nombre ?? projectNameFromState ?? "-";
