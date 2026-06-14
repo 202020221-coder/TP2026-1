@@ -8,6 +8,7 @@ export { CreateIncidentModal } from "./CreateIncidentModal";
 export { IncidentObjectsModal } from "./IncidentObjectsModal";
 export { IncidentPersonnelModal } from "./IncidentPersonnelModal";
 export { IncidentInvolvedModal } from "./IncidentInvolvedModal";
+export { IncidentMenuTabs } from "./IncidentMenuTabs";
 // Detail view components
 export { IncidentWorkflowStatus } from "./detail/IncidentWorkflowStatus";
 export { IncidentQuotationsTable } from "./detail/IncidentQuotationsTable";

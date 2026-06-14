@@ -39,10 +39,11 @@ import { CreateQuotationServicesSection } from "../components/prices/services/Cr
 
 export function CreateQuotationPage() {
   const navigate = useNavigate();
-  const { orderId, initialData, isPending, isError } = useCreateQuotationPage();
+  const { orderId, incidenciaId, initialData, isPending, isError } = useCreateQuotationPage();
+  const fromIncident = !!incidenciaId;
 
-  if (!orderId) {
-    throw new Error("Id de la solicitud no especificada");
+  if (!orderId && !incidenciaId) {
+    throw new Error("Id de la solicitud o incidencia no especificada");
   }
 
   if (isPending) {
@@ -62,12 +63,14 @@ export function CreateQuotationPage() {
         <div className="flex items-center gap-3">
           <div className="h-7 w-1 rounded-full bg-primary" />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Elaborar Cotización - Solicitud #{orderId}
+            {fromIncident
+              ? `Elaborar Cotización - Incidencia #${incidenciaId}`
+              : `Elaborar Cotización - Solicitud #${orderId}`}
           </h1>
         </div>
         <Button
           variant="outline"
-          onClick={() => navigate("/intranet/solicitudes")}
+          onClick={() => navigate(fromIncident ? "/intranet/incidencias" : "/intranet/solicitudes")}
         >
           <ArrowLeft className="h-4 w-4" />
           Regresar
@@ -128,7 +131,7 @@ export function CreateQuotationPage() {
                           <TabsContent value="reference" className="space-y-6">
                             <ClientCard client={initialData.client} />
                             <ReferenceNameCard />
-                            <ReferencePhasesCard />
+                            {!fromIncident && <ReferencePhasesCard />}
                           </TabsContent>
                           <TabsContent value="prices" className="space-y-6">
                             <CreateQuotationProductsSection />
@@ -143,7 +146,8 @@ export function CreateQuotationPage() {
                           <TabsContent value="visualize">
                             <QuotationVisualizeSection
                               mode="create"
-                              orderId={orderId}
+                              orderId={orderId ?? ""}
+                              incidenciaId={incidenciaId}
                               referenceData={initialData.client}
                             />
                           </TabsContent>

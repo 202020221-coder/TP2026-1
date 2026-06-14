@@ -12,10 +12,11 @@ export type QuotationState =
 
 export const IncidentWorkflowStates = [
   "Sin enviar",
-  "Cotización sin respuesta",
-  "Cotización disputada",
-  "Pago por enviar",
+  "Cotizacion sin respuesta",
+  "Cotizacion disputada",
+  "Pago por recibir",
   "Pago realizado",
+  "Material recuperado",
 ] as const;
 
 export type IncidentWorkflowState = (typeof IncidentWorkflowStates)[number];

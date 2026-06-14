@@ -73,7 +73,8 @@ export const getQuotationForAdmin = async (
 type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">
 
 type CreateQuotationDTO = UpsertQuotationDTO & {
-  id_solicitud: number;
+  id_solicitud?: number;
+  id_incidencia?: number;
   DNI_O_RUC: string;
 };
 

@@ -13,12 +13,14 @@ import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotation
 
 interface UseCreateQuotationOptions {
   referenceData: DesiredQuotationData["client"];
-  orderId: string;
+  orderId?: string;
+  incidenciaId?: string;
 }
 
 export const useCreateQuotation = ({
   referenceData,
   orderId,
+  incidenciaId,
 }: UseCreateQuotationOptions) => {
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
@@ -38,13 +40,12 @@ export const useCreateQuotation = ({
   const rate = useQuotationExchangeRate((s) => s.rate);
 
   const handleSubmit = useCallback(async () => {
-    if (!orderId) return;
-
     setIsSending(true);
     toast.promise(
       async () => {
         await createQuotation({
-          id_solicitud: Number(orderId),
+          id_solicitud: orderId ? Number(orderId) : undefined,
+          id_incidencia: incidenciaId ? Number(incidenciaId) : undefined,
           DNI_O_RUC: referenceData.DNIorRUC,
           name: quotationName || "cotización",
           inventory: Object.values(inventory),
@@ -67,7 +68,7 @@ export const useCreateQuotation = ({
           },
           phases,
         });
-        navigate("/intranet/solicitudes");
+        navigate(incidenciaId ? "/intranet/incidencias" : "/intranet/solicitudes");
       },
       {
         loading: "Creando cotización...",
@@ -77,6 +78,7 @@ export const useCreateQuotation = ({
     );
   }, [
     orderId,
+    incidenciaId,
     referenceData,
     quotationName,
     phases,

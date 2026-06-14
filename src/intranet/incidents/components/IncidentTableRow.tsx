@@ -7,7 +7,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { Eye, MessageCircle, Pencil, FileCheck } from "lucide-react";
+import { Eye, MessageSquare, Pencil, FileCheck } from "lucide-react";
+import { toast } from "sonner";
 import type { Incident } from "../interfaces/incident";
 import {
   type IncidentState,
@@ -52,15 +53,19 @@ export const IncidentTableRow: FC<{
   const subtotalValue = rowData.precio_subtotal ?? incident.cotizacion_remuneracion;
   const statusLabelMap: Record<IncidentState, string> = {
     [IncidentStatesRecord.sinEnviar]: "Pendiente",
-    [IncidentStatesRecord.enviado]: "Enviado",
-    [IncidentStatesRecord.enRevision]: "Aprobador",
-    [IncidentStatesRecord.cerrado]: "Rechazado",
+    [IncidentStatesRecord.cotizacionSinRespuesta]: "Cotización sin respuesta",
+    [IncidentStatesRecord.cotizacionDisputada]: "Cotización disputada",
+    [IncidentStatesRecord.pagoPorRecibir]: "Pago por recibir",
+    [IncidentStatesRecord.pagoRealizado]: "Pago realizado",
+    [IncidentStatesRecord.materialRecuperado]: "Material recuperado",
   };
   const statusClassMap: Record<IncidentState, string> = {
     [IncidentStatesRecord.sinEnviar]: "bg-gray-100 text-gray-600 border-gray-300",
-    [IncidentStatesRecord.enviado]: "bg-blue-100 text-blue-700 border-blue-300",
-    [IncidentStatesRecord.enRevision]: "bg-amber-100 text-amber-700 border-amber-300",
-    [IncidentStatesRecord.cerrado]: "bg-red-100 text-red-700 border-red-300",
+    [IncidentStatesRecord.cotizacionSinRespuesta]: "bg-blue-100 text-blue-700 border-blue-300",
+    [IncidentStatesRecord.cotizacionDisputada]: "bg-orange-100 text-orange-700 border-orange-300",
+    [IncidentStatesRecord.pagoPorRecibir]: "bg-amber-100 text-amber-700 border-amber-300",
+    [IncidentStatesRecord.pagoRealizado]: "bg-green-100 text-green-700 border-green-300",
+    [IncidentStatesRecord.materialRecuperado]: "bg-violet-100 text-violet-700 border-violet-300",
   };
   const messageStatus =
     rowData.mensajes !== undefined
@@ -71,7 +76,7 @@ export const IncidentTableRow: FC<{
         : "No iniciado"
       : incident.estado === IncidentStatesRecord.sinEnviar
         ? "No iniciado"
-        : incident.estado === IncidentStatesRecord.enRevision
+        : incident.estado === IncidentStatesRecord.cotizacionSinRespuesta
           ? "Pendientes"
           : "Enviados";
 
@@ -160,7 +165,7 @@ export const IncidentTableRow: FC<{
                   className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   aria-label="Comentarios"
                 >
-                  <MessageCircle className="w-3.5 h-3.5" />
+                  <MessageSquare className="w-3.5 h-3.5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-white border border-blue-400 text-blue-600">
@@ -195,8 +200,11 @@ export const IncidentTableRow: FC<{
                   size="icon"
                   onClick={(event) => {
                     event.stopPropagation();
-                    const targetUrl = rowData.orden_compra_url ?? "/intranet/solicitudes";
-                    navigate(targetUrl);
+                    if (rowData.orden_compra_url) {
+                      window.open(rowData.orden_compra_url, "_blank", "noopener,noreferrer");
+                    } else {
+                      toast.info("No hay orden de compra asociada a esta incidencia");
+                    }
                   }}
                   className="h-8 w-8 text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
                   aria-label="Ver orden de compra"

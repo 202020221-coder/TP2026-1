@@ -4,36 +4,42 @@ import { getOrder } from "@/intranet/orders/api/order.api";
 import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
 import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
+import { getIncidentById } from "@/intranet/incidents/api/incident.api";
+import { getClients } from "@/intranet/incidents/api/clients.api";
 import { addDays, format } from "date-fns";
+
 const STALE_TIME = Infinity;
 
 export const useCreateQuotationPage = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const enabled = !!orderId;
+  const incidenciaId = searchParams.get("incidenciaId");
+  const enabled = !!orderId || !!incidenciaId;
 
   const quotationInitialData = useQuery({
-    queryKey: ["order", "details", orderId],
+    queryKey: ["order", "details", orderId ?? `incidencia-${incidenciaId}`],
     queryFn: async () => {
-      const order = await getOrder(Number(orderId))
-      return await adaptDTO(order)
+      if (incidenciaId) {
+        return await adaptFromIncident(Number(incidenciaId));
+      }
+      const order = await getOrder(Number(orderId));
+      return await adaptFromOrder(order);
     },
     staleTime: STALE_TIME,
     refetchOnWindowFocus: false,
     enabled,
   });
 
-  
-
   return {
     orderId,
+    incidenciaId,
     initialData: quotationInitialData.data ?? null,
-    isPending: quotationInitialData.isPending || quotationInitialData.isPending,
-    isError: quotationInitialData.isError || quotationInitialData.isError,
+    isPending: quotationInitialData.isPending,
+    isError: quotationInitialData.isError,
   };
 };
 
-const adaptDTO = async (
+const adaptFromOrder = async (
   getOrderResponseDTO: GetOrderResponseDTO,
 ): Promise<DesiredQuotationData> => {
   const quotationRate = await getExchangeRate();
@@ -72,19 +78,55 @@ const adaptDTO = async (
     },
     status: "pendiente",
     trucks: [],
-    services: getOrderResponseDTO.servicios.map((s) => {
-      return {
-        id: s.ID_Servicio.toString(),
-        startDate: s.fecha_inicio_servicio.split("T")[0],
-        dueDate: s.fecha_fin_servicio.split("T")[0],
-        schedule: s.horario_servicio,
-        unitPrice: 0.0,
-        name: `Servicio #${s.ID_Servicio}`,
-      };
-    }),
+    services: getOrderResponseDTO.servicios.map((s) => ({
+      id: s.ID_Servicio.toString(),
+      startDate: s.fecha_inicio_servicio.split("T")[0],
+      dueDate: s.fecha_fin_servicio.split("T")[0],
+      schedule: s.horario_servicio,
+      unitPrice: 0.0,
+      name: `Servicio #${s.ID_Servicio}`,
+    })),
     quotationRate,
-    phases: {
-      items: [],
-    }
+    phases: { items: [] },
+  };
+};
+
+const adaptFromIncident = async (
+  incidenciaId: number,
+): Promise<DesiredQuotationData> => {
+  const [incident, allClients, quotationRate] = await Promise.all([
+    getIncidentById(incidenciaId),
+    getClients(),
+    getExchangeRate(),
+  ]);
+
+  const client = allClients.find(
+    (c) => c.DNI_O_RUC === incident.empresa_involucrada,
+  );
+
+  return {
+    name: "",
+    client: {
+      comercialName: client?.nombre_comercial ?? "",
+      companyName: client?.razon_social ?? incident.Cliente_Nombre,
+      DNIorRUC: incident.empresa_involucrada,
+    },
+    inventory: [],
+    pickupService: {
+      pickupAddress: "",
+      pickupCost: 0,
+      pickupDate: format(new Date(), "yyyy-MM-dd"),
+    },
+    quotationConditions: {
+      conditions: "",
+      observations: "",
+      emissionDate: format(new Date(), "yyyy-MM-dd"),
+      expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
+    },
+    status: "pendiente",
+    trucks: [],
+    services: [],
+    quotationRate,
+    phases: { items: [] },
   };
 };

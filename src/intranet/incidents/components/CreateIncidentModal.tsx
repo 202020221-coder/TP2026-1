@@ -23,6 +23,7 @@ import {
 import { createIncident } from "../api/incident.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClientAutocomplete } from "./ClientAutocomplete";
 
 interface CreateIncidentModalProps {
   open: boolean;
@@ -181,24 +182,18 @@ export const CreateIncidentModal: FC<CreateIncidentModalProps> = ({
           {/* Empresa involucrada */}
           <div className="col-span-2 flex flex-col gap-1">
             <Label htmlFor="ci-empresa">
-              Empresa Involucrada (RUC) <span className="text-red-500">*</span>
+              Empresa Involucrada <span className="text-red-500">*</span>
             </Label>
-            {defaultClientId ? (
-              <Input
-                id="ci-empresa"
-                value={defaultClientId}
-                disabled
-                className="bg-muted text-muted-foreground"
-              />
-            ) : (
-              <Input
-                id="ci-empresa"
-                placeholder="Ej: 20501234567"
-                value={form.empresa_involucrada}
-                onChange={(e) =>
-                  setForm({ ...form, empresa_involucrada: e.target.value })
-                }
-              />
+            <ClientAutocomplete
+              value={form.empresa_involucrada}
+              onChange={(ruc) => setForm({ ...form, empresa_involucrada: ruc })}
+              disabled={!!defaultClientId}
+              placeholder="Buscar por RUC o razón social"
+            />
+            {form.empresa_involucrada && (
+              <p className="text-xs text-muted-foreground">
+                RUC: {form.empresa_involucrada}
+              </p>
             )}
           </div>
 

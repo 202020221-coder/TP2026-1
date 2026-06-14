@@ -1,3 +1,5 @@
+import type { IncidentState } from "../enum/incident-state.record";
+
 export interface Incident {
   id_incidencia: number;
   id_proyecto: number;
@@ -47,4 +49,4 @@ export interface IncidentInvolved {
   perfil_registrado: string | null;
 }
 
-export type IncidentState = "Sin enviar" | "Enviado" | "En revisión" | "Cerrado";
+export type { IncidentState } from "../enum/incident-state.record";

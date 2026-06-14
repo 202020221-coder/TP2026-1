@@ -1,4 +1,5 @@
 import { useState, type FC } from "react";
+import { useNavigate } from "react-router";
 import {
   Table,
   TableHeader,
@@ -20,11 +21,12 @@ import {
   Pencil,
   FileCheck,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { getIncidentQuotations } from "../../api/incident.api";
+import { toast } from "sonner";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import { QuotationCommentsModal } from "./QuotationCommentsModal";
+import { EditIncidentQuotationModal } from "./EditIncidentQuotationModal";
+import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
 
 // ── Badge style map (all states) ──────────────────────────────────────────────
 const quotationStatusStyles = new Map<QuotationState, string>([
@@ -36,6 +38,65 @@ const quotationStatusStyles = new Map<QuotationState, string>([
   ["Pago realizado", "bg-violet-100 text-violet-700 border-violet-300"],
 ]);
 
+// ── Mock data (reemplazar con API real cuando el backend esté listo) ─────────
+const MOCK_QUOTATIONS: IncidentQuotation[] = [
+  {
+    id: 1,
+    id_incidencia: 0,
+    nombre: "COT-INC-001",
+    fecha_envio: "2025-05-10",
+    version: 1,
+    precio_subtotal: 15800.0,
+    estado: "Aprobado",
+    mensajes: 3,
+    mensajes_pendientes: 0,
+  },
+  {
+    id: 2,
+    id_incidencia: 0,
+    nombre: "COT-INC-002",
+    fecha_envio: "2025-05-18",
+    version: 2,
+    precio_subtotal: 17200.5,
+    estado: "Enviado",
+    mensajes: 4,
+    mensajes_pendientes: 2,
+  },
+  {
+    id: 3,
+    id_incidencia: 0,
+    nombre: "COT-INC-003",
+    fecha_envio: null,
+    version: 3,
+    precio_subtotal: null,
+    estado: "Pendiente",
+    mensajes: 0,
+    mensajes_pendientes: 0,
+  },
+  {
+    id: 4,
+    id_incidencia: 0,
+    nombre: "COT-INC-004",
+    fecha_envio: "2025-05-22",
+    version: 1,
+    precio_subtotal: 18900.0,
+    estado: "Disputado",
+    mensajes: 6,
+    mensajes_pendientes: 3,
+  },
+  {
+    id: 5,
+    id_incidencia: 0,
+    nombre: "COT-INC-005",
+    fecha_envio: "2025-05-28",
+    version: 2,
+    precio_subtotal: 22500.0,
+    estado: "Pago realizado",
+    mensajes: 2,
+    mensajes_pendientes: 0,
+  },
+];
+
 interface IncidentQuotationsTableProps {
   incidentId: number;
 }
@@ -43,13 +104,15 @@ interface IncidentQuotationsTableProps {
 export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
   incidentId,
 }) => {
-  const { data: quotations = [], isFetching } = useQuery({
-    queryKey: ["incident-quotations", incidentId],
-    queryFn: () => getIncidentQuotations(incidentId),
-    enabled: incidentId > 0,
-  });
+  // NOTE: reemplazar con useQuery cuando el endpoint exista
+  const isFetching = false;
+  const quotations = MOCK_QUOTATIONS.map((q) => ({
+    ...q,
+    id_incidencia: incidentId,
+  }));
 
   const [commentsOpen, setCommentsOpen] = useState<number | null>(null);
+  const [editQuotation, setEditQuotation] = useState<IncidentQuotation | null>(null);
 
   return (
     <>
@@ -58,6 +121,13 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
           quotationId={commentsOpen}
           open
           onClose={() => setCommentsOpen(null)}
+        />
+      )}
+      {editQuotation && (
+        <EditIncidentQuotationModal
+          quotation={editQuotation}
+          open
+          onClose={() => setEditQuotation(null)}
         />
       )}
 
@@ -109,6 +179,7 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
                   key={q.id}
                   quotation={q}
                   onOpenComments={() => setCommentsOpen(q.id)}
+                  onOpenEdit={() => setEditQuotation(q)}
                 />
               ))
             )}
@@ -131,12 +202,14 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
 const QuotationTableRow: FC<{
   quotation: IncidentQuotation;
   onOpenComments: () => void;
-}> = ({ quotation, onOpenComments }) => {
+  onOpenEdit: () => void;
+}> = ({ quotation, onOpenComments, onOpenEdit }) => {
   const badgeClass =
     quotationStatusStyles.get(quotation.estado) ??
     "bg-gray-100 text-gray-600 border-gray-300";
 
   const hasPending = (quotation.mensajes_pendientes ?? 0) > 0;
+  const navigate = useNavigate();
 
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors">
@@ -217,6 +290,7 @@ const QuotationTableRow: FC<{
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => navigate(`/intranet/cotizaciones/detalles/${quotation.id}`)}
                 className="h-7 w-7 text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                 aria-label="Ver cotización"
               >
@@ -237,6 +311,7 @@ const QuotationTableRow: FC<{
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={onOpenEdit}
                 className="h-7 w-7 text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                 aria-label="Editar cotización"
               >
@@ -254,6 +329,11 @@ const QuotationTableRow: FC<{
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => {
+                  downloadPurchaseOrder(quotation.id).catch(() =>
+                    toast.error("No se pudo descargar la orden de compra")
+                  );
+                }}
                 className="h-7 w-7 text-violet-500 hover:text-violet-700 hover:bg-violet-50 transition-colors"
                 aria-label="Ver orden de compra"
               >

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useLocation, useSearchParams } from "react-router";
+import { useLocation, useSearchParams, useNavigate } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
 import {
   IncidentObjectsModal,
   IncidentPersonnelModal,
+  IncidentMenuTabs,
   IncidentsTable,
 } from "../components";
-import { CreateIncidentQuotationModal } from "../components/detail/CreateIncidentQuotationModal";
+import type { IncidentTab } from "../components/IncidentMenuTabs";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ListIncidentsProvider } from "../context/ListIncidentsProvider";
@@ -30,6 +31,7 @@ export function IncidentsManagementPage() {
   const location = useLocation();
   const navigationState = location.state as IncidentsNavigationState | null;
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
+  const tabParam = searchParams.get("tab") as IncidentTab | null;
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
   const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
   const [sumaGastosModalOpen, setSumaGastosModalOpen] = useState(false);
@@ -60,6 +62,7 @@ export function IncidentsManagementPage() {
           projectId={projectId}
           projectNameFromState={navigationState?.projectName}
           clientNameFromState={navigationState?.clientName}
+          initialTab={tabParam}
           objectsModalOpen={objectsModalOpen}
           onCloseObjectsModal={() => setObjectsModalOpen(false)}
           onOpenObjectsModal={() => setObjectsModalOpen(true)}
@@ -79,6 +82,7 @@ function IncidentsContent({
   projectId,
   projectNameFromState,
   clientNameFromState,
+  initialTab,
   objectsModalOpen,
   onCloseObjectsModal,
   onOpenObjectsModal,
@@ -92,6 +96,7 @@ function IncidentsContent({
   projectId?: number;
   projectNameFromState?: string | null;
   clientNameFromState?: string;
+  initialTab?: IncidentTab | null;
   objectsModalOpen: boolean;
   onCloseObjectsModal: () => void;
   onOpenObjectsModal: () => void;
@@ -105,6 +110,9 @@ function IncidentsContent({
   const { result } = useIncidents();
   const incidents = (result.data?.data ?? []) as Incident[];
   const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<IncidentTab>(
+    initialTab ?? "incidencias",
+  );
 
   useEffect(() => {
     if (incidents.length === 0) {
@@ -134,6 +142,12 @@ function IncidentsContent({
         selectedIncident={selectedIncident}
       />
 
+      <IncidentMenuTabs
+        active={activeTab}
+        onChange={setActiveTab}
+        hasSelection={!!selectedIncidentId}
+      />
+
       <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
         <IncidentActionsPanel
           onOpenObjectsModal={onOpenObjectsModal}
@@ -142,6 +156,7 @@ function IncidentsContent({
           selectedIncidentId={selectedIncident?.id_incidencia}
           onSelectIncident={setSelectedIncidentId}
           selectedIncident={selectedIncident}
+          activeTab={activeTab}
         />
       </div>
 
@@ -175,6 +190,7 @@ function IncidentActionsPanel({
   selectedIncidentId,
   onSelectIncident,
   selectedIncident,
+  activeTab,
 }: {
   onOpenObjectsModal: () => void;
   onOpenPersonnelModal: () => void;
@@ -182,27 +198,72 @@ function IncidentActionsPanel({
   selectedIncidentId?: number;
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
+  activeTab: IncidentTab;
 }) {
-  const [createQuotationOpen, setCreateQuotationOpen] = useState(false);
+  const navigate = useNavigate();
+
+  if (activeTab === "objetos") {
+    return (
+      <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
+        <p className="text-sm text-muted-foreground">
+          {selectedIncident
+            ? "Gestiona los objetos involucrados en esta incidencia."
+            : "Selecciona una incidencia para gestionar sus objetos."}
+        </p>
+        <Button
+          variant="outline"
+          onClick={onOpenObjectsModal}
+          disabled={!selectedIncidentId}
+          className="self-start"
+        >
+          Objetos involucrados
+        </Button>
+      </div>
+    );
+  }
+
+  if (activeTab === "personal") {
+    return (
+      <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
+        <p className="text-sm text-muted-foreground">
+          {selectedIncident
+            ? "Gestiona el personal involucrado en esta incidencia."
+            : "Selecciona una incidencia para gestionar su personal."}
+        </p>
+        <Button
+          variant="outline"
+          onClick={onOpenPersonnelModal}
+          disabled={!selectedIncidentId}
+          className="self-start"
+        >
+          Personal involucrados
+        </Button>
+      </div>
+    );
+  }
+
+  if (activeTab === "ocurrencias") {
+    return (
+      <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
+        <p className="text-sm text-muted-foreground">
+          {selectedIncident
+            ? "Gestiona las ocurrencias de esta incidencia."
+            : "Selecciona una incidencia para ver sus ocurrencias."}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
       <div>
         <Button
           className="h-10 px-5 font-medium"
-          onClick={() => setCreateQuotationOpen(true)}
+          onClick={() => navigate(`/intranet/cotizaciones/crear?incidenciaId=${selectedIncidentId}`)}
           disabled={!selectedIncidentId}
         >
           Crear cotizacion de incidencia
         </Button>
       </div>
-
-      {selectedIncident && (
-        <CreateIncidentQuotationModal
-          incidentId={selectedIncident.id_incidencia}
-          open={createQuotationOpen}
-          onClose={() => setCreateQuotationOpen(false)}
-        />
-      )}
 
       <div className="w-full min-w-0 overflow-x-auto">
         <IncidentsTable
@@ -336,19 +397,12 @@ function IncidentsProjectHeader({
     selectedIncident?.empresa_involucrada ?? clientNameFromState ?? "-";
 
   const statusStyles = new Map<IncidentState, string>([
-    [
-      IncidentStatesRecord.sinEnviar,
-      "bg-gray-100 text-gray-600 border-gray-300",
-    ],
-    [
-      IncidentStatesRecord.enviado,
-      "bg-blue-100 text-blue-700 border-blue-300",
-    ],
-    [
-      IncidentStatesRecord.enRevision,
-      "bg-amber-100 text-amber-700 border-amber-300",
-    ],
-    [IncidentStatesRecord.cerrado, "bg-red-100 text-red-700 border-red-300"],
+    [IncidentStatesRecord.sinEnviar, "bg-gray-100 text-gray-600 border-gray-300"],
+    [IncidentStatesRecord.cotizacionSinRespuesta, "bg-blue-100 text-blue-700 border-blue-300"],
+    [IncidentStatesRecord.cotizacionDisputada, "bg-orange-100 text-orange-700 border-orange-300"],
+    [IncidentStatesRecord.pagoPorRecibir, "bg-amber-100 text-amber-700 border-amber-300"],
+    [IncidentStatesRecord.pagoRealizado, "bg-green-100 text-green-700 border-green-300"],
+    [IncidentStatesRecord.materialRecuperado, "bg-violet-100 text-violet-700 border-violet-300"],
   ]);
 
   return (

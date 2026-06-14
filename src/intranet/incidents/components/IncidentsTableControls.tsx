@@ -50,7 +50,7 @@ const TopControls: FC = () => {
         {/* Buscar */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Input
-            placeholder="Buscar por cliente o comentario"
+            placeholder="Buscar por nombre, cliente o comentario"
             className="pl-8"
             disabled={result.isFetching}
             value={searchInput}

@@ -8,28 +8,48 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Save } from "lucide-react";
 import { toast } from "sonner";
+import type { IncidentQuotation } from "../../interfaces/incident-quotation";
+import type { QuotationState } from "../../enum/quotation-state.record";
 
-interface CreateIncidentQuotationModalProps {
-  incidentId: number;
+interface EditIncidentQuotationModalProps {
+  quotation: IncidentQuotation;
   open: boolean;
   onClose: () => void;
 }
 
-export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps> = ({
-  incidentId,
+const STATE_TRANSITIONS: Record<string, string[]> = {
+  Pendiente: ["Pendiente", "Enviado", "Rechazado"],
+  Enviado: ["Enviado", "Aprobado", "Rechazado", "Disputado"],
+  Aprobado: ["Aprobado", "Pago realizado"],
+  Rechazado: ["Rechazado"],
+  Disputado: ["Disputado", "Enviado"],
+  "Pago realizado": ["Pago realizado"],
+};
+
+export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = ({
+  quotation,
   open,
   onClose,
 }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    nombre: "",
-    precio_subtotal: "",
-    fecha_validez: "",
+    nombre: quotation.nombre,
+    precio_subtotal: quotation.precio_subtotal?.toString() ?? "",
     notas: "",
+    estado: quotation.estado,
   });
+
+  const allowedStates = STATE_TRANSITIONS[quotation.estado] ?? [quotation.estado];
 
   const handleGuardar = async () => {
     if (!form.nombre.trim()) {
@@ -37,10 +57,9 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
       return;
     }
     setSaving(true);
-    // TODO: conectar con POST /incidencias/{id}/cotizaciones cuando el backend esté listo
+    // TODO: conectar con PUT /incidencias/{id}/cotizaciones/{id} cuando el backend esté listo
     await new Promise((res) => setTimeout(res, 800));
-    toast.success("Cotización creada correctamente.");
-    setForm({ nombre: "", precio_subtotal: "", fecha_validez: "", notas: "" });
+    toast.success("Cotización actualizada correctamente.");
     setSaving(false);
     onClose();
   };
@@ -51,32 +70,31 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
-            Crear cotización de incidencia
+            Editar cotización
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Incidencia #{incidentId}
+            {quotation.nombre} — v{quotation.version}
           </p>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 py-2">
           {/* Nombre */}
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-nombre">
+            <Label htmlFor="eq-nombre">
               Nombre <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="cq-nombre"
-              placeholder="Ej: COT-INC-004"
+              id="eq-nombre"
               value={form.nombre}
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             />
           </div>
 
-          {/* Precio subtotal */}
+          {/* Precio */}
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-precio">Precio Subtotal (S/) — Opcional</Label>
+            <Label htmlFor="eq-precio">Precio Subtotal (S/) — Opcional</Label>
             <Input
-              id="cq-precio"
+              id="eq-precio"
               type="number"
               min={0}
               step={0.01}
@@ -88,26 +106,45 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
             />
           </div>
 
-          {/* Fecha de validez */}
+          {/* Estado */}
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-validez">Fecha de Validez — Opcional</Label>
-            <Input
-              id="cq-validez"
-              type="date"
-              value={form.fecha_validez}
-              onChange={(e) =>
-                setForm({ ...form, fecha_validez: e.target.value })
+            <Label>Estado</Label>
+            <Select
+              value={form.estado}
+              onValueChange={(val) =>
+                setForm({ ...form, estado: val as QuotationState })
               }
-            />
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {allowedStates.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {allowedStates.length === 1 && quotation.estado === "Pago realizado" && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Cotización finalizada — estado no modificable
+              </p>
+            )}
+            {quotation.estado === "Aprobado" && (
+              <p className="text-xs text-amber-600 mt-0.5">
+                Cotización aprobada — solo puede pasar a "Pago realizado"
+              </p>
+            )}
           </div>
 
           {/* Notas */}
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-notas">Notas — Opcional</Label>
+            <Label htmlFor="eq-notas">Notas — Opcional</Label>
             <Textarea
-              id="cq-notas"
+              id="eq-notas"
               rows={3}
-              placeholder="Notas o comentarios sobre esta cotización..."
+              placeholder="Notas adicionales..."
               value={form.notas}
               onChange={(e) => setForm({ ...form, notas: e.target.value })}
             />
@@ -119,8 +156,8 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
               Cancelar
             </Button>
             <Button onClick={handleGuardar} disabled={saving} className="gap-1">
-              <Plus size={14} />
-              {saving ? "Creando..." : "Crear Cotización"}
+              <Save size={14} />
+              {saving ? "Guardando..." : "Guardar"}
             </Button>
           </div>
         </div>

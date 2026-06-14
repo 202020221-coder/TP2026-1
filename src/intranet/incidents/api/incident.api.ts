@@ -6,7 +6,6 @@ import type {
   GetIncidentResponse,
   GetIncidentObjectsResponse,
   GetIncidentInvolvedResponse,
-  GetIncidentQuotationsResponse,
 } from "../interfaces/responses.dto";
 import type { Incident } from "../interfaces/incident";
 import type { InvolvedObject } from "../interfaces/incident-quotation";
@@ -28,6 +27,7 @@ export interface CreateIncidentBody {
 
 export interface UpdateIncidentBody {
   id: number;
+  nombre_incidencia?: string | null;
   empresa_involucrada?: string;
   cotizacion_remuneracion?: number;
   comentario?: string;
@@ -183,7 +183,8 @@ function buildIncidentsByProjectResponse(
     const matchesSearch =
       !search ||
       inc.comentario?.toLowerCase().includes(search) ||
-      inc.Cliente_Nombre?.toLowerCase().includes(search);
+      inc.Cliente_Nombre?.toLowerCase().includes(search) ||
+      inc.nombre_incidencia?.toLowerCase().includes(search);
     return matchesEstado && matchesSearch;
   });
 
@@ -386,30 +387,4 @@ export async function deleteIncidentInvolved(
   ivid: number,
 ): Promise<void> {
   await axiosInstance.delete(`/incidencias/${id}/involucrados/${ivid}`);
-}
-
-// ── Cotizaciones de incidencia ────────────────────────────────────────────────
-
-export interface CreateIncidentQuotationBody {
-  nombre: string;
-  precio_subtotal?: number;
-  notas?: string;
-}
-
-/** Listar cotizaciones de una incidencia — `GET /incidencias/{id}/cotizaciones`. */
-export async function getIncidentQuotations(
-  id: number,
-): Promise<GetIncidentQuotationsResponse> {
-  const response = await axiosInstance.get<GetIncidentQuotationsResponse>(
-    `/incidencias/${id}/cotizaciones`,
-  );
-  return response.data;
-}
-
-/** Crear cotización de incidencia — `POST /incidencias/{id}/cotizaciones`. */
-export async function createIncidentQuotation(
-  id: number,
-  body: CreateIncidentQuotationBody,
-): Promise<void> {
-  await axiosInstance.post(`/incidencias/${id}/cotizaciones`, body);
 }

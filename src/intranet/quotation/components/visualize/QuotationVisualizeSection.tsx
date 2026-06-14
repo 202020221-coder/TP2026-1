@@ -12,6 +12,7 @@ type BaseProps = {
 type CreateModeProps = BaseProps & {
   mode: "create";
   orderId: string;
+  incidenciaId?: string;
 };
 
 type UpdateModeProps = BaseProps & {
@@ -26,10 +27,11 @@ export const QuotationVisualizeSection = (
 ) => {
   const isCreate = props.mode === "create";
   const orderId = isCreate ? props.orderId : "";
+  const incidenciaId = isCreate ? (props as CreateModeProps).incidenciaId : undefined;
   const quotationId = isCreate ? "" : props.quotationId;
 
   const { isSending: createSending, handleSubmit: createSubmit } =
-    useCreateQuotation({ referenceData: props.referenceData, orderId });
+    useCreateQuotation({ referenceData: props.referenceData, orderId, incidenciaId });
   const { isSending: updateSending, handleSubmit: updateSubmit } =
     useUpdateQuotation({ quotationId });
 
