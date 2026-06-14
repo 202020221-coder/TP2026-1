@@ -14,14 +14,12 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { getIncidentById } from "../api/incident.api";
 import { IncidentWorkflowStatus } from "../components/detail/IncidentWorkflowStatus";
 import { IncidentQuotationsTable } from "../components/detail/IncidentQuotationsTable";
-import { CreateIncidentQuotationModal } from "../components/detail/CreateIncidentQuotationModal";
 import { IncidentObjectsModal } from "../components/IncidentObjectsModal";
 
 export function IncidentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const incidentId = Number(id);
-  const [createQuotationOpen, setCreateQuotationOpen] = useState(false);
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
 
   const {
@@ -151,7 +149,7 @@ export function IncidentDetailPage() {
             {/* CTA Button */}
             <div className="flex justify-start pt-1">
               <Button
-                onClick={() => setCreateQuotationOpen(true)}
+                onClick={() => navigate(`/intranet/cotizaciones/crear?incidenciaId=${incidentId}`)}
                 className="gap-2 px-5 py-2.5 font-medium"
               >
                 Crear cotización de incidencia
@@ -197,12 +195,6 @@ export function IncidentDetailPage() {
       </div>
 
       {/* ── Modals ── */}
-      <CreateIncidentQuotationModal
-        incidentId={incidentId}
-        open={createQuotationOpen}
-        onClose={() => setCreateQuotationOpen(false)}
-      />
-
       <IncidentObjectsModal
         incidentId={incidentId}
         open={objectsModalOpen}

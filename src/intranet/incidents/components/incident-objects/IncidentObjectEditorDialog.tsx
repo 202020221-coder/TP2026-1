@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,21 @@ export function IncidentObjectEditorDialog({
   onSubmit,
 }: IncidentObjectEditorDialogProps) {
   const readOnly = mode === "view";
+  const isCreate = mode === "create";
+  const showCatalog = isCreate && form.categoria === "Objetos";
+
+  const { data: inventoryItems = [] } = useQuery({
+    queryKey: ["inventory-catalog"],
+    queryFn: async () => {
+      const { default: axiosInstance } = await import("@/shared/api/axios.config");
+      const res = await axiosInstance.get<{ id: number; nombre: string; cantidad: number }[]>("/inventario", { params: { limit: 200 } });
+      if (Array.isArray(res.data)) return res.data;
+      if (res.data && typeof res.data === "object" && "data" in res.data) return (res.data as any).data ?? [];
+      return [];
+    },
+    enabled: open && showCatalog,
+    staleTime: 60000,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,6 +85,7 @@ export function IncidentObjectEditorDialog({
                 onFormChange({
                   ...form,
                   categoria: value as InvolvedObjectCategory,
+                  objeto: "",
                 })
               }
               disabled={readOnly}
@@ -95,16 +112,40 @@ export function IncidentObjectEditorDialog({
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <Label>Objeto</Label>
-            <Input
-              value={form.objeto}
-              onChange={(event) =>
-                onFormChange({ ...form, objeto: event.target.value })
-              }
-              disabled={readOnly}
-            />
-          </div>
+          {showCatalog ? (
+            <div className="flex flex-col gap-1">
+              <Label>Objeto</Label>
+              <Select
+                value={form.objeto}
+                onValueChange={(value) =>
+                  onFormChange({ ...form, objeto: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar del inventario..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {inventoryItems.map((item) => (
+                    <SelectItem key={item.id} value={item.nombre}>
+                      {item.nombre} (Disponible: {item.cantidad})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <Label>Objeto / Placa</Label>
+              <Input
+                value={form.objeto}
+                onChange={(event) =>
+                  onFormChange({ ...form, objeto: event.target.value })
+                }
+                disabled={readOnly}
+                placeholder={form.categoria === "Camiones" ? "Ej: ABC-123" : ""}
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-1">
             <Label>Precio a remunerar (S/)</Label>

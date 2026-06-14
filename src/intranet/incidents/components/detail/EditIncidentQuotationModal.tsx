@@ -18,6 +18,8 @@ import {
 import { Textarea } from "@/shared/components/ui/textarea";
 import { FileText, Save } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { updateQuotation } from "@/intranet/quotation/api/quotation.api";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
 
@@ -41,11 +43,11 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
   open,
   onClose,
 }) => {
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     nombre: quotation.nombre,
     precio_subtotal: quotation.precio_subtotal?.toString() ?? "",
-    notas: "",
     estado: quotation.estado,
   });
 
@@ -57,11 +59,31 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
       return;
     }
     setSaving(true);
-    // TODO: conectar con PUT /incidencias/{id}/cotizaciones/{id} cuando el backend esté listo
-    await new Promise((res) => setTimeout(res, 800));
-    toast.success("Cotización actualizada correctamente.");
-    setSaving(false);
-    onClose();
+    try {
+      await updateQuotation(quotation.id, {
+        name: form.nombre.trim(),
+        inventory: {},
+        services: [],
+        trucks: [],
+        pickupService: { pickupCost: 0, pickupDate: "", pickupAddress: "" },
+        quotationConditions: {
+          emissionDate: "",
+          expirationDate: "",
+          conditions: "",
+          observations: "",
+        },
+        quotationRate: { sellingRate: 0, buyingRate: 0 },
+        phases: { items: [] },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["incident", quotation.id_incidencia] });
+      toast.success("Cotización actualizada correctamente.");
+      onClose();
+    } catch (e: any) {
+      const msg = e?.response?.data?.error ?? e?.message ?? "Error desconocido";
+      toast.error(`No se pudo actualizar: ${msg}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -138,15 +160,14 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
             )}
           </div>
 
-          {/* Notas */}
+          {/* Fecha de validez */}
           <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="eq-notas">Notas — Opcional</Label>
-            <Textarea
-              id="eq-notas"
-              rows={3}
-              placeholder="Notas adicionales..."
-              value={form.notas}
-              onChange={(e) => setForm({ ...form, notas: e.target.value })}
+            <Label htmlFor="eq-validez">Fecha de Validez — Opcional</Label>
+            <Input
+              id="eq-validez"
+              type="date"
+              value={""}
+              placeholder="Seleccionar fecha"
             />
           </div>
 

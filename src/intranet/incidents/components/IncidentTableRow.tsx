@@ -83,11 +83,13 @@ export const IncidentTableRow: FC<{
   return (
     <>
       <EditIncidentModal incident={incident} open={editOpen} onClose={() => setEditOpen(false)} />
-      <QuotationCommentsModal
-        quotationId={incident.id_incidencia}
-        open={commentsOpen}
-        onClose={() => setCommentsOpen(false)}
-      />
+      {incident.cotizacion_remuneracion && (
+        <QuotationCommentsModal
+          quotationId={incident.cotizacion_remuneracion}
+          open={commentsOpen}
+          onClose={() => setCommentsOpen(false)}
+        />
+      )}
 
       <TableRow
         className={`border-b border-gray-100 transition-colors cursor-pointer ${
@@ -160,7 +162,11 @@ export const IncidentTableRow: FC<{
                   size="icon"
                   onClick={(event) => {
                     event.stopPropagation();
-                    setCommentsOpen(true);
+                    if (incident.cotizacion_remuneracion) {
+                      setCommentsOpen(true);
+                    } else {
+                      toast.info("No hay cotización de remuneración asociada para ver comentarios");
+                    }
                   }}
                   className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                   aria-label="Comentarios"
