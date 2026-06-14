@@ -39,6 +39,7 @@ export const EditIncidentModal: FC<EditIncidentModalProps> = ({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    nombre_incidencia: incident.nombre_incidencia ?? "",
     empresa_involucrada: incident.empresa_involucrada,
     cotizacion_remuneracion: incident.cotizacion_remuneracion?.toString() ?? "",
     comentario: incident.comentario,
@@ -50,10 +51,11 @@ export const EditIncidentModal: FC<EditIncidentModalProps> = ({
     try {
       await updateIncident({
         id: incident.id_incidencia,
+        nombre_incidencia: form.nombre_incidencia.trim() || null,
         empresa_involucrada: form.empresa_involucrada,
         cotizacion_remuneracion: form.cotizacion_remuneracion
           ? Number(form.cotizacion_remuneracion)
-          : null,
+          : undefined,
         comentario: form.comentario,
         estado: form.estado,
       });
@@ -103,6 +105,18 @@ export const EditIncidentModal: FC<EditIncidentModalProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Nombre de la incidencia */}
+          <div className="col-span-2 flex flex-col gap-1">
+            <Label>Nombre de la incidencia</Label>
+            <Input
+              value={form.nombre_incidencia}
+              onChange={(e) =>
+                setForm({ ...form, nombre_incidencia: e.target.value })
+              }
+              placeholder="Ej: Falla en rociadores - Piso 3"
+            />
           </div>
 
           {/* Empresa involucrada */}

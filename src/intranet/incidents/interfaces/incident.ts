@@ -7,6 +7,7 @@ export interface Incident {
   estado: IncidentState;
   Cotizacion_Nombre: string | null;
   Cliente_Nombre: string;
+  nombre_incidencia: string | null;
 }
 
 export interface IncidentObject {

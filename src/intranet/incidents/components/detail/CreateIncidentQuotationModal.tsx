@@ -11,6 +11,8 @@ import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { createIncidentQuotation } from "../../api/incident.api";
 
 interface CreateIncidentQuotationModalProps {
   incidentId: number;
@@ -23,6 +25,7 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
   open,
   onClose,
 }) => {
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     nombre: "",
@@ -36,12 +39,23 @@ export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps>
       return;
     }
     setSaving(true);
-    // TODO: call real API endpoint when backend is ready
-    await new Promise((res) => setTimeout(res, 800));
-    toast.success("Cotización creada correctamente.");
-    setForm({ nombre: "", precio_subtotal: "", notas: "" });
-    setSaving(false);
-    onClose();
+    try {
+      await createIncidentQuotation(incidentId, {
+        nombre: form.nombre.trim(),
+        precio_subtotal: form.precio_subtotal
+          ? Number(form.precio_subtotal)
+          : undefined,
+        notas: form.notas.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["incident-quotations", incidentId] });
+      toast.success("Cotización creada correctamente.");
+      setForm({ nombre: "", precio_subtotal: "", notas: "" });
+      onClose();
+    } catch {
+      toast.error("No se pudo crear la cotización.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

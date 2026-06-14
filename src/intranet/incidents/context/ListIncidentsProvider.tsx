@@ -8,10 +8,12 @@ export const ListIncidentsProvider: FC<{
   children: ReactNode;
   initialQueryParams?: Partial<GetIncidentsQP>;
   projectId?: number;
+  clientId?: string;
 }> = ({
   children,
   initialQueryParams,
   projectId,
+  clientId,
 }) => {
   const [queryParams, setQueryParams] = useState<GetIncidentsQP>({
     page: 1,
@@ -35,7 +37,7 @@ export const ListIncidentsProvider: FC<{
   };
 
   return (
-    <ListIncidentsContext.Provider value={{ result, query, queryParams }}>
+    <ListIncidentsContext.Provider value={{ result, query, queryParams, clientId }}>
       {children}
     </ListIncidentsContext.Provider>
   );

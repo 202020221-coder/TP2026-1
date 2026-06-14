@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,21 +27,43 @@ import { toast } from "sonner";
 interface CreateIncidentModalProps {
   open: boolean;
   onClose: () => void;
+  defaultProjectId?: number;
+  defaultClientId?: string;
 }
+
+const INITIAL_FORM = {
+  id_proyecto: "",
+  nombre_incidencia: "",
+  empresa_involucrada: "",
+  cotizacion_remuneracion: "",
+  comentario: "",
+  estado: IncidentStatesRecord.sinEnviar as IncidentState,
+};
 
 export const CreateIncidentModal: FC<CreateIncidentModalProps> = ({
   open,
   onClose,
+  defaultProjectId,
+  defaultClientId,
 }) => {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    id_proyecto: "",
-    empresa_involucrada: "",
-    cotizacion_remuneracion: "",
-    comentario: "",
-    estado: IncidentStatesRecord.sinEnviar as IncidentState,
+    ...INITIAL_FORM,
+    id_proyecto: defaultProjectId?.toString() ?? "",
+    empresa_involucrada: defaultClientId ?? "",
   });
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        ...INITIAL_FORM,
+        id_proyecto: defaultProjectId?.toString() ?? "",
+        empresa_involucrada: defaultClientId ?? "",
+      });
+      setSaving(false);
+    }
+  }, [open, defaultProjectId, defaultClientId]);
 
   const handleGuardar = async () => {
     if (!form.id_proyecto || !form.empresa_involucrada || !form.comentario) {
@@ -52,25 +74,27 @@ export const CreateIncidentModal: FC<CreateIncidentModalProps> = ({
     try {
       await createIncident({
         id_proyecto: Number(form.id_proyecto),
+        nombre_incidencia: form.nombre_incidencia.trim() || null,
         empresa_involucrada: form.empresa_involucrada,
         cotizacion_remuneracion: form.cotizacion_remuneracion
           ? Number(form.cotizacion_remuneracion)
-          : null,
+          : undefined,
         comentario: form.comentario,
         estado: form.estado,
       });
       await queryClient.invalidateQueries({ queryKey: ["incidents"] });
       toast.success("Incidencia creada correctamente.");
       setForm({
-        id_proyecto: "",
-        empresa_involucrada: "",
-        cotizacion_remuneracion: "",
-        comentario: "",
-        estado: IncidentStatesRecord.sinEnviar,
+        ...INITIAL_FORM,
+        id_proyecto: defaultProjectId?.toString() ?? "",
+        empresa_involucrada: defaultClientId ?? "",
       });
       onClose();
-    } catch {
-      toast.error("No se pudo crear la incidencia.");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error ?? e?.message ?? "Error desconocido";
+      toast.error(`No se pudo crear: ${msg}`);
+      console.error("Create incident error:", e?.response?.data ?? e);
     } finally {
       setSaving(false);
     }
@@ -86,22 +110,36 @@ export const CreateIncidentModal: FC<CreateIncidentModalProps> = ({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 py-2">
-          {/* ID Proyecto */}
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="ci-proyecto">
-              ID Proyecto <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="ci-proyecto"
-              type="number"
-              min={1}
-              placeholder="ID del proyecto"
-              value={form.id_proyecto}
-              onChange={(e) =>
-                setForm({ ...form, id_proyecto: e.target.value })
-              }
-            />
-          </div>
+          {/* ID Proyecto - auto cuando viene de contexto */}
+          {defaultProjectId ? (
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="ci-proyecto">
+                ID Proyecto <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="ci-proyecto"
+                value={`Proyecto #${defaultProjectId}`}
+                disabled
+                className="bg-muted text-muted-foreground"
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="ci-proyecto">
+                ID Proyecto <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="ci-proyecto"
+                type="number"
+                min={1}
+                placeholder="ID del proyecto"
+                value={form.id_proyecto}
+                onChange={(e) =>
+                  setForm({ ...form, id_proyecto: e.target.value })
+                }
+              />
+            </div>
+          )}
 
           {/* Estado */}
           <div className="flex flex-col gap-1">
@@ -125,19 +163,43 @@ export const CreateIncidentModal: FC<CreateIncidentModalProps> = ({
             </Select>
           </div>
 
+          {/* Nombre de la incidencia */}
+          <div className="col-span-2 flex flex-col gap-1">
+            <Label htmlFor="ci-nombre">
+              Nombre de la incidencia
+            </Label>
+            <Input
+              id="ci-nombre"
+              placeholder="Ej: Falla en rociadores - Piso 3"
+              value={form.nombre_incidencia}
+              onChange={(e) =>
+                setForm({ ...form, nombre_incidencia: e.target.value })
+              }
+            />
+          </div>
+
           {/* Empresa involucrada */}
           <div className="col-span-2 flex flex-col gap-1">
             <Label htmlFor="ci-empresa">
               Empresa Involucrada (RUC) <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="ci-empresa"
-              placeholder="Ej: 20501234567"
-              value={form.empresa_involucrada}
-              onChange={(e) =>
-                setForm({ ...form, empresa_involucrada: e.target.value })
-              }
-            />
+            {defaultClientId ? (
+              <Input
+                id="ci-empresa"
+                value={defaultClientId}
+                disabled
+                className="bg-muted text-muted-foreground"
+              />
+            ) : (
+              <Input
+                id="ci-empresa"
+                placeholder="Ej: 20501234567"
+                value={form.empresa_involucrada}
+                onChange={(e) =>
+                  setForm({ ...form, empresa_involucrada: e.target.value })
+                }
+              />
+            )}
           </div>
 
           {/* Remuneración */}

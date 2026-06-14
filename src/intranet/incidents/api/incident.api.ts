@@ -6,6 +6,7 @@ import type {
   GetIncidentResponse,
   GetIncidentObjectsResponse,
   GetIncidentInvolvedResponse,
+  GetIncidentQuotationsResponse,
 } from "../interfaces/responses.dto";
 import type { Incident } from "../interfaces/incident";
 import type { InvolvedObject } from "../interfaces/incident-quotation";
@@ -19,15 +20,16 @@ import type {
 export interface CreateIncidentBody {
   id_proyecto: number;
   empresa_involucrada: string;
-  cotizacion_remuneracion?: number | null;
+  cotizacion_remuneracion?: number;
   comentario: string;
   estado?: string;
+  nombre_incidencia?: string | null;
 }
 
 export interface UpdateIncidentBody {
   id: number;
   empresa_involucrada?: string;
-  cotizacion_remuneracion?: number | null;
+  cotizacion_remuneracion?: number;
   comentario?: string;
   estado?: string;
 }
@@ -384,4 +386,30 @@ export async function deleteIncidentInvolved(
   ivid: number,
 ): Promise<void> {
   await axiosInstance.delete(`/incidencias/${id}/involucrados/${ivid}`);
+}
+
+// ── Cotizaciones de incidencia ────────────────────────────────────────────────
+
+export interface CreateIncidentQuotationBody {
+  nombre: string;
+  precio_subtotal?: number;
+  notas?: string;
+}
+
+/** Listar cotizaciones de una incidencia — `GET /incidencias/{id}/cotizaciones`. */
+export async function getIncidentQuotations(
+  id: number,
+): Promise<GetIncidentQuotationsResponse> {
+  const response = await axiosInstance.get<GetIncidentQuotationsResponse>(
+    `/incidencias/${id}/cotizaciones`,
+  );
+  return response.data;
+}
+
+/** Crear cotización de incidencia — `POST /incidencias/{id}/cotizaciones`. */
+export async function createIncidentQuotation(
+  id: number,
+  body: CreateIncidentQuotationBody,
+): Promise<void> {
+  await axiosInstance.post(`/incidencias/${id}/cotizaciones`, body);
 }

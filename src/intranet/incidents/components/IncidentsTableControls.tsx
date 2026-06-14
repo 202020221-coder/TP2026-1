@@ -30,7 +30,7 @@ export const IncidentsTableControls: FC<{ children: ReactNode }> = ({
 };
 
 const TopControls: FC = () => {
-  const { query, queryParams, result } = useIncidents();
+  const { query, queryParams, result, clientId } = useIncidents();
   const [createOpen, setCreateOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(queryParams.buscar ?? "");
 
@@ -40,7 +40,12 @@ const TopControls: FC = () => {
 
   return (
     <>
-      <CreateIncidentModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      <CreateIncidentModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        defaultProjectId={queryParams.id_proyecto}
+        defaultClientId={clientId}
+      />
       <div className="flex flex-wrap gap-4 items-start justify-between">
         {/* Buscar */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
