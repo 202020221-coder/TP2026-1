@@ -80,6 +80,15 @@ export interface TruckOption {
   price: string | number;
 }
 
+/** Fase de un servicio (mismo esquema que cotizaciones). */
+export interface ServiceOptionPhase {
+  id: string;
+  name: string;
+  description: string;
+  duration: number;
+  activities: { id: string; name: string }[];
+}
+
 /** Opción de servicio público para el paso 6 (selección de servicios). */
 export interface ServiceOption {
   id: string;
@@ -89,4 +98,6 @@ export interface ServiceOption {
   price: string | number;
   imageUrl?: string;
   Icon: import("lucide-react").LucideIcon;
+  /** Fases predeterminadas del servicio. */
+  fases?: ServiceOptionPhase[];
 }

@@ -8,6 +8,8 @@ import type {
   PersonalRequerido,
   CreatePersonalRequeridoDTO,
   UpdatePersonalRequeridoDTO,
+  ServicioFase,
+  ServicioSubservicio,
 } from "../interfaces/service";
 
 // Ruta del endpoint PÚBLICO de servicios para la landing (sin autenticación).
@@ -31,7 +33,111 @@ interface ServicioRaw {
   url_imagen?: string | null;
   Estado?: "Activo" | "Desactivado"; // campo real del backend
   activo?: boolean;                   // por compatibilidad defensiva
+  fases?: unknown;                    // fases embebidas (si el backend las incluye)
+  faces?: unknown;                    // tolerar typo común del backend
+  subservicios?: unknown;             // subservicios embebidos (si el backend los incluye)
+  sub_servicios?: unknown;            // tolerar snake_case alternativo
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FASES (mismo esquema que cotizaciones). El backend puede devolverlas embebidas
+// en el servicio o vía endpoint dedicado /servicios/:id/fases.
+// ─────────────────────────────────────────────────────────────────────────────
+interface FaseRaw {
+  id?: string | number;
+  ID_Fase?: string | number;
+  nombre?: string;
+  name?: string;
+  descripcion?: string;
+  description?: string;
+  duracion?: number | string;
+  duration?: number | string;
+  actividades?: unknown;
+  activities?: unknown;
+}
+
+interface ActividadRaw {
+  id?: string | number;
+  ID_Actividad?: string | number;
+  nombre?: string;
+  name?: string;
+}
+
+let faseSeq = 0;
+const genFaseId = (prefix: string) => `${prefix}_${Date.now()}_${faseSeq++}`;
+
+const toActividad = (raw: ActividadRaw) => ({
+  id: String(raw.id ?? raw.ID_Actividad ?? genFaseId("act")),
+  name: raw.name ?? raw.nombre ?? "",
+});
+
+const toFase = (raw: FaseRaw): ServicioFase => {
+  const actividadesRaw = (raw.activities ?? raw.actividades ?? []) as ActividadRaw[];
+  const activities = Array.isArray(actividadesRaw)
+    ? actividadesRaw.map(toActividad)
+    : [];
+  const durationValue = Number(raw.duration ?? raw.duracion ?? 1);
+  return {
+    id: String(raw.id ?? raw.ID_Fase ?? genFaseId("fase")),
+    name: raw.name ?? raw.nombre ?? "",
+    description: raw.description ?? raw.descripcion ?? "",
+    duration: Number.isFinite(durationValue) && durationValue > 0 ? durationValue : 1,
+    activities,
+  };
+};
+
+const pickFasesFromRaw = (raw: ServicioRaw): ServicioFase[] => {
+  const value = raw.fases ?? raw.faces;
+  if (!Array.isArray(value)) return [];
+  return (value as FaseRaw[]).map(toFase);
+};
+
+interface SubservicioRaw {
+  id?: number;
+  id_subservicio?: number;
+  ID_Servicio?: number;
+  ID_Subservicio?: number;
+  servicio_id?: number;
+  nombre?: string;
+  name?: string;
+  faseIds?: unknown;
+  fase_ids?: unknown;
+  fases?: unknown;
+  dias?: number | string;
+  dias_alquiler?: number | string;
+  days?: number | string;
+}
+
+const toSubservicio = (raw: SubservicioRaw): ServicioSubservicio => {
+  const fasesValue = raw.faseIds ?? raw.fase_ids ?? raw.fases ?? [];
+  const faseIds = Array.isArray(fasesValue)
+    ? fasesValue.map((f) =>
+        typeof f === "object" && f !== null
+          ? String((f as { id?: unknown }).id ?? "")
+          : String(f),
+      ).filter((id) => id.length > 0)
+    : [];
+  const diasValue = Number(raw.dias ?? raw.dias_alquiler ?? raw.days ?? 1);
+  return {
+    id: Number(
+      raw.id ??
+        raw.id_subservicio ??
+        raw.ID_Subservicio ??
+        raw.ID_Servicio ??
+        raw.servicio_id ??
+        0,
+    ),
+    nombre: raw.nombre ?? raw.name ?? "",
+    faseIds,
+    dias: Number.isFinite(diasValue) && diasValue > 0 ? diasValue : 1,
+  };
+};
+
+const pickSubserviciosFromRaw = (raw: ServicioRaw): ServicioSubservicio[] => {
+  const value = raw.subservicios ?? raw.sub_servicios;
+  if (!Array.isArray(value)) return [];
+  return (value as SubservicioRaw[]).map(toSubservicio);
+};
 
 const pickFotoFromRaw = (raw: ServicioRaw): string | null => {
   const value = raw.foto ?? raw.foto_url ?? raw.imagen ?? raw.url_imagen ?? null;
@@ -75,6 +181,8 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   observaciones: raw.observaciones ?? "",
   foto: pickFotoFromRaw(raw),
   activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
+  fases: pickFasesFromRaw(raw),
+  subservicios: pickSubserviciosFromRaw(raw),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,6 +244,8 @@ export const updateServicio = async (
       observaciones: dto.observaciones ?? "",
       foto: null,
       activo: dto.activo ?? true,
+      fases: [],
+      subservicios: [],
     };
   }
   return toServicio(raw);
@@ -157,7 +267,7 @@ export const uploadServicioFoto = async (
   });
   const raw = extractRaw(response.data);
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true, fases: [], subservicios: [] };
   }
   return toServicio(raw);
 };
@@ -168,9 +278,108 @@ export const toggleServicioActivo = async (id: number, currentActivo: boolean): 
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, construirlo manualmente
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo, fases: [], subservicios: [] };
   }
   return toServicio(raw);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FASES DEL SERVICIO
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Serializa una fase al formato esperado por el backend (snake_case). */
+const serializeFase = (fase: ServicioFase) => ({
+  nombre: fase.name,
+  descripcion: fase.description,
+  duracion: fase.duration,
+  actividades: fase.activities.map((a) => ({ nombre: a.name })),
+});
+
+/**
+ * Obtiene las fases de un servicio. Degrada de forma segura a `[]` si el
+ * endpoint aún no existe en el backend.
+ */
+export const getFasesByServicio = async (
+  servicioId: number,
+): Promise<ServicioFase[]> => {
+  try {
+    const response = await axiosInstance.get(`/servicios/${servicioId}/fases`);
+    const raw = response.data;
+    const arr: FaseRaw[] = Array.isArray(raw) ? raw : (raw?.data ?? raw?.fases ?? []);
+    return Array.isArray(arr) ? arr.map(toFase) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Reemplaza por completo las fases de un servicio. Envía la lista al endpoint
+ * dedicado; si falla (p. ej. el endpoint no existe), relanza el error para que
+ * el llamador decida cómo informarlo.
+ */
+export const saveServicioFases = async (
+  servicioId: number,
+  fases: ServicioFase[],
+): Promise<ServicioFase[]> => {
+  const payload = { fases: fases.map(serializeFase) };
+  const response = await axiosInstance.put(
+    `/servicios/${servicioId}/fases`,
+    payload,
+  );
+  const raw = response.data;
+  const arr: FaseRaw[] = Array.isArray(raw) ? raw : (raw?.data ?? raw?.fases ?? []);
+  return Array.isArray(arr) && arr.length > 0 ? arr.map(toFase) : fases;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBSERVICIOS DEL SERVICIO
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Serializa un subservicio al formato esperado por el backend. */
+const serializeSubservicio = (sub: ServicioSubservicio) => ({
+  id_subservicio: sub.id,
+  fase_ids: sub.faseIds,
+  dias: sub.dias,
+});
+
+/**
+ * Obtiene los subservicios de un servicio. Degrada de forma segura a `[]` si el
+ * endpoint aún no existe en el backend.
+ */
+export const getSubserviciosByServicio = async (
+  servicioId: number,
+): Promise<ServicioSubservicio[]> => {
+  try {
+    const response = await axiosInstance.get(`/servicios/${servicioId}/subservicios`);
+    const raw = response.data;
+    const arr: SubservicioRaw[] = Array.isArray(raw)
+      ? raw
+      : (raw?.data ?? raw?.subservicios ?? []);
+    return Array.isArray(arr) ? arr.map(toSubservicio) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Reemplaza por completo los subservicios de un servicio (y sus fases asociadas).
+ */
+export const saveServicioSubservicios = async (
+  servicioId: number,
+  subservicios: ServicioSubservicio[],
+): Promise<ServicioSubservicio[]> => {
+  const payload = { subservicios: subservicios.map(serializeSubservicio) };
+  const response = await axiosInstance.put(
+    `/servicios/${servicioId}/subservicios`,
+    payload,
+  );
+  const raw = response.data;
+  const arr: SubservicioRaw[] = Array.isArray(raw)
+    ? raw
+    : (raw?.data ?? raw?.subservicios ?? []);
+  return Array.isArray(arr) && arr.length > 0
+    ? arr.map(toSubservicio)
+    : subservicios;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

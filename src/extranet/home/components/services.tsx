@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
-import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X } from 'lucide-react'
+import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X, Layers, Clock } from 'lucide-react'
 import { useLandingServices, type LandingService } from '../hooks/useLandingServices'
 
 /** Ruta del asistente de creación de solicitudes (cliente). */
@@ -199,7 +199,13 @@ export default function Services() {
                     <>
                       <p className="text-muted-foreground mb-2 line-clamp-2 leading-relaxed">{service.description}</p>
                       {service.observaciones && service.observaciones.trim() && (
-                        <p className="text-sm text-muted-foreground/80 mb-6 line-clamp-2 leading-relaxed flex-1 whitespace-pre-line">{service.observaciones}</p>
+                        <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2 leading-relaxed flex-1 whitespace-pre-line">{service.observaciones}</p>
+                      )}
+                      {service.fases && service.fases.length > 0 && (
+                        <span className="mb-6 inline-flex w-fit items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                          <Layers className="w-3 h-3" />
+                          {service.fases.length} fase{service.fases.length !== 1 ? 's' : ''}
+                        </span>
                       )}
                     </>
                   ) : (
@@ -315,6 +321,56 @@ export default function Services() {
                     </p>
                   </div>
                 )
+              )}
+
+              {/* Fases del servicio */}
+              {selectedService.fases && selectedService.fases.length > 0 && (
+                <div className="mb-10">
+                  <h4 className="font-bold text-secondary text-xl mb-4 flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-red-600" />
+                    Fases del servicio
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedService.fases.map((fase, idx) => (
+                      <div
+                        key={fase.id}
+                        className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-bold text-red-600">
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="font-semibold text-secondary">{fase.name}</p>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500 border border-slate-200">
+                                <Clock className="w-3 h-3" />
+                                {fase.duration} día{fase.duration !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            {fase.description && (
+                              <p className="mt-1 text-sm text-slate-500 leading-relaxed">
+                                {fase.description}
+                              </p>
+                            )}
+                            {fase.activities.length > 0 && (
+                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                                {fase.activities.map((act) => (
+                                  <li key={act.id} className="flex items-center gap-2">
+                                    <div className="flex-shrink-0 w-4 h-4 bg-red-50 rounded-full flex items-center justify-center">
+                                      <Check className="w-2.5 h-2.5 text-red-600 stroke-[3px]" />
+                                    </div>
+                                    <span className="text-sm text-slate-600">{act.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Footer Actions */}

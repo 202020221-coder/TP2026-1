@@ -7,11 +7,14 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { useMemo, useState, type FC } from "react";
+import { toast } from "sonner";
 import { QuotationServicesTable } from "./ServicesTable";
 import { useQuotationServiceStore } from "@/intranet/quotation/hooks/stores/quotation.services.store.provider";
+import { useQuotationReferenceStore } from "@/intranet/quotation/hooks/stores/quotation.reference.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddServicesDialog } from "./AddServicesDialog";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
+import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
 
 export const CreateQuotationServicesSection: FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -20,6 +23,27 @@ export const CreateQuotationServicesSection: FC = () => {
   const updateItem = useQuotationServiceStore((s) => s.updateItem);
   const addItems = useQuotationServiceStore((s) => s.addItems);
   const services = useMemo(() => Object.values(items), [items]);
+
+  const phases = useQuotationReferenceStore((s) => s.phases);
+  const updateReference = useQuotationReferenceStore((s) => s.update);
+
+  // Autocompleta las fases del proyecto con las fases predeterminadas de los
+  // servicios agregados, evitando duplicar fases por nombre.
+  const mergeServicePhases = (incoming: QuotationPhase[]) => {
+    if (!incoming || incoming.length === 0) return;
+    const existing = phases.items;
+    const existingNames = new Set(
+      existing.map((p) => p.name.trim().toLowerCase()),
+    );
+    const toAdd = incoming.filter(
+      (p) => !existingNames.has(p.name.trim().toLowerCase()),
+    );
+    if (toAdd.length === 0) return;
+    updateReference("phases", { items: [...existing, ...toAdd] });
+    toast.success(
+      `Se autocompletaron ${toAdd.length} fase${toAdd.length !== 1 ? "s" : ""} del servicio.`,
+    );
+  };
 
   return (
     <Card className="gap-4 border bg-card shadow-none">
@@ -43,7 +67,7 @@ export const CreateQuotationServicesSection: FC = () => {
           <Plus /> Agregar Servicios
         </Button>
         <AddServicesDialog
-          addHandler={(items) =>
+          addHandler={(items, servicePhases) => {
             addItems(
               items.map(
                 (i): DesiredQuotationData["services"][number] => ({
@@ -55,8 +79,9 @@ export const CreateQuotationServicesSection: FC = () => {
                   schedule: i.schedule,
                 }),
               ),
-            )
-          }
+            );
+            if (servicePhases) mergeServicePhases(servicePhases);
+          }}
           onOpenChange={setIsDialogOpen}
           open={isDialogOpen}
         />

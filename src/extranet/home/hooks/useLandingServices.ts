@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
 import { getServiciosPublicos } from "@/intranet/services/api/service.api";
-import type { Servicio } from "@/intranet/services/interfaces/service";
+import type { Servicio, ServicioFase } from "@/intranet/services/interfaces/service";
 import { resolveServicioFotoUrl } from "@/intranet/services/lib/servicio-foto";
 import { pickServicioIcon } from "@/intranet/services/lib/pick-servicio-icon";
 
@@ -19,6 +19,8 @@ export interface LandingService {
   isDynamic: boolean;
   /** Observaciones del servicio (solo para servicios del backend). */
   observaciones?: string;
+  /** Fases predeterminadas del servicio (solo para servicios del backend). */
+  fases?: ServicioFase[];
   /** Detalle enriquecido (solo para los servicios estáticos de la landing). */
   details?: {
     description: string;
@@ -39,6 +41,7 @@ function mapServicio(servicio: Servicio): LandingService {
     icon: pickServicioIcon(servicio.nombre),
     isDynamic: true,
     observaciones: servicio.observaciones,
+    fases: servicio.fases,
   };
 }
 

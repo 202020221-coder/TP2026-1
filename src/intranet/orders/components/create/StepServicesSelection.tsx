@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { MapPin, ShoppingCart, Trash2, Wrench } from "lucide-react";
+import { MapPin, ShoppingCart, Trash2, Wrench, Layers } from "lucide-react";
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -96,9 +96,28 @@ export function StepServicesSelection({
                                         <h4 className="mb-2 min-h-12 text-center text-sm leading-snug font-bold text-gray-900">
                                             {service.name}
                                         </h4>
-                                        <p className="mb-4 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
+                                        <p className="mb-3 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
                                             {service.description || 'Descripción no disponible por ahora.'}
                                         </p>
+                                        {service.fases && service.fases.length > 0 && (
+                                            <div className="mb-4 w-full rounded-lg border border-blue-100 bg-blue-50/60 p-2.5">
+                                                <p className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                                                    <Layers className="h-3 w-3" />
+                                                    Fases del servicio
+                                                </p>
+                                                <ol className="space-y-0.5">
+                                                    {service.fases.map((fase, i) => (
+                                                        <li key={fase.id} className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                                                            <span className="font-semibold text-blue-600">{i + 1}.</span>
+                                                            <span className="flex-1">
+                                                                {fase.name}
+                                                                <span className="text-gray-400"> · {fase.duration} día{fase.duration !== 1 ? 's' : ''}</span>
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </div>
+                                        )}
                                         {priceLabel ? (
                                             <div className="mb-5 inline-flex items-center rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-gray-800">
                                                 {priceLabel}

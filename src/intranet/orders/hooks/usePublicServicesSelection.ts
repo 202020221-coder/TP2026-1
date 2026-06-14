@@ -27,6 +27,7 @@ export function usePublicServicesSelection() {
       price: s.precio_regular,
       imageUrl: resolveServicioFotoUrl(s.foto) || undefined,
       Icon: pickServicioIcon(s.nombre),
+      fases: s.fases,
     }));
 
   return {
