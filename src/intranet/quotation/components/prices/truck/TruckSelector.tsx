@@ -19,16 +19,29 @@ import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upser
 import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
 type QuotationTruck = DesiredQuotationData["trucks"][number]
 
+export interface TruckServiceOption {
+  id: string;
+  name: string;
+  startDate: string;
+  dueDate: string;
+}
+
 interface TruckSelectorProps {
   readOnly?: boolean;
   selectedTrucks: QuotationTruck[];
   onSelectedTrucks: (trucks: QuotationTruck[]) => void;
+  /** Servicios/subservicios a los que se puede arraigar un camión (atributo "uso"). */
+  serviceOptions?: TruckServiceOption[];
+  /** Define el servicio en el que se usa el camión y deriva entrada/salida. */
+  onUpdateTruckUsage?: (plate: string, uso: string) => void;
 }
 
 export const TruckSelector: FC<TruckSelectorProps> = ({
   readOnly,
   selectedTrucks,
   onSelectedTrucks,
+  serviceOptions,
+  onUpdateTruckUsage,
 }) => {
   const { setPage, trucksQuery } = useTruckSelector();
   const { status, data, isPending } = trucksQuery;
@@ -101,6 +114,63 @@ export const TruckSelector: FC<TruckSelectorProps> = ({
             />
           </div>
         )}
+
+        {!readOnly &&
+          serviceOptions &&
+          onUpdateTruckUsage &&
+          selectedTrucks.length > 0 && (
+            <div className="mt-4 rounded-lg border border-border bg-background p-4">
+              <h4 className="mb-3 text-sm font-medium text-foreground">
+                Uso de los camiones seleccionados
+              </h4>
+              <div className="space-y-2">
+                {selectedTrucks.map((truck) => {
+                  const usedOption = serviceOptions.find(
+                    (o) => o.id === (truck.uso ?? ""),
+                  );
+                  return (
+                    <div
+                      key={truck.plate}
+                      className="flex flex-col gap-2 rounded-md border border-border/60 bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-foreground">
+                          {truck.plate}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {truck.model}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 sm:items-end">
+                        <label className="text-xs font-medium text-muted-foreground">
+                          Uso en servicio
+                        </label>
+                        <select
+                          value={truck.uso ?? ""}
+                          onChange={(e) =>
+                            onUpdateTruckUsage(truck.plate, e.target.value)
+                          }
+                          className="h-9 w-full min-w-[220px] rounded-md border border-border bg-background px-2 text-sm sm:w-auto"
+                        >
+                          <option value="">Sin asignar</option>
+                          {serviceOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.name}
+                            </option>
+                          ))}
+                        </select>
+                        {usedOption && (
+                          <span className="text-xs text-muted-foreground">
+                            {usedOption.startDate} → {usedOption.dueDate}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
       </CardContent>
     </Card>
   );

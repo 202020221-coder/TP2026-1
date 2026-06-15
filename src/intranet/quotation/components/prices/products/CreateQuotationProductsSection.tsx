@@ -11,6 +11,7 @@ import { QuotationProductsTable } from "./ProductsTable";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddProductsDialog } from "./AddProductsDialog";
+import { CreateQuotationPickupSection } from "../delivery/CreateQuotationPickupSection";
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 export const CreateQuotationProductsSection: FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -87,6 +88,11 @@ export const CreateQuotationProductsSection: FC = () => {
           }
           readOnly={false}
         />
+
+        {/* El delivery se cotiza junto a los productos. */}
+        <div className="mt-4">
+          <CreateQuotationPickupSection />
+        </div>
       </CardContent>
     </Card>
   );

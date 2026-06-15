@@ -31,15 +31,15 @@ const styles = StyleSheet.create({
 
 const PickupSection = ({ pickup }: { pickup: PickupState }) => (
   <View style={styles.section}>
-    <Text style={styles.title}>Servicio de Recojo</Text>
+    <Text style={styles.title}>Servicio de envio</Text>
 
     <View style={styles.row}>
-      <Text style={styles.label}>Fecha de Recojo:</Text>
+      <Text style={styles.label}>Fecha de envio:</Text>
       <Text style={styles.value}>{pickup?.pickupDate}</Text>
     </View>
 
     <View style={styles.row}>
-      <Text style={styles.label}>Costo de Recojo:</Text>
+      <Text style={styles.label}>Costo de envio:</Text>
       <Text style={styles.value}>
         {formatCurrency(pickup?.pickupCost, "USD", 2)}
       </Text>

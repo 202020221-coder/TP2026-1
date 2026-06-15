@@ -16,6 +16,9 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
             <Skeleton className="h-4 w-16 mb-2 bg-gray-50" />
           </TableCell>
           <TableCell>
+            <Skeleton className="h-4 w-8 bg-gray-50" />
+          </TableCell>
+          <TableCell>
             <Skeleton className="h-4 w-24 bg-gray-50" />
           </TableCell>
           <TableCell>

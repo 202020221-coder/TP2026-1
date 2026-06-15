@@ -1,8 +1,19 @@
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
+import { computeServiceCost } from "@/intranet/quotation/lib/quotationSchedule";
+import { differenceInDays, parseISO } from "date-fns";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 type Service = DesiredQuotationData["services"][number];
+
+const serviceDays = (service: Service): number => {
+  if (!service.startDate || !service.dueDate) return 0;
+  const diff = differenceInDays(
+    parseISO(service.dueDate),
+    parseISO(service.startDate),
+  );
+  return Number.isFinite(diff) ? Math.max(0, diff) : 0;
+};
 
 const styles = StyleSheet.create({
   section: {
@@ -45,7 +56,7 @@ const CostSummary = ({
     0,
   );
   const servicesSubtotal = Object.values(services).reduce(
-    (acc, item) => acc + (Number(item.unitPrice) || 0),
+    (acc, item) => acc + computeServiceCost(item, serviceDays(item)),
     0,
   );
   const subtotal = inventorySubtotal + servicesSubtotal;
@@ -68,7 +79,7 @@ const CostSummary = ({
       </View>
 
       <View style={styles.row}>
-        <Text style={styles.label}>Costo de Recojo:</Text>
+        <Text style={styles.label}>Costo de envio:</Text>
         <Text style={styles.value}>${pickup?.pickupCost}</Text>
       </View>
 

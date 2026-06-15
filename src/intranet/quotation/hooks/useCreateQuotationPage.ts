@@ -2,10 +2,11 @@ import { useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getOrder } from "@/intranet/orders/api/order.api";
 import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
+import { enrichOrderQuotationData } from "../lib/adaptOrderToQuotation";
 import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 import { addDays, format } from "date-fns";
-const STALE_TIME = Infinity;
+const STALE_TIME = 0;
 
 export const useCreateQuotationPage = () => {
   const [searchParams] = useSearchParams();
@@ -36,29 +37,19 @@ export const useCreateQuotationPage = () => {
 const adaptDTO = async (
   getOrderResponseDTO: GetOrderResponseDTO,
 ): Promise<DesiredQuotationData> => {
-  const quotationRate = await getExchangeRate();
+  const [quotationRate, enriched] = await Promise.all([
+    getExchangeRate(),
+    enrichOrderQuotationData(getOrderResponseDTO),
+  ]);
+
   return {
-    name: "",
+    name: enriched.name,
     client: {
       comercialName: getOrderResponseDTO.Cliente_Nombre,
       companyName: getOrderResponseDTO.Razon_Social,
       DNIorRUC: getOrderResponseDTO.Id_Cliente,
     },
-    inventory: getOrderResponseDTO.inventario.map((item) => ({
-      id: item.id.toString(),
-      nombre: item.nombre,
-      cantidad: item.cantidad,
-      precio_unitario: Number(item.precio_unitario),
-      ...(item.intencion === "alquilar"
-        ? {
-            intencion: "alquilar" as const,
-            dias_alquilados: item.dias_alquilados ?? 1,
-          }
-        : {
-            intencion: "comprar" as const,
-            dias_alquilados: null,
-          }),
-    })),
+    inventory: enriched.inventory,
     pickupService: {
       pickupAddress: getOrderResponseDTO.ubicacion,
       pickupCost: 0.0,
@@ -66,25 +57,15 @@ const adaptDTO = async (
     },
     quotationConditions: {
       conditions: "",
-      observations: "",
+      observations: getOrderResponseDTO.ObsGenerales ?? "",
       emissionDate: format(new Date(), "yyyy-MM-dd"),
       expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
     },
     status: "pendiente",
     trucks: [],
-    services: getOrderResponseDTO.servicios.map((s) => {
-      return {
-        id: s.ID_Servicio.toString(),
-        startDate: s.fecha_inicio_servicio.split("T")[0],
-        dueDate: s.fecha_fin_servicio.split("T")[0],
-        schedule: s.horario_servicio,
-        unitPrice: 0.0,
-        name: `Servicio #${s.ID_Servicio}`,
-      };
-    }),
+    services: enriched.services,
     quotationRate,
-    phases: {
-      items: [],
-    }
+    phases: enriched.phases,
+    projectStartDate: enriched.projectStartDate,
   };
 };

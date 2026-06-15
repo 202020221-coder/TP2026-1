@@ -2,6 +2,7 @@ import type { Pagination } from "@/shared/interfaces/api-response";
 import type { Client } from "./create/client";
 import type { InventoryItem } from "./create/order-inventory";
 import type { Truck } from "./create/order-trucks";
+import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/service";
 import type {
   Quotation,
   QuotationConditions,
@@ -29,5 +30,10 @@ export type CreateQuotationBody = {
   costoRecojo: QuotationPickUpCosts;
   tasaCambio: QuotationExchangeRate;
   condiciones: QuotationConditions;
-  servicios: any[]
+  servicios: unknown[];
+  /** Etapas del proyecto (mismo esquema que servicios). */
+  etapas?: ServicioEtapaPayload[];
+  /** Día en que comienza el proyecto cotizado (yyyy-MM-dd). */
+  fecha_inicio_proyecto?: string;
+  camiones?: unknown[];
 };

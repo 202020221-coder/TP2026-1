@@ -67,7 +67,7 @@ export const SummaryCard: FC = () => {
           <p>{servicesSubtotal}</p>
         </div>
         <div className={`flex flex-row justify-between `}>
-          <p>Costo de Recojo:</p>
+          <p>Costo de envio:</p>
           <div className="flex flex-row gap-x-2 items-center">
             <p>{pickupCost}</p>
           </div>

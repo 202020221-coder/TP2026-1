@@ -1,4 +1,7 @@
-import { getServicios } from "@/intranet/services/api/service.api";
+import {
+  getServicios,
+  getServicioPrincipal,
+} from "@/intranet/services/api/service.api";
 import type { Servicio, ServicioFase } from "@/intranet/services/interfaces/service";
 import {
   AddServicesFormSchema,
@@ -82,8 +85,20 @@ export const useAddServicesDialog = (
           name: item.nombre,
           unitPrice: Number(item.precio_regular),
         }));
+        // Trae las fases reales (etapas) del servicio para autocompletarlas
+        // luego en la cotización.
         if (item.fases && item.fases.length > 0) {
           selectedFasesRef.current.set(item.id.toString(), item.fases);
+        } else {
+          getServicioPrincipal(item.id)
+            .then(({ fases }) => {
+              if (fases.length > 0) {
+                selectedFasesRef.current.set(item.id.toString(), fases);
+              }
+            })
+            .catch(() => {
+              /* sin fases: no se autocompleta nada */
+            });
         }
       }
     },

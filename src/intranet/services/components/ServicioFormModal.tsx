@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FC } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import type {
   Servicio,
@@ -9,10 +10,9 @@ import type {
 import { useServicios } from "../hooks/useServicios";
 import {
   uploadServicioFoto,
-  saveServicioFases,
-  getFasesByServicio,
-  saveServicioSubservicios,
-  getSubserviciosByServicio,
+  getServicioPrincipal,
+  serializeEtapas,
+  serializeSubservicios,
 } from "../api/service.api";
 import { validateServicioFotoFile } from "../lib/servicio-foto";
 import { ServicioFotoField } from "./ServicioFotoField";
@@ -21,7 +21,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Layers, Plus, Clock, ListChecks, Wrench, Trash2, Calendar, X } from "lucide-react";
+import { Layers, Plus, Clock, ListChecks, Wrench, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AddPhasesDialog } from "@/intranet/quotation/components/reference/AddPhasesDialog";
 import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
@@ -33,7 +33,7 @@ interface Props {
 }
 
 const EMPTY: CreateServicioDTO = {
-  nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "",
+  nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", pago_por_dia: false,
 };
 
 interface FieldProps {
@@ -102,23 +102,20 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         precio_regular: servicio.precio_regular,
         condicional_precio: servicio.condicional_precio,
         observaciones: servicio.observaciones,
+        pago_por_dia: servicio.pago_por_dia,
       });
-      // Cargar fases ya definidas (embebidas o vía endpoint dedicado).
-      if (servicio.fases && servicio.fases.length > 0) {
-        setFases(servicio.fases);
-      } else {
-        getFasesByServicio(servicio.id)
-          .then((f) => setFases(f))
-          .catch(() => setFases([]));
-      }
-      // Cargar subservicios ya asociados.
-      if (servicio.subservicios && servicio.subservicios.length > 0) {
-        setSubservicios(servicio.subservicios);
-      } else {
-        getSubserviciosByServicio(servicio.id)
-          .then((s) => setSubservicios(s))
-          .catch(() => setSubservicios([]));
-      }
+      // Cargar fases y subservicios reales desde la plantilla del servicio
+      // principal (GET /servicios/:id/principal) en una sola petición.
+      setFases(servicio.fases ?? []);
+      setSubservicios(servicio.subservicios ?? []);
+      getServicioPrincipal(servicio.id)
+        .then(({ fases: f, subservicios: s }) => {
+          if (f.length > 0) setFases(f);
+          if (s.length > 0) setSubservicios(s);
+        })
+        .catch(() => {
+          /* se mantiene lo embebido si falla */
+        });
     } else {
       setForm(EMPTY);
       setFases([]);
@@ -165,11 +162,20 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
     try {
       let servicioId: number;
 
+      // Las fases (etapas/actividades) y subservicios se guardan anidados en el
+      // mismo PUT/POST del servicio. Solo se incluyen si hay datos cargados para
+      // evitar borrar la plantilla del backend por un fallo de carga.
+      const dto: CreateServicioDTO = { ...form };
+      if (fases.length > 0) dto.etapas = serializeEtapas(fases);
+      if (subservicios.length > 0) {
+        dto.subservicios = serializeSubservicios(subservicios, fases);
+      }
+
       if (mode === "create") {
-        const created = await createMutation.mutateAsync(form);
+        const created = await createMutation.mutateAsync(dto);
         servicioId = created.id;
       } else if (mode === "edit" && servicio) {
-        await updateMutation.mutateAsync({ id: servicio.id, dto: form });
+        await updateMutation.mutateAsync({ id: servicio.id, dto });
         servicioId = servicio.id;
       } else {
         return;
@@ -190,37 +196,9 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         }
       }
 
-      // Persistir las fases predeterminadas del servicio (solo si hay fases).
-      if (fases.length > 0) {
-        try {
-          await saveServicioFases(servicioId, fases);
-          await queryClient.invalidateQueries({ queryKey: [SERVICIOS_QUERY_KEY] });
-          await queryClient.invalidateQueries({ queryKey: ["fases", servicioId] });
-        } catch {
-          toast.error(
-            mode === "create"
-              ? "Servicio creado, pero no se pudieron guardar las fases."
-              : "Servicio actualizado, pero no se pudieron guardar las fases.",
-          );
-          onClose();
-          return;
-        }
-      }
-
-      // Persistir los subservicios y sus fases asociadas (solo si hay).
-      if (subservicios.length > 0) {
-        try {
-          await saveServicioSubservicios(servicioId, subservicios);
-          await queryClient.invalidateQueries({ queryKey: [SERVICIOS_QUERY_KEY] });
-          await queryClient.invalidateQueries({ queryKey: ["subservicios", servicioId] });
-        } catch {
-          toast.error(
-            "Servicio guardado, pero no se pudieron guardar los subservicios.",
-          );
-          onClose();
-          return;
-        }
-      }
+      await queryClient.invalidateQueries({
+        queryKey: ["servicio-principal", servicioId],
+      });
 
       onClose();
     } catch {
@@ -251,16 +229,9 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         const existing = prevById.get(sel.id);
         return existing
           ? { ...existing, nombre: sel.nombre }
-          : { id: sel.id, nombre: sel.nombre, faseIds: [], dias: 1 };
+          : { id: sel.id, nombre: sel.nombre, faseIds: [] };
       });
     });
-  };
-
-  const updateSubservicioDias = (subId: number, value: string) => {
-    const dias = Math.max(1, parseInt(value, 10) || 1);
-    setSubservicios((prev) =>
-      prev.map((s) => (s.id === subId ? { ...s, dias } : s)),
-    );
   };
 
   const toggleSubservicioFase = (subId: number, faseId: string) => {
@@ -284,7 +255,7 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  return (
+  return createPortal(
     <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-card rounded-2xl shadow-xl w-full max-w-xl mx-4 overflow-hidden">
@@ -314,6 +285,32 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
           <FormField id="descripcion"       label="Descripción"           placeholder="Describe el servicio en detalle..." value={form.descripcion}       error={errors.descripcion}       onChange={handleChange} textarea />
           <FormField id="precio_regular"    label="Precio Regular (S/)"   placeholder="0.00" type="number"             value={form.precio_regular}    error={errors.precio_regular}    onChange={handleChange} />
           <FormField id="condicional_precio" label="Condicional de Precio" placeholder="Ej. Por unidad, Por m², Por proyecto" value={form.condicional_precio} error={errors.condicional_precio} onChange={handleChange} />
+
+          {/* Pago por día: si está activo, en la cotización el servicio se cobra
+              precio × días en que ocurre; si no, solo el precio comercial. */}
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+            <div>
+              <Label htmlFor="pago_por_dia" className="text-sm font-medium text-gray-700">
+                Pago por día
+              </Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Si está activo, el precio se multiplica por los días en que ocurre el servicio.
+              </p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                id="pago_por_dia"
+                type="checkbox"
+                className="peer sr-only"
+                checked={!!form.pago_por_dia}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, pago_por_dia: e.target.checked }))
+                }
+              />
+              <div className="h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-red-500 peer-checked:after:translate-x-5" />
+            </label>
+          </div>
+
           <FormField id="observaciones"     label="Observaciones"         placeholder="Notas adicionales..."            value={form.observaciones}     error={errors.observaciones}     onChange={handleChange} textarea />
 
           {/* Fases del servicio (mismo esquema que cotizaciones) */}
@@ -424,23 +421,6 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
                         </Button>
                       </div>
 
-                      {/* Días de alquiler (misma lógica que solicitudes/crear) */}
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600">
-                          Días de alquiler:
-                        </span>
-                        <div className="relative">
-                          <Calendar className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            min={1}
-                            value={sub.dias}
-                            onChange={(e) => updateSubservicioDias(sub.id, e.target.value)}
-                            className="h-8 w-24 pl-8 text-xs"
-                          />
-                        </div>
-                      </div>
-
                       <div className="mt-2">
                         <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                           Interviene en las fases:
@@ -510,6 +490,7 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
       selectedIds={subservicios.map((s) => s.id)}
       onConfirm={handleConfirmSubservicios}
     />
-    </>
+    </>,
+    document.body,
   );
 };

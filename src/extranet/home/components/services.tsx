@@ -2,25 +2,51 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 import { Card } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
-import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X, Layers, Clock } from 'lucide-react'
+import { Flame, Users, Zap, ShieldCheck, Settings, Droplets, Wind, Cylinder, Truck, Bell, Waves, Check, X, Layers, Boxes, type LucideIcon } from 'lucide-react'
 import { useLandingServices, type LandingService } from '../hooks/useLandingServices'
+import { getServicioPrincipal } from '@/intranet/services/api/service.api'
+import type { ServicioFase, ServicioSubservicio } from '@/intranet/services/interfaces/service'
+
+/** Contenido real (fases/subservicios) cargado del backend para el prefill. */
+type ServiceRequestExtras = {
+  fases?: ServicioFase[]
+  subservicios?: ServicioSubservicio[]
+}
 
 /** Ruta del asistente de creación de solicitudes (cliente). */
 const CREATE_REQUEST_PATH = '/intranet/solicitudes/crear'
 
-/** Construye la descripción detallada y observaciones generales a partir del servicio. */
-function buildServiceRequestPrefill(service: LandingService): {
+/**
+ * Construye la descripción detallada, observaciones generales y la lista de
+ * subservicios a partir del servicio. Incluye los nombres de las fases en la
+ * descripción para que aparezcan en "Datos del Servicio" (pestaña 4).
+ */
+function buildServiceRequestPrefill(
+  service: LandingService,
+  extras?: ServiceRequestExtras,
+): {
   descripcion: string
   observaciones: string
+  subservicios: { id: number; nombre: string }[]
 } {
   const detailedDesc = service.details?.description ?? service.description
-  const descripcion = `Solicito el servicio: ${service.name}.\n\n${detailedDesc}`.trim()
+
+  const fases = extras?.fases ?? service.fases ?? []
+  const fasesText = fases.length
+    ? `\n\nFases del servicio:\n${fases
+        .map((fase, idx) => `${idx + 1}. ${fase.name}`)
+        .join('\n')}`
+    : ''
+
+  const descripcion =
+    `Solicito el servicio: ${service.name}.\n\n${detailedDesc}${fasesText}`.trim()
 
   let observaciones = ''
-  if (service.isDynamic) {
-    observaciones = (service.observaciones ?? '').trim()
+  if (service.observaciones?.trim()) {
+    observaciones = service.observaciones.trim()
   } else if (service.details) {
     const feats = service.details.listItems?.length
       ? `\nIncluye: ${service.details.listItems.join(', ')}.`
@@ -28,12 +54,54 @@ function buildServiceRequestPrefill(service: LandingService): {
     observaciones = `${service.details.highlightTitle}: ${service.details.highlightText}${feats}`.trim()
   }
 
-  return { descripcion, observaciones }
+  const subservicios = (extras?.subservicios ?? service.subservicios ?? [])
+    .filter((sub) => Number(sub.id) > 0 && (sub.nombre ?? '').trim().length > 0)
+    .map((sub) => ({ id: Number(sub.id), nombre: sub.nombre }))
+
+  return { descripcion, observaciones, subservicios }
 }
 
-const services = [
+/** Definición de un servicio estático de la landing. */
+type StaticServiceDef = {
+  id: number
+  name: string
+  description: string
+  image: string
+  icon: LucideIcon
+  /**
+   * Cuando es true, la tarjeta carga sus fases y subservicios reales desde la
+   * plantilla del servicio principal del backend (GET /servicios/:id/principal),
+   * usando `id` como identificador del servicio. Útil para mostrar el contenido
+   * real de un servicio aunque aún no esté publicado en el endpoint público.
+   */
+  principalLinked?: boolean
+  /**
+   * Observaciones del servicio (respaldo mientras el servicio no esté publicado
+   * en el endpoint público; si se publica, el backend las sobrescribe).
+   */
+  observaciones?: string
+}
+
+const services: StaticServiceDef[] = [
   { id: 2, name: 'Alquiler de Grupo Electrógeno MP-55', description: 'Energía de respaldo continua para sistemas críticos.', image: '/grupo_electrogeno_1775863736106.png', icon: Zap },
-  { id: 3, name: 'Sistema de Detección de Incendios', description: 'Paneles inteligentes y detectores de humo de alta precisión.', image: '/deteccion_incendios_1775863750035.png', icon: Bell },
+  {
+    id: 15,
+    name: 'Sistemas de Detección de incendios',
+    description: 'Diseño e instalación de sistemas de detección y alarma contra incendios: detectores de humo y calor, sirenas, luces estroboscópicas y central de alarma, conforme a la norma NFPA 72.',
+    image: '/deteccion_incendios_1775863750035.png',
+    icon: Bell,
+    principalLinked: true,
+    observaciones:
+      'Cumplimiento Normativo NFPA 20:\n' +
+      'Todos nuestros equipos y procedimientos están rigurosamente alineados con la normativa NFPA 20, asegurando que su instalación cumpla con los estándares globales de seguridad y operatividad para sistemas de bombeo y redes contra incendios.\n' +
+      'Nuestros servicios incluyen:\n' +
+      'Montaje Especializado\n' +
+      'Mantenimiento Preventivo\n' +
+      'Diseño de Ingeniería\n' +
+      'Sistemas FM200\n' +
+      'Sistemas de CO2\n' +
+      'Soporte Técnico 24/7',
+  },
   { id: 4, name: 'Sistema de bombeo', description: 'Equipos de bombeo de gran capacidad para redes contra incendios.', image: '/sistema_bombeo_1775863772149.png', icon: Waves },
   { id: 5, name: 'Alquiler de camiones', description: 'Cisternas y unidades de respuesta equipadas para emergencias.', image: '/alquiler_camiones_1775863788061.png', icon: Truck },
   { id: 6, name: 'Brigadas de Bomberos', description: 'Personal altamente capacitado para respuesta inmediata.', image: '/brigada_bomberos_1775863804644.png', icon: Users },
@@ -57,13 +125,6 @@ const serviceDetails: Record<number, {
     highlightText: "Con la potencia necesaria para respaldar operaciones críticas sin interrupciones.",
     listTitle: "Características del Grupo Electrógeno MP-55",
     listItems: ['Potencia Sostenible', 'Eficiencia Operativa', 'Diseño Compacto y Resistente', 'Tecnología Avanzada', 'Disponibilidad 24/7', 'Fácil Transporte y Despliegue']
-  },
-  3: {
-    description: "Lorem ipsum is simply free text used by copytyping refreshing. Neque porro est qui dolorem ipsum quia quaed inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Aelltes port lacus quis enim var sed efficitur turpis gilla sed sit amet finibus eros.",
-    highlightTitle: "Sistemas Inteligentes",
-    highlightText: "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis autem vel eum iure reprehenderit qui.",
-    listTitle: "Características de nuestros sistemas de detección de incendios",
-    listItems: ['Alarmas manuales.', 'Alarma sonora y de luz estroboscópica', 'Sensores de humos', 'Sensores de temperatura']
   },
   4: {
     description: "En Engineer Fire, nos especializamos en el mantenimiento y prueba de sistemas de bombeo para incendios, cumpliendo con los estándares exigentes de la norma NFPA 20.",
@@ -99,8 +160,135 @@ const staticServices: LandingService[] = services.map((s) => ({
   image: s.image,
   icon: s.icon,
   isDynamic: false,
+  principalLinked: s.principalLinked,
+  observaciones: s.observaciones,
   details: serviceDetails[s.id],
 }))
+
+/**
+ * Tarjeta de un servicio en la landing. Para los servicios dinámicos (backend)
+ * carga las fases reales (con sus nombres) desde la plantilla del servicio
+ * principal y las muestra en el contenido de la tarjeta.
+ */
+function ServiceCard({
+  service,
+  onSelect,
+  onSolicitar,
+}: {
+  service: LandingService
+  onSelect: (service: LandingService) => void
+  onSolicitar: (service: LandingService, extras?: ServiceRequestExtras) => void
+}) {
+  const IconComponent = service.icon
+  // Las tarjetas dinámicas (backend) y las estáticas enlazadas muestran su
+  // contenido real (fases/subservicios) desde la plantilla del servicio.
+  const usesBackendContent = !!service.isDynamic || !!service.principalLinked
+
+  const { data: principalData } = useQuery({
+    queryKey: ['servicio-principal', service.id],
+    queryFn: () => getServicioPrincipal(service.id),
+    enabled: usesBackendContent && !!service.id,
+    staleTime: 60_000,
+  })
+  const fases = (principalData?.fases?.length ? principalData.fases : service.fases) ?? []
+  const subservicios =
+    (principalData?.subservicios?.length
+      ? principalData.subservicios
+      : service.subservicios) ?? []
+
+  return (
+    <Card
+      onClick={() => onSelect(service)}
+      className="group flex flex-col rounded-2xl bg-card border-border hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden cursor-pointer"
+    >
+      {/* Image Section */}
+      <div className="relative h-56 overflow-hidden">
+        {service.image ? (
+          <img
+            src={service.image}
+            alt={service.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <IconComponent className="w-16 h-16 text-muted-foreground/20" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-80" />
+      </div>
+
+      <div className="p-8 pt-0 -mt-8 relative z-10 flex-1 flex flex-col">
+        <div className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+          <IconComponent className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
+        </div>
+
+        <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors line-clamp-2">{service.name}</h3>
+        {usesBackendContent ? (
+          <>
+            {/* 1. Descripción */}
+            <p className="text-muted-foreground mb-2 line-clamp-2 leading-relaxed">{service.description}</p>
+            {/* 2. Observaciones */}
+            {service.observaciones && service.observaciones.trim() && (
+              <p className="text-sm text-muted-foreground/80 mb-3 line-clamp-2 leading-relaxed whitespace-pre-line">{service.observaciones}</p>
+            )}
+            {/* 3. Nombre de las fases del servicio */}
+            {fases.length > 0 && (
+              <div className="mb-4">
+                <span className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                  <Layers className="w-3.5 h-3.5" />
+                  Fases del servicio
+                </span>
+                <ol className="space-y-1.5">
+                  {fases.map((fase, idx) => (
+                    <li key={fase.id} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                        {idx + 1}
+                      </span>
+                      <span className="leading-snug line-clamp-1">{fase.name}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {/* 4. Subservicios que intervienen */}
+            {subservicios.length > 0 && (
+              <div className="mb-6 flex-1">
+                <span className="mb-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                  <Boxes className="w-3.5 h-3.5" />
+                  Subservicios
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {subservicios.map((sub) => (
+                    <span
+                      key={sub.id}
+                      className="inline-flex items-center rounded-full bg-secondary/5 px-2.5 py-0.5 text-xs font-medium text-secondary border border-border/60"
+                    >
+                      {sub.nombre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
+        )}
+
+        <div className="flex items-center justify-between mt-auto pt-6 border-t border-border/50">
+          <Button
+            className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSolicitar(service, { fases, subservicios })
+            }}
+          >
+            Solicitar
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
 
 export default function Services() {
   const navigate = useNavigate()
@@ -109,21 +297,37 @@ export default function Services() {
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   const handleSolicitar = useCallback(
-    (service: LandingService) => {
-      const { descripcion, observaciones } = buildServiceRequestPrefill(service)
+    (service: LandingService, extras?: ServiceRequestExtras) => {
+      const { descripcion, observaciones, subservicios } =
+        buildServiceRequestPrefill(service, extras)
       const params = new URLSearchParams()
       params.set('desc', descripcion)
+      params.set('servicioId', String(service.id))
       if (observaciones) params.set('obs', observaciones)
+      if (subservicios.length) params.set('subs', JSON.stringify(subservicios))
       navigate(`${CREATE_REQUEST_PATH}?${params.toString()}`)
     },
     [navigate],
   )
 
-  // Servicios estáticos + servicios del backend con imagen (sin duplicar por nombre)
+  // Fusiona servicios estáticos y del backend (sin duplicar por nombre).
+  // Los servicios reales (backend) tienen prioridad: muestran su descripción,
+  // fases y subservicios reales en lugar del contenido estático de ejemplo.
+  // Si el servicio del backend no tiene imagen, se reutiliza la imagen estática.
   const allServices = useMemo(() => {
-    const staticNames = new Set(staticServices.map((s) => normalize(s.name)))
-    const extras = apiServices.filter((s) => !staticNames.has(normalize(s.name)))
-    return [...staticServices, ...extras]
+    const byName = new Map<string, LandingService>()
+    for (const s of staticServices) {
+      byName.set(normalize(s.name), s)
+    }
+    for (const s of apiServices) {
+      const key = normalize(s.name)
+      const stat = byName.get(key)
+      byName.set(key, {
+        ...s,
+        image: s.image && s.image.trim() ? s.image : (stat?.image ?? s.image),
+      })
+    }
+    return Array.from(byName.values())
   }, [apiServices])
 
   const closeModal = useCallback(() => {
@@ -149,6 +353,19 @@ export default function Services() {
 
   const details = selectedService?.details ?? null
 
+  // Fases reales del servicio (etapas + actividades) desde el backend para el modal.
+  const { data: principalData } = useQuery({
+    queryKey: ['servicio-principal', selectedService?.id],
+    queryFn: () => getServicioPrincipal(selectedService!.id),
+    enabled:
+      (!!selectedService?.isDynamic || !!selectedService?.principalLinked) &&
+      !!selectedService?.id,
+    staleTime: 60_000,
+  })
+  const modalFases = principalData?.fases ?? selectedService?.fases ?? []
+  const modalSubservicios =
+    principalData?.subservicios ?? selectedService?.subservicios ?? []
+
   return (
     <section id="servicios" className="py-24 bg-background relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/3" />
@@ -165,68 +382,14 @@ export default function Services() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allServices.map((service) => {
-            const IconComponent = service.icon
-            return (
-              <Card
-                key={service.key}
-                onClick={() => setSelectedService(service)}
-                className="group flex flex-col rounded-2xl bg-card border-border hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden cursor-pointer"
-              >
-                {/* Image Section */}
-                <div className="relative h-56 overflow-hidden">
-                  {service.image ? (
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <IconComponent className="w-16 h-16 text-muted-foreground/20" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-80" />
-                </div>
-
-                <div className="p-8 pt-0 -mt-8 relative z-10 flex-1 flex flex-col">
-                  <div className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
-                    <IconComponent className="w-7 h-7 text-primary group-hover:text-white transition-colors" />
-                  </div>
-
-                  <h3 className="font-bold text-xl text-secondary mb-3 group-hover:text-primary transition-colors line-clamp-2">{service.name}</h3>
-                  {service.isDynamic ? (
-                    <>
-                      <p className="text-muted-foreground mb-2 line-clamp-2 leading-relaxed">{service.description}</p>
-                      {service.observaciones && service.observaciones.trim() && (
-                        <p className="text-sm text-muted-foreground/80 mb-2 line-clamp-2 leading-relaxed flex-1 whitespace-pre-line">{service.observaciones}</p>
-                      )}
-                      {service.fases && service.fases.length > 0 && (
-                        <span className="mb-6 inline-flex w-fit items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                          <Layers className="w-3 h-3" />
-                          {service.fases.length} fase{service.fases.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground mb-6 line-clamp-2 leading-relaxed flex-1">{service.description}</p>
-                  )}
-
-                  <div className="flex items-center justify-between mt-auto pt-6 border-t border-border/50">
-                    <Button
-                      className="bg-secondary text-white hover:bg-primary transition-colors rounded-xl px-6"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleSolicitar(service)
-                      }}
-                    >
-                      Solicitar
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )
-          })}
+          {allServices.map((service) => (
+            <ServiceCard
+              key={service.key}
+              service={service}
+              onSelect={setSelectedService}
+              onSolicitar={handleSolicitar}
+            />
+          ))}
         </div>
       </div>
 
@@ -324,56 +487,52 @@ export default function Services() {
               )}
 
               {/* Fases del servicio */}
-              {selectedService.fases && selectedService.fases.length > 0 && (
+              {modalFases.length > 0 && (
                 <div className="mb-10">
                   <h4 className="font-bold text-secondary text-xl mb-4 flex items-center gap-2">
                     <Layers className="w-5 h-5 text-red-600" />
                     Fases del servicio
                   </h4>
                   <div className="space-y-3">
-                    {selectedService.fases.map((fase, idx) => (
+                    {modalFases.map((fase, idx) => (
                       <div
                         key={fase.id}
                         className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-center gap-3">
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-bold text-red-600">
                             {idx + 1}
                           </span>
-                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="font-semibold text-secondary">{fase.name}</p>
-                              <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500 border border-slate-200">
-                                <Clock className="w-3 h-3" />
-                                {fase.duration} día{fase.duration !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                            {fase.description && (
-                              <p className="mt-1 text-sm text-slate-500 leading-relaxed">
-                                {fase.description}
-                              </p>
-                            )}
-                            {fase.activities.length > 0 && (
-                              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-                                {fase.activities.map((act) => (
-                                  <li key={act.id} className="flex items-center gap-2">
-                                    <div className="flex-shrink-0 w-4 h-4 bg-red-50 rounded-full flex items-center justify-center">
-                                      <Check className="w-2.5 h-2.5 text-red-600 stroke-[3px]" />
-                                    </div>
-                                    <span className="text-sm text-slate-600">{act.name}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
+                          <p className="font-semibold text-secondary">{fase.name}</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Footer Actions */}
+            {/* Subservicios que intervienen */}
+            {modalSubservicios.length > 0 && (
+              <div className="mb-10">
+                <h4 className="font-bold text-secondary text-xl mb-4 flex items-center gap-2">
+                  <Boxes className="w-5 h-5 text-red-600" />
+                  Subservicios
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {modalSubservicios.map((sub) => (
+                    <span
+                      key={sub.id}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600"
+                    >
+                      <span className="flex h-2 w-2 rounded-full bg-red-500" />
+                      {sub.nombre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Footer Actions */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100">
                 <Button
                   variant="outline"
@@ -383,7 +542,12 @@ export default function Services() {
                   Cerrar
                 </Button>
                 <Button
-                  onClick={() => handleSolicitar(selectedService)}
+                  onClick={() =>
+                    handleSolicitar(selectedService, {
+                      fases: modalFases,
+                      subservicios: modalSubservicios,
+                    })
+                  }
                   className="py-6 px-8 rounded-2xl text-lg font-semibold bg-secondary text-white hover:bg-primary flex-1"
                 >
                   Solicitar este servicio

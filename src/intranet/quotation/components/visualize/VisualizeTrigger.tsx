@@ -39,7 +39,7 @@ export const VisualizeTrigger: FC<
       reasons.push("Debe definir al menos una fase");
     if (!hasName) reasons.push("Debe definir un nombre para la cotización");
     if (!hasAddress)
-      reasons.push("Debe definir una dirección de recojo");
+      reasons.push("Debe definir una dirección de envio");
     if (!hasRate)
       reasons.push("Debe esperar a que se cargue la tasa de cambio");
 

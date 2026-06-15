@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { addDays } from 'date-fns';
 import { Button } from "@/shared/components/ui/button";
 import { useDataFetching } from '../hooks/useDataFetching';
 import { usePrefillUserData } from '../hooks/usePrefillUserData';
@@ -48,6 +49,13 @@ const buildSelectedServicesDetails = (services: SelectedTruck[]) =>
             ].join('\n'),
         )
         .join('\n---\n');
+
+const buildLinkedServicePayload = (serviceId: number): PostRequestServiceDTO => ({
+    ID_Servicio: serviceId,
+    fecha_inicio_servicio: new Date().toISOString(),
+    horario_servicio: 'Por definir',
+    fecha_fin_servicio: addDays(new Date(), 7).toISOString(),
+});
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
@@ -218,6 +226,7 @@ export function CreateRequestPage() {
     const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
 
     const [selectedTrucks, setSelectedTrucks] = useState<SelectedTruck[]>([]);
+    const [principalServiceId, setPrincipalServiceId] = useState<number | null>(null);
 
     const [preferencesData, setPreferencesData] = useState<PreferencesData>({
         generalObservations: '',
@@ -232,11 +241,45 @@ export function CreateRequestPage() {
     useEffect(() => {
         const desc = searchParams.get('desc');
         const obs = searchParams.get('obs');
+        const subs = searchParams.get('subs');
+        const servicioId = searchParams.get('servicioId');
         if (desc) {
             setServiceData((prev) => ({ ...prev, descripcion: desc }));
         }
         if (obs) {
             setPreferencesData((prev) => ({ ...prev, generalObservations: obs }));
+        }
+        if (servicioId) {
+            const parsedId = Number(servicioId);
+            if (!Number.isNaN(parsedId) && parsedId > 0) {
+                setPrincipalServiceId(parsedId);
+            }
+        }
+        // Auto-añade los subservicios predeterminados del servicio (pestaña 6).
+        if (subs) {
+            try {
+                const parsed = JSON.parse(subs) as { id: number; nombre: string }[];
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setSelectedTrucks((prev) => {
+                        const next = [...prev];
+                        parsed.forEach((sub, index) => {
+                            const serviceId = Number(sub?.id);
+                            if (!serviceId || next.some((t) => t.serviceId === serviceId)) return;
+                            next.push({
+                                id: `service-${serviceId}-${Date.now()}-${index}`,
+                                serviceId,
+                                truckId: `service-${serviceId}`,
+                                name: sub.nombre,
+                                direccionLugar: '',
+                                observacionesEleccion: '',
+                            });
+                        });
+                        return next;
+                    });
+                }
+            } catch {
+                // Parámetro inválido: se ignora.
+            }
         }
         // Solo al entrar con parámetros de prefill.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -308,7 +351,7 @@ export function CreateRequestPage() {
         { id: 3, label: 'Solicitante' },
         { id: 4, label: 'Datos del Servicio' },
         { id: 5, label: 'Selección de Catálogo' },
-        { id: 6, label: 'Selección de Servicios' },
+        { id: 6, label: 'Sub Servicios' },
         { id: 7, label: 'Preferencias' },
     ];
 
@@ -592,8 +635,19 @@ export function CreateRequestPage() {
                                     return;
                                 }
 
-                                // Step 4 -> solo avanzar (la solicitud se crea al final)
+                                // Step 4 -> autocompletar la dirección de los servicios
+                                // con la del servicio principal y avanzar.
                                 if (currentStep === 4) {
+                                    const direccionPrincipal = serviceData.ubicacion.trim();
+                                    if (direccionPrincipal) {
+                                        setSelectedTrucks((prev) =>
+                                            prev.map((truck) =>
+                                                truck.direccionLugar.trim()
+                                                    ? truck
+                                                    : { ...truck, direccionLugar: direccionPrincipal },
+                                            ),
+                                        );
+                                    }
                                     setCurrentStep(5);
                                     setIsProcessing(false);
                                     return;
@@ -609,19 +663,18 @@ export function CreateRequestPage() {
                                 // Step 6 -> validar servicios y avanzar (aún no se crea nada)
                                 if (currentStep === 6) {
                                     if (selectedTrucks.length === 0) {
-                                        alert('Debes agregar al menos un servicio.');
+                                        alert('Debes agregar al menos un sub servicio.');
                                         setIsProcessing(false);
                                         return;
                                     }
 
                                     const missingRequiredFields = selectedTrucks.some(
                                         (service) =>
-                                            service.direccionLugar.trim().length === 0 ||
-                                            service.observacionesEleccion.trim().length === 0,
+                                            service.direccionLugar.trim().length === 0,
                                     );
 
                                     if (missingRequiredFields) {
-                                        alert('Completa Dirección del lugar y Observaciones de su elección para todos los servicios agregados.');
+                                        alert('Completa Dirección del lugar para todos los sub servicios agregados.');
                                         setIsProcessing(false);
                                         return;
                                     }
@@ -666,12 +719,46 @@ export function CreateRequestPage() {
                                     }
                                     setCreatedRequestId(newRequestId);
 
-                                    // Asociaciones a la solicitud recién creada.
-                                    const inventoryData = {} as PostRequestInventoryDTO;
-                                    await handleSubmitRequestInventory(newRequestId, inventoryData);
+                                    // Productos del catálogo seleccionados en la solicitud.
+                                    for (const product of selectedProducts) {
+                                        const inventoryId = Number(
+                                            product.productId.replace(/^product-/, ''),
+                                        );
+                                        if (!inventoryId) continue;
 
-                                    const svcData = (serviceData as unknown) as PostRequestServiceDTO;
-                                    await handleCreateRequestService(newRequestId, svcData);
+                                        await handleSubmitRequestInventory(newRequestId, {
+                                            ID_Inventario: inventoryId,
+                                            cantidad: product.quantity,
+                                            intencion: product.intent,
+                                            dias_alquilados:
+                                                product.intent === 'alquilar'
+                                                    ? (product.days ?? 1)
+                                                    : 0,
+                                        });
+                                    }
+
+                                    const linkedServiceIds = new Set<number>();
+
+                                    // Servicio principal solicitado desde la landing.
+                                    if (principalServiceId) {
+                                        await handleCreateRequestService(
+                                            newRequestId,
+                                            buildLinkedServicePayload(principalServiceId),
+                                        );
+                                        linkedServiceIds.add(principalServiceId);
+                                    }
+
+                                    // Sub servicios seleccionados en la pestaña 6.
+                                    for (const selectedService of selectedTrucks) {
+                                        const serviceId = selectedService.serviceId;
+                                        if (!serviceId || linkedServiceIds.has(serviceId)) continue;
+
+                                        await handleCreateRequestService(
+                                            newRequestId,
+                                            buildLinkedServicePayload(serviceId),
+                                        );
+                                        linkedServiceIds.add(serviceId);
+                                    }
 
                                     navigate('/intranet/solicitudes', { replace: true });
                                 }
