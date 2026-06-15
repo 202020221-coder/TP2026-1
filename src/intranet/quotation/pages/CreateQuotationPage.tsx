@@ -17,7 +17,6 @@ import {
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
-import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
@@ -78,13 +77,16 @@ export function CreateQuotationPage() {
         defaultValue="reference"
         className="w-full flex flex-col flex-1 min-h-0"
       >
-        <QuotationConditionStoreProvider>
+        <QuotationConditionStoreProvider
+          initialData={initialData.quotationConditions}
+        >
           <QuotationExchangeRateProvider
             initialData={{ rate: initialData.quotationRate }}
           >
             <QuotationReferenceStoreProvider
               name={initialData.name}
               phases={initialData.phases}
+              projectStartDate={initialData.projectStartDate}
             >
               <QuotationTruckStoreProvider>
                 <QuotationServiceStoreProvider
@@ -134,7 +136,6 @@ export function CreateQuotationPage() {
                             <CreateQuotationProductsSection />
                             <CreateQuotationServicesSection />
                             <CreateQuotationTruckSelector />
-                            <CreateQuotationPickupSection />
                             <CreateQuotationSummaryCard />
                           </TabsContent>
                           <TabsContent value="conditions">

@@ -17,7 +17,6 @@ import {
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
-import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
@@ -90,6 +89,7 @@ export function EditQuotationPage() {
               <QuotationReferenceStoreProvider
                 name={data.name}
                 phases={data.phases}
+                projectStartDate={data.projectStartDate}
               >
                 <QuotationTruckStoreProvider
                   initialData={{ selectedTrucks: data.trucks }}
@@ -144,7 +144,6 @@ export function EditQuotationPage() {
                               <CreateQuotationProductsSection />
                               <CreateQuotationServicesSection />
                               <CreateQuotationTruckSelector />
-                              <CreateQuotationPickupSection />
                               <CreateQuotationSummaryCard />
                             </TabsContent>
                             <TabsContent value="conditions">

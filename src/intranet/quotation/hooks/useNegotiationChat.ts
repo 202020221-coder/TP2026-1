@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   getQuotationChatHistory,
@@ -10,11 +10,17 @@ import { useSession } from "@/security/session/hooks/stores/useSession.store";
 
 export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const queryClient = useQueryClient();
 
   const socketRef = useRef<Socket | null>(null);
 
   const accessToken = useSession((s) => s.accessToken);
   const user = useSession((s) => s.loggedUser);
+
+  const refreshQuotationList = () => {
+    queryClient.invalidateQueries({ queryKey: ["quotations"] });
+    queryClient.invalidateQueries({ queryKey: ["initial", "messages"] });
+  };
 
   const initialMessagesQuery = useQuery({
     queryKey: ["initial", "messages", quotationID],
@@ -32,7 +38,14 @@ export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
       if (newMessages.length === 0) return prev;
       return [...prev, ...newMessages];
     });
+
+    refreshQuotationList();
   }, [initialMessagesQuery.data]);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    queryClient.setQueryData(["initial", "messages", quotationID], messages);
+  }, [messages, quotationID, queryClient]);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -59,6 +72,7 @@ export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
 
         return [...prev, message];
       });
+      refreshQuotationList();
     });
 
     socket.on("connect_error", (err) => {
@@ -79,6 +93,7 @@ export const useNegotiationChat = (quotationID: Quotation["ID"]) => {
       mensaje: message,
       nombre_remitente: user?.nombres,
     });
+    refreshQuotationList();
   };
 
   return {

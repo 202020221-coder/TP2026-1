@@ -68,15 +68,15 @@ export function StepServicesSelection({
         <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                 <div className="lg:col-span-7">
-                    <h3 className="mb-2 text-xl font-semibold text-gray-800">Selección de Servicios</h3>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-800">Sub Servicios</h3>
                     <p className="mb-6 text-sm text-gray-500">
-                        Agrega los servicios que deseas incluir en la solicitud.
+                        Agrega los sub servicios que deseas incluir en la solicitud.
                     </p>
 
                     {isLoading ? (
-                        <p className="text-sm text-gray-500">Cargando servicios...</p>
+                        <p className="text-sm text-gray-500">Cargando sub servicios...</p>
                     ) : serviceOptions.length === 0 ? (
-                        <p className="text-sm text-gray-500">No hay servicios disponibles en este momento.</p>
+                        <p className="text-sm text-gray-500">No hay sub servicios disponibles en este momento.</p>
                     ) : (
                         <div className="custom-scrollbar grid max-h-[500px] grid-cols-1 gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
                             {serviceOptions.map((service) => {
@@ -96,7 +96,7 @@ export function StepServicesSelection({
                                         <h4 className="mb-2 min-h-12 text-center text-sm leading-snug font-bold text-gray-900">
                                             {service.name}
                                         </h4>
-                                        <p className="mb-4 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
+                                        <p className="mb-3 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
                                             {service.description || 'Descripción no disponible por ahora.'}
                                         </p>
                                         {priceLabel ? (
@@ -130,7 +130,7 @@ export function StepServicesSelection({
                 <div className="mt-8 flex h-full flex-col border-l border-gray-200 lg:col-span-5 lg:mt-0 lg:pl-8">
                     <div className="mb-6 flex items-center gap-2">
                         <ShoppingCart className="text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Servicios seleccionados</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">Sub Servicios seleccionados</h3>
                         <span className="ml-auto rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
                             {selectedServices.length}
                         </span>
@@ -139,7 +139,7 @@ export function StepServicesSelection({
                     {selectedServices.length === 0 ? (
                         <div className="flex min-h-[300px] flex-1 flex-col items-center justify-center text-gray-400">
                             <Wrench size={48} className="mb-4 opacity-20" />
-                            <p>No hay servicios seleccionados</p>
+                            <p>No hay sub servicios seleccionados</p>
                         </div>
                     ) : (
                         <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto pr-2">
@@ -177,7 +177,7 @@ export function StepServicesSelection({
 
                                         <div className="space-y-1">
                                             <label className="text-xs font-medium text-gray-700">
-                                                Observaciones de su elección <span className="text-red-500">*</span>
+                                                Observaciones de su elección <span className="text-gray-400">(opcional)</span>
                                             </label>
                                             <Textarea
                                                 value={item.observacionesEleccion}

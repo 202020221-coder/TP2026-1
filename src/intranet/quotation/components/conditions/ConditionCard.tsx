@@ -14,6 +14,10 @@ type ConditionCardProps = {
   expirationDate: string;
   conditions: string;
   observaciones: string;
+  /** Deshabilita la edición de la fecha de vigencia (se calcula automáticamente). */
+  expirationDisabled?: boolean;
+  /** Nota explicativa debajo de la fecha de vigencia. */
+  expirationHint?: string;
 } & (
   | {
       readOnly?: false;
@@ -37,6 +41,8 @@ export const ConditionCard: FC<ConditionCardProps> = ({
   conditions,
   observaciones,
   readOnly = false,
+  expirationDisabled = false,
+  expirationHint,
   onEmissionChange,
   onExpirationChange,
   onConditionsChange,
@@ -80,10 +86,15 @@ export const ConditionCard: FC<ConditionCardProps> = ({
             <Input
               type="date"
               value={expirationDate}
-              disabled={readOnly}
+              disabled={readOnly || expirationDisabled}
               onChange={(e) => onExpirationChange?.(e.target.value)}
-              readOnly={readOnly}
+              readOnly={readOnly || expirationDisabled}
             />
+            {expirationHint && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {expirationHint}
+              </p>
+            )}
           </div>
 
           {/* CONDICIONES */}

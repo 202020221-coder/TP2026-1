@@ -17,8 +17,10 @@ const QuotationReferenceStoreContext =
 
 export const QuotationReferenceStoreProvider: FC<
   PropsWithChildren<Partial<ReferenceState>>
-> = ({ children, name, phases }) => {
-  const [store] = useState(() => createReferenceStore(name, phases));
+> = ({ children, name, phases, projectStartDate }) => {
+  const [store] = useState(() =>
+    createReferenceStore(name, phases, projectStartDate),
+  );
   return (
     <QuotationReferenceStoreContext.Provider value={store}>
       {children}

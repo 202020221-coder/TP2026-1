@@ -17,6 +17,7 @@ import { PickupCardView } from "../prices/delivery/PickupCardView";
 import { SummaryCard } from "../prices/summary/SummaryCard";
 import { format } from "date-fns";
 import { QuotationServiceStoreProvider } from "../../hooks/stores/quotation.services.store.provider";
+import { QuotationReferenceStoreProvider } from "../../hooks/stores/quotation.reference.store.provider";
 import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
 type QuotationDetailFormCardProps = {
@@ -73,14 +74,19 @@ export function QuotationDetailFormCard({
   quotation,
 }: QuotationDetailFormCardProps) {
   return (
-    <QuotationServiceStoreProvider initialServices={quotation.services}>
-      <QuotationProductStoreProvider initialProducts={quotation.inventory}>
-        <QuotationPickupStoreProvider initialData={quotation.pickupService}>
-          <QuotationExchangeRateProvider
-            initialData={{
-              rate: quotation.quotationRate,
-            }}
-          >
+    <QuotationReferenceStoreProvider
+      name={quotation.name}
+      phases={quotation.phases}
+      projectStartDate={quotation.projectStartDate}
+    >
+      <QuotationServiceStoreProvider initialServices={quotation.services}>
+        <QuotationProductStoreProvider initialProducts={quotation.inventory}>
+          <QuotationPickupStoreProvider initialData={quotation.pickupService}>
+            <QuotationExchangeRateProvider
+              initialData={{
+                rate: quotation.quotationRate,
+              }}
+            >
             <div className="space-y-6">
               {/* Title & Status */}
               <div className="flex items-center justify-between">
@@ -190,12 +196,10 @@ export function QuotationDetailFormCard({
                 </CardHeader>
                 <CardContent>
                   <QuotationServicesTable
-                    items={[]}
+                    items={quotation.services}
                     readOnly={true}
                     onUpdateUnitPrice={undefined}
-                    onUpdateDueDate={undefined}
                     onUpdateSchedule={undefined}
-                    onUpdateStartDate={undefined}
                     onDelete={undefined}
                   />
                 </CardContent>
@@ -209,7 +213,7 @@ export function QuotationDetailFormCard({
                 pickupCost={quotation.pickupService.pickupCost}
                 pickupDate={quotation.pickupService.pickupDate}
                 pickupAddress={quotation.pickupService.pickupAddress}
-                description="Datos del servicio de recojo incluido en la cotización."
+                description="Datos del servicio de envio incluido en la cotización."
                 readOnly={true}
                 onPickupDateChange={undefined}
                 onPickupCostChange={undefined}
@@ -224,9 +228,10 @@ export function QuotationDetailFormCard({
               {/* Summary */}
               <SummaryCard />
             </div>
-          </QuotationExchangeRateProvider>
-        </QuotationPickupStoreProvider>
-      </QuotationProductStoreProvider>
-    </QuotationServiceStoreProvider>
+            </QuotationExchangeRateProvider>
+          </QuotationPickupStoreProvider>
+        </QuotationProductStoreProvider>
+      </QuotationServiceStoreProvider>
+    </QuotationReferenceStoreProvider>
   );
 }

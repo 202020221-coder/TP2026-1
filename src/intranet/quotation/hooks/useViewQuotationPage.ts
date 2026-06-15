@@ -87,5 +87,10 @@ const adaptDTO = (dto: QuotationAdminDetailData): DesiredQuotationData => {
     phases: {
       items: [],
     },
+    projectStartDate:
+      dto.servicios
+        .map((s) => s.fecha_inicio.split("T")[0])
+        .filter(Boolean)
+        .sort()[0] ?? format(new Date(), "yyyy-MM-dd"),
   };
 };

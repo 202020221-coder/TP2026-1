@@ -16,8 +16,13 @@ import {
   FileText,
   Clock,
 } from "lucide-react";
+import { CalendarClock } from "lucide-react";
+import { format } from "date-fns";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import { AddPhasesDialog } from "./AddPhasesDialog";
+import { getProjectRange } from "../../lib/quotationSchedule";
 import type { QuotationPhase } from "../../interfaces/phases.types";
 
 interface ReferencePhasesCardProps {
@@ -28,8 +33,17 @@ export const ReferencePhasesCard: FC<ReferencePhasesCardProps> = ({
   readOnly = false,
 }) => {
   const phases = useQuotationReferenceStore((s) => s.phases);
+  const projectStartDate = useQuotationReferenceStore(
+    (s) => s.projectStartDate,
+  );
   const update = useQuotationReferenceStore((s) => s.update);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const projectRange = getProjectRange(projectStartDate, phases);
+  const projectEndLabel =
+    phases.items.length > 0
+      ? format(projectRange.end, "yyyy-MM-dd")
+      : projectStartDate;
 
   const handleConfirmPhases = (items: QuotationPhase[]) => {
     update("phases", { items });
@@ -78,6 +92,51 @@ export const ReferencePhasesCard: FC<ReferencePhasesCardProps> = ({
                 Agregar Fases
               </Button>
             )}
+          </div>
+
+          {/* Día de inicio del proyecto: ancla para calcular las fechas de cada
+              etapa y de los servicios/subservicios de la cotización. */}
+          <div className="mb-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="projectStartDate"
+                  className="flex items-center gap-1.5 text-sm font-medium text-foreground"
+                >
+                  <CalendarClock className="h-4 w-4 text-primary" />
+                  Día de inicio del servicio
+                </Label>
+                {readOnly ? (
+                  <p className="text-sm text-foreground">{projectStartDate}</p>
+                ) : (
+                  <Input
+                    id="projectStartDate"
+                    type="date"
+                    value={projectStartDate}
+                    className="h-9 w-[200px] bg-background text-sm"
+                    onChange={(e) =>
+                      update("projectStartDate", e.target.value)
+                    }
+                  />
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Desde esta fecha se calculan las etapas y las fechas de cada
+                  servicio.
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">
+                  Fin estimado del proyecto
+                </p>
+                <p className="text-sm font-medium text-foreground">
+                  {projectEndLabel}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {projectRange.days} día{projectRange.days !== 1 ? "s" : ""} en
+                  total
+                </p>
+              </div>
+            </div>
           </div>
 
           {phases.items.length > 0 && (

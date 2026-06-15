@@ -11,7 +11,10 @@ export interface Quotation {
   version: number;
   /**solo visibles por el administrador */
   nombreCliente?: string;
-  chat: "si" | "no";
+  /** Estado del chat según el API: "Pendiente" | "No Iniciado" | "Enviado" */
+  mensajes?: string | null;
+  /** Fallback legacy del API cuando no viene `mensajes` */
+  chat?: "si" | "no";
 }
 
 export type QuotationProduct = {

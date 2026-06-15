@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { NegotiationChatPanel } from "./NegotiationChatPanel";
@@ -7,6 +7,10 @@ import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import type { UserRole } from "@/security/session/interfaces/roles";
 import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
+import { useQuery } from "@tanstack/react-query";
+import { getQuotationChatHistory } from "../../api/negotiation-chat.api";
+import { resolveQuotationChatStatus } from "../../lib/resolve-quotation-chat-status";
+import { getFloatingChatButtonClass } from "../../lib/derive-chat-status-from-messages";
 
 type NegotiationChatFloatingProps = {
   quotationId: number;
@@ -23,6 +27,23 @@ export const NegotiationChatFloating: FC<NegotiationChatFloatingProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useSession((s) => s.loggedUser);
+
+  const chatHistoryQuery = useQuery({
+    queryKey: ["initial", "messages", quotationId],
+    queryFn: () => getQuotationChatHistory(quotationId),
+    enabled: !!quotationId,
+    refetchOnWindowFocus: true,
+  });
+
+  const chatStatus = useMemo(
+    () =>
+      resolveQuotationChatStatus(
+        chatHistoryQuery.data,
+        user?.dni_perfil,
+        { mensajes: undefined, chat: undefined },
+      ),
+    [chatHistoryQuery.data, user?.dni_perfil],
+  );
 
   const canChat = canNegotiateQuotation(
     { estado: quotationEstado as QuotationState },
@@ -44,7 +65,7 @@ export const NegotiationChatFloating: FC<NegotiationChatFloatingProps> = ({
 
       <Button
         size="icon"
-        className="h-14 w-14 rounded-full shadow-xl hover:shadow-2xl ring-2 ring-primary/30 hover:ring-primary/50 transition-all duration-200"
+        className={getFloatingChatButtonClass(chatStatus, isOpen)}
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? "Cerrar chat" : "Abrir chat"}
       >

@@ -9,6 +9,7 @@ import { useQuotationPickupStore } from "./stores/quotation.pickup.store.provide
 import { useQuotationConditionStore } from "./stores/quotation.conditions.store.provider";
 import { useQuotationServiceStore } from "./stores/quotation.services.store.provider";
 import { useQuotationExchangeRate } from "./stores/quotation.exchange.rate.store.provider";
+import { computeServiceDates } from "../lib/quotationSchedule";
 
 interface UseUpdateQuotationOptions {
   quotationId: string;
@@ -24,6 +25,9 @@ export const useUpdateQuotation = ({
   const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
   const quotationName = useQuotationReferenceStore((s) => s.name);
   const phases = useQuotationReferenceStore((s) => s.phases);
+  const projectStartDate = useQuotationReferenceStore(
+    (s) => s.projectStartDate,
+  );
   const pickupCost = useQuotationPickupStore((s) => s.pickupCost);
   const pickupDate = useQuotationPickupStore((s) => s.pickupDate);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
@@ -38,42 +42,57 @@ export const useUpdateQuotation = ({
     if (!quotationId) return;
 
     setIsSending(true);
-    await toast.promise(
-      async () => {
-        await updateQuotation(Number(quotationId), {
-          name: quotationName,
-          inventory: Object.values(inventory),
-          services: Object.values(servicios),
-          trucks,
-          pickupService: {
-            pickupCost,
-            pickupDate,
-            pickupAddress,
-          },
-          quotationConditions: {
-            emissionDate,
-            expirationDate,
-            conditions,
-            observations,
-          },
-          quotationRate: {
-            sellingRate: rate?.sellingRate ?? 0,
-            buyingRate: rate?.buyingRate ?? 0,
-          },
-          phases,
-        });
-        navigate("/intranet/cotizaciones");
-      },
-      {
-        loading: "Actualizando cotización...",
-        success: "Cotización actualizada con éxito.",
-        error: "Error al actualizar la cotización",
-      },
-    );
+    try {
+      await toast.promise(
+        async () => {
+          const servicesPayload = Object.values(servicios).map((service) => {
+            const { startDate, dueDate } = computeServiceDates(
+              service,
+              projectStartDate,
+              phases,
+            );
+            return { ...service, startDate, dueDate };
+          });
+
+          await updateQuotation(Number(quotationId), {
+            name: quotationName,
+            projectStartDate,
+            inventory: Object.values(inventory),
+            services: servicesPayload,
+            trucks,
+            pickupService: {
+              pickupCost,
+              pickupDate,
+              pickupAddress,
+            },
+            quotationConditions: {
+              emissionDate,
+              expirationDate,
+              conditions,
+              observations,
+            },
+            quotationRate: {
+              sellingRate: rate?.sellingRate ?? 0,
+              buyingRate: rate?.buyingRate ?? 0,
+            },
+            phases,
+          });
+          navigate("/intranet/cotizaciones");
+        },
+        {
+          loading: "Actualizando cotización...",
+          success: "Cotización actualizada con éxito.",
+          error: "Error al actualizar la cotización",
+        },
+      );
+    } finally {
+      setIsSending(false);
+    }
   }, [
     quotationId,
     quotationName,
     phases,
+    projectStartDate,
     inventory,
     servicios,
     trucks,

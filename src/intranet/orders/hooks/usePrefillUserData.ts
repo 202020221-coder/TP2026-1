@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { GetPerfilEmpresasContacto } from "../api";
+import { GetPerfilEmpresasContacto, GetPerfilTelefono } from "../api";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import type {
   ClientFormData,
@@ -45,6 +45,18 @@ export function usePrefillUserData(
     setContactData((prev) => ({ ...prev, DNI_perfil: prev.DNI_perfil || dni }));
 
     (async () => {
+      // Respaldo del teléfono: si la sesión (login) no lo trae, se obtiene
+      // directamente del perfil del usuario logueado.
+      if (!loggedUser.telefono_contacto) {
+        const telefonoPerfil = await GetPerfilTelefono(dni);
+        if (telefonoPerfil) {
+          setPerfilData((prev) => ({
+            ...prev,
+            telefono_contacto: prev.telefono_contacto || telefonoPerfil,
+          }));
+        }
+      }
+
       try {
         const empresas = await GetPerfilEmpresasContacto(dni);
 

@@ -164,9 +164,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                                 readOnly={true}
                                 onUpdateUnitPrice={undefined}
                                 onDelete={undefined}
-                                onUpdateDueDate={undefined}
                                 onUpdateSchedule={undefined}
-                                onUpdateStartDate={undefined}
                               />
                             </CardContent>
                           </Card>

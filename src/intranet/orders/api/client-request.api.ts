@@ -39,6 +39,30 @@ export const GetPerfilEmpresasContacto = async (
   return [];
 };
 
+// Obtiene el teléfono de contacto directamente del perfil del usuario logueado.
+// Sirve como respaldo cuando la sesión (login) no incluye `telefono_contacto`.
+// Degrada de forma segura a `null` si el endpoint falla o no trae el dato.
+export const GetPerfilTelefono = async (
+  dniPerfil: string,
+): Promise<string | null> => {
+  try {
+    const response = await axiosInstance.get<Record<string, unknown>>(
+      `/perfiles/personal/${encodeURIComponent(dniPerfil)}`,
+    );
+    const raw = response.data ?? {};
+    const source =
+      (raw.data && typeof raw.data === "object"
+        ? (raw.data as Record<string, unknown>)
+        : raw) ?? {};
+    const tel = source.telefono_contacto ?? source.telefono;
+    return typeof tel === "string" && tel.trim().length > 0
+      ? tel.trim()
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 //Crea cliente
 export const CreateClient = async (data: PostClientDTO) =>
   safeRequest<PostClientDTO>({

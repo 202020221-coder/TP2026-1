@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
 import { getServiciosPublicos } from "@/intranet/services/api/service.api";
-import type { Servicio } from "@/intranet/services/interfaces/service";
+import type {
+  Servicio,
+  ServicioFase,
+  ServicioSubservicio,
+} from "@/intranet/services/interfaces/service";
 import { resolveServicioFotoUrl } from "@/intranet/services/lib/servicio-foto";
 import { pickServicioIcon } from "@/intranet/services/lib/pick-servicio-icon";
 
@@ -17,8 +21,18 @@ export interface LandingService {
   icon: LucideIcon;
   /** true si proviene del backend (endpoint público); false si es estático. */
   isDynamic: boolean;
+  /**
+   * Para tarjetas estáticas que deben cargar sus fases/subservicios reales desde
+   * la plantilla del servicio principal del backend usando `id`, aunque el
+   * servicio no esté publicado en el endpoint público.
+   */
+  principalLinked?: boolean;
   /** Observaciones del servicio (solo para servicios del backend). */
   observaciones?: string;
+  /** Fases predeterminadas del servicio (solo para servicios del backend). */
+  fases?: ServicioFase[];
+  /** Subservicios que intervienen en el servicio (solo para servicios del backend). */
+  subservicios?: ServicioSubservicio[];
   /** Detalle enriquecido (solo para los servicios estáticos de la landing). */
   details?: {
     description: string;
@@ -39,12 +53,16 @@ function mapServicio(servicio: Servicio): LandingService {
     icon: pickServicioIcon(servicio.nombre),
     isDynamic: true,
     observaciones: servicio.observaciones,
+    fases: servicio.fases,
+    subservicios: servicio.subservicios,
   };
 }
 
 /**
  * Trae los servicios desde el endpoint público y filtra solo los que están
- * activos y tienen imagen. Si la petición falla (p. ej. el endpoint público
+ * activos. Los servicios sin imagen también se muestran (usan un ícono como
+ * respaldo), de modo que cualquier servicio creado en "Gestionar Servicios"
+ * aparezca en la landing. Si la petición falla (p. ej. el endpoint público
  * aún no existe), devuelve una lista vacía y la landing muestra solo los
  * servicios estáticos.
  */
@@ -57,7 +75,7 @@ export function useLandingServices() {
   });
 
   const apiServices: LandingService[] = (query.data ?? [])
-    .filter((s) => s.activo && !!s.foto && s.foto.trim().length > 0)
+    .filter((s) => s.activo)
     .map(mapServicio);
 
   return {

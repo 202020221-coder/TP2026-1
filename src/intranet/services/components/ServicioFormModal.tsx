@@ -1,16 +1,30 @@
 import { useEffect, useRef, useState, type FC } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Servicio, CreateServicioDTO } from "../interfaces/service";
+import type {
+  Servicio,
+  CreateServicioDTO,
+  ServicioFase,
+  ServicioSubservicio,
+} from "../interfaces/service";
 import { useServicios } from "../hooks/useServicios";
-import { uploadServicioFoto } from "../api/service.api";
+import {
+  uploadServicioFoto,
+  getServicioPrincipal,
+  serializeEtapas,
+  serializeSubservicios,
+} from "../api/service.api";
 import { validateServicioFotoFile } from "../lib/servicio-foto";
 import { ServicioFotoField } from "./ServicioFotoField";
+import { SubserviciosDialog, type SubservicioSeleccionado } from "./SubserviciosDialog";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { X } from "lucide-react";
+import { Layers, Plus, Clock, ListChecks, Wrench, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { AddPhasesDialog } from "@/intranet/quotation/components/reference/AddPhasesDialog";
+import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
 
 interface Props {
   mode: "create" | "edit";
@@ -19,7 +33,7 @@ interface Props {
 }
 
 const EMPTY: CreateServicioDTO = {
-  nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "",
+  nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", pago_por_dia: false,
 };
 
 interface FieldProps {
@@ -72,6 +86,10 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
   const [errors, setErrors] = useState<Partial<Record<keyof CreateServicioDTO, string>>>({});
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoError, setFotoError] = useState<string | undefined>();
+  const [fases, setFases] = useState<ServicioFase[]>([]);
+  const [phasesDialogOpen, setPhasesDialogOpen] = useState(false);
+  const [subservicios, setSubservicios] = useState<ServicioSubservicio[]>([]);
+  const [subDialogOpen, setSubDialogOpen] = useState(false);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -84,9 +102,24 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         precio_regular: servicio.precio_regular,
         condicional_precio: servicio.condicional_precio,
         observaciones: servicio.observaciones,
+        pago_por_dia: servicio.pago_por_dia,
       });
+      // Cargar fases y subservicios reales desde la plantilla del servicio
+      // principal (GET /servicios/:id/principal) en una sola petición.
+      setFases(servicio.fases ?? []);
+      setSubservicios(servicio.subservicios ?? []);
+      getServicioPrincipal(servicio.id)
+        .then(({ fases: f, subservicios: s }) => {
+          if (f.length > 0) setFases(f);
+          if (s.length > 0) setSubservicios(s);
+        })
+        .catch(() => {
+          /* se mantiene lo embebido si falla */
+        });
     } else {
       setForm(EMPTY);
+      setFases([]);
+      setSubservicios([]);
     }
     setFotoFile(null);
     setFotoError(undefined);
@@ -129,11 +162,20 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
     try {
       let servicioId: number;
 
+      // Las fases (etapas/actividades) y subservicios se guardan anidados en el
+      // mismo PUT/POST del servicio. Solo se incluyen si hay datos cargados para
+      // evitar borrar la plantilla del backend por un fallo de carga.
+      const dto: CreateServicioDTO = { ...form };
+      if (fases.length > 0) dto.etapas = serializeEtapas(fases);
+      if (subservicios.length > 0) {
+        dto.subservicios = serializeSubservicios(subservicios, fases);
+      }
+
       if (mode === "create") {
-        const created = await createMutation.mutateAsync(form);
+        const created = await createMutation.mutateAsync(dto);
         servicioId = created.id;
       } else if (mode === "edit" && servicio) {
-        await updateMutation.mutateAsync({ id: servicio.id, dto: form });
+        await updateMutation.mutateAsync({ id: servicio.id, dto });
         servicioId = servicio.id;
       } else {
         return;
@@ -154,17 +196,69 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         }
       }
 
+      await queryClient.invalidateQueries({
+        queryKey: ["servicio-principal", servicioId],
+      });
+
       onClose();
     } catch {
       // El Provider ya muestra el toast de error — el modal permanece abierto
     }
   };
 
+  const totalActividades = fases.reduce((acc, f) => acc + f.activities.length, 0);
+  const totalDuracion = fases.reduce((acc, f) => acc + f.duration, 0);
+
+  const handleConfirmFases = (items: QuotationPhase[]) => {
+    setFases(items);
+    // Limpiar referencias de subservicios a fases que ya no existen.
+    const validIds = new Set(items.map((p) => p.id));
+    setSubservicios((prev) =>
+      prev.map((s) => ({
+        ...s,
+        faseIds: s.faseIds.filter((id) => validIds.has(id)),
+      })),
+    );
+  };
+
+  const handleConfirmSubservicios = (selected: SubservicioSeleccionado[]) => {
+    setSubservicios((prev) => {
+      const prevById = new Map(prev.map((s) => [s.id, s]));
+      // Conservar las fases ya asignadas a los que siguen seleccionados.
+      return selected.map((sel) => {
+        const existing = prevById.get(sel.id);
+        return existing
+          ? { ...existing, nombre: sel.nombre }
+          : { id: sel.id, nombre: sel.nombre, faseIds: [] };
+      });
+    });
+  };
+
+  const toggleSubservicioFase = (subId: number, faseId: string) => {
+    setSubservicios((prev) =>
+      prev.map((s) => {
+        if (s.id !== subId) return s;
+        const has = s.faseIds.includes(faseId);
+        return {
+          ...s,
+          faseIds: has
+            ? s.faseIds.filter((id) => id !== faseId)
+            : [...s.faseIds, faseId],
+        };
+      }),
+    );
+  };
+
+  const removeSubservicio = (subId: number) => {
+    setSubservicios((prev) => prev.filter((s) => s.id !== subId));
+  };
+
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  return (
+  return createPortal(
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-card rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-xl mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-base font-semibold text-foreground">
             {mode === "create" ? "Agregar Servicio" : "Editar Servicio"}
@@ -191,7 +285,182 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
           <FormField id="descripcion"       label="Descripción"           placeholder="Describe el servicio en detalle..." value={form.descripcion}       error={errors.descripcion}       onChange={handleChange} textarea />
           <FormField id="precio_regular"    label="Precio Regular (S/)"   placeholder="0.00" type="number"             value={form.precio_regular}    error={errors.precio_regular}    onChange={handleChange} />
           <FormField id="condicional_precio" label="Condicional de Precio" placeholder="Ej. Por unidad, Por m², Por proyecto" value={form.condicional_precio} error={errors.condicional_precio} onChange={handleChange} />
+
+          {/* Pago por día: si está activo, en la cotización el servicio se cobra
+              precio × días en que ocurre; si no, solo el precio comercial. */}
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+            <div>
+              <Label htmlFor="pago_por_dia" className="text-sm font-medium text-gray-700">
+                Pago por día
+              </Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Si está activo, el precio se multiplica por los días en que ocurre el servicio.
+              </p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                id="pago_por_dia"
+                type="checkbox"
+                className="peer sr-only"
+                checked={!!form.pago_por_dia}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, pago_por_dia: e.target.checked }))
+                }
+              />
+              <div className="h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-red-500 peer-checked:after:translate-x-5" />
+            </label>
+          </div>
+
           <FormField id="observaciones"     label="Observaciones"         placeholder="Notas adicionales..."            value={form.observaciones}     error={errors.observaciones}     onChange={handleChange} textarea />
+
+          {/* Fases del servicio (mismo esquema que cotizaciones) */}
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                  <Layers className="h-4 w-4 text-red-500" />
+                  Fases del Servicio
+                </Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Define las fases predeterminadas con sus actividades y duración.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPhasesDialogOpen(true)}
+                disabled={isPending}
+              >
+                <Plus className="h-4 w-4" />
+                {fases.length > 0 ? "Editar Fases" : "Agregar Fases"}
+              </Button>
+            </div>
+
+            {fases.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <ListChecks className="h-3.5 w-3.5" />
+                    {fases.length} fase{fases.length !== 1 ? "s" : ""} · {totalActividades} actividad{totalActividades !== 1 ? "es" : ""}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    {totalDuracion} días total
+                  </span>
+                </div>
+                <ul className="space-y-1">
+                  {fases.map((f, i) => (
+                    <li
+                      key={f.id}
+                      className="flex items-center gap-2 rounded-md bg-muted/40 px-2.5 py-1.5 text-sm"
+                    >
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-semibold text-red-600">
+                        {i + 1}
+                      </span>
+                      <span className="flex-1 truncate text-gray-700">{f.name || "(Sin nombre)"}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {f.activities.length} act.
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="rounded-md border border-dashed border-border py-3 text-center text-xs text-muted-foreground">
+                Aún no hay fases definidas para este servicio.
+              </p>
+            )}
+          </div>
+
+          {/* Subservicios (solo en edición): servicios que intervienen en las fases */}
+          {mode === "edit" && (
+            <div className="space-y-2 rounded-lg border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                    <Wrench className="h-4 w-4 text-red-500" />
+                    Subservicios
+                  </Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Selecciona servicios que intervienen y en qué fases participan.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSubDialogOpen(true)}
+                  disabled={isPending}
+                >
+                  <Plus className="h-4 w-4" />
+                  {subservicios.length > 0 ? "Editar" : "Agregar"}
+                </Button>
+              </div>
+
+              {subservicios.length > 0 ? (
+                <ul className="space-y-2">
+                  {subservicios.map((sub) => (
+                    <li
+                      key={sub.id}
+                      className="rounded-md border border-border bg-muted/30 p-2.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                          <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
+                          {sub.nombre || `Servicio #${sub.id}`}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSubservicio(sub.id)}
+                          className="h-6 w-6 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+
+                      <div className="mt-2">
+                        <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Interviene en las fases:
+                        </p>
+                        {fases.length === 0 ? (
+                          <p className="text-xs italic text-amber-600">
+                            Primero define las fases del servicio para poder asignarlas.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {fases.map((f, i) => {
+                              const active = sub.faseIds.includes(f.id);
+                              return (
+                                <button
+                                  key={f.id}
+                                  type="button"
+                                  onClick={() => toggleSubservicioFase(sub.id, f.id)}
+                                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                                    active
+                                      ? "border-red-500 bg-red-500 text-white"
+                                      : "border-border bg-background text-gray-600 hover:border-red-300 hover:text-red-600"
+                                  }`}
+                                >
+                                  {i + 1}. {f.name || "Sin nombre"}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-md border border-dashed border-border py-3 text-center text-xs text-muted-foreground">
+                  Aún no hay subservicios seleccionados.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-border bg-muted/50">
@@ -206,5 +475,22 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         </div>
       </div>
     </div>
+
+    <AddPhasesDialog
+      open={phasesDialogOpen}
+      onOpenChange={setPhasesDialogOpen}
+      onConfirm={handleConfirmFases}
+      existingPhases={fases}
+    />
+
+    <SubserviciosDialog
+      open={subDialogOpen}
+      onOpenChange={setSubDialogOpen}
+      currentServicioId={servicio?.id}
+      selectedIds={subservicios.map((s) => s.id)}
+      onConfirm={handleConfirmSubservicios}
+    />
+    </>,
+    document.body,
   );
 };

@@ -8,6 +8,11 @@ import type {
   PersonalRequerido,
   CreatePersonalRequeridoDTO,
   UpdatePersonalRequeridoDTO,
+  ServicioFase,
+  ServicioSubservicio,
+  ServicioEtapaPayload,
+  ServicioEtapaActividadPayload,
+  ServicioSubservicioPayload,
 } from "../interfaces/service";
 
 // Ruta del endpoint PÚBLICO de servicios para la landing (sin autenticación).
@@ -31,7 +36,107 @@ interface ServicioRaw {
   url_imagen?: string | null;
   Estado?: "Activo" | "Desactivado"; // campo real del backend
   activo?: boolean;                   // por compatibilidad defensiva
+  pago_por_dia?: boolean;             // pago por día del servicio
+  fases?: unknown;                    // fases embebidas (si el backend las incluye)
+  faces?: unknown;                    // tolerar typo común del backend
+  subservicios?: unknown;             // subservicios embebidos (si el backend los incluye)
+  sub_servicios?: unknown;            // tolerar snake_case alternativo
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FASES (mismo esquema que cotizaciones). El backend puede devolverlas embebidas
+// en el servicio o vía endpoint dedicado /servicios/:id/fases.
+// ─────────────────────────────────────────────────────────────────────────────
+interface FaseRaw {
+  id?: string | number;
+  ID_Fase?: string | number;
+  nombre?: string;
+  name?: string;
+  descripcion?: string;
+  description?: string;
+  duracion?: number | string;
+  duration?: number | string;
+  actividades?: unknown;
+  activities?: unknown;
+}
+
+interface ActividadRaw {
+  id?: string | number;
+  ID_Actividad?: string | number;
+  nombre?: string;
+  name?: string;
+}
+
+let faseSeq = 0;
+const genFaseId = (prefix: string) => `${prefix}_${Date.now()}_${faseSeq++}`;
+
+const toActividad = (raw: ActividadRaw) => ({
+  id: String(raw.id ?? raw.ID_Actividad ?? genFaseId("act")),
+  name: raw.name ?? raw.nombre ?? "",
+});
+
+const toFase = (raw: FaseRaw): ServicioFase => {
+  const actividadesRaw = (raw.activities ?? raw.actividades ?? []) as ActividadRaw[];
+  const activities = Array.isArray(actividadesRaw)
+    ? actividadesRaw.map(toActividad)
+    : [];
+  const durationValue = Number(raw.duration ?? raw.duracion ?? 1);
+  return {
+    id: String(raw.id ?? raw.ID_Fase ?? genFaseId("fase")),
+    name: raw.name ?? raw.nombre ?? "",
+    description: raw.description ?? raw.descripcion ?? "",
+    duration: Number.isFinite(durationValue) && durationValue > 0 ? durationValue : 1,
+    activities,
+  };
+};
+
+const pickFasesFromRaw = (raw: ServicioRaw): ServicioFase[] => {
+  const value = raw.fases ?? raw.faces;
+  if (!Array.isArray(value)) return [];
+  return (value as FaseRaw[]).map(toFase);
+};
+
+interface SubservicioRaw {
+  id?: number;
+  id_subservicio?: number;
+  ID_Servicio?: number;
+  ID_Subservicio?: number;
+  servicio_id?: number;
+  nombre?: string;
+  name?: string;
+  faseIds?: unknown;
+  fase_ids?: unknown;
+  fases?: unknown;
+}
+
+const toSubservicio = (raw: SubservicioRaw): ServicioSubservicio => {
+  const fasesValue = raw.faseIds ?? raw.fase_ids ?? raw.fases ?? [];
+  const faseIds = Array.isArray(fasesValue)
+    ? fasesValue.map((f) =>
+        typeof f === "object" && f !== null
+          ? String((f as { id?: unknown }).id ?? "")
+          : String(f),
+      ).filter((id) => id.length > 0)
+    : [];
+  return {
+    id: Number(
+      raw.id ??
+        raw.id_subservicio ??
+        raw.ID_Subservicio ??
+        raw.ID_Servicio ??
+        raw.servicio_id ??
+        0,
+    ),
+    nombre: raw.nombre ?? raw.name ?? "",
+    faseIds,
+  };
+};
+
+const pickSubserviciosFromRaw = (raw: ServicioRaw): ServicioSubservicio[] => {
+  const value = raw.subservicios ?? raw.sub_servicios;
+  if (!Array.isArray(value)) return [];
+  return (value as SubservicioRaw[]).map(toSubservicio);
+};
 
 const pickFotoFromRaw = (raw: ServicioRaw): string | null => {
   const value = raw.foto ?? raw.foto_url ?? raw.imagen ?? raw.url_imagen ?? null;
@@ -75,6 +180,9 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   observaciones: raw.observaciones ?? "",
   foto: pickFotoFromRaw(raw),
   activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
+  pago_por_dia: raw.pago_por_dia === true,
+  fases: pickFasesFromRaw(raw),
+  subservicios: pickSubserviciosFromRaw(raw),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,6 +244,8 @@ export const updateServicio = async (
       observaciones: dto.observaciones ?? "",
       foto: null,
       activo: dto.activo ?? true,
+      fases: [],
+      subservicios: [],
     };
   }
   return toServicio(raw);
@@ -157,7 +267,7 @@ export const uploadServicioFoto = async (
   });
   const raw = extractRaw(response.data);
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true, pago_por_dia: false, fases: [], subservicios: [] };
   }
   return toServicio(raw);
 };
@@ -168,9 +278,231 @@ export const toggleServicioActivo = async (id: number, currentActivo: boolean): 
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, construirlo manualmente
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo, pago_por_dia: false, fases: [], subservicios: [] };
   }
   return toServicio(raw);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FASES DEL SERVICIO
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Un id numérico (p. ej. "1") corresponde a una etapa/actividad ya existente en
+// el backend; un id generado en el front (p. ej. "fase_123_0") es nuevo.
+const isNumericId = (id: string | number): boolean => /^\d+$/.test(String(id));
+
+/**
+ * Serializa las fases del front al formato `etapas` que espera el servicio.
+ * Las etapas/actividades existentes conservan su `id`; las nuevas lo omiten.
+ */
+export const serializeEtapas = (
+  fases: ServicioFase[],
+): ServicioEtapaPayload[] =>
+  fases.map((fase, i) => {
+    const etapa: ServicioEtapaPayload = {
+      nombre: fase.name,
+      descripcion: fase.description,
+      duracion: fase.duration,
+      orden: i + 1,
+      actividades: fase.activities.map((a, j) => {
+        const act: ServicioEtapaActividadPayload = {
+          nombre: a.name,
+          orden: j + 1,
+        };
+        if (isNumericId(a.id)) act.id = Number(a.id);
+        return act;
+      }),
+    };
+    if (isNumericId(fase.id)) etapa.id = Number(fase.id);
+    return etapa;
+  });
+
+/**
+ * Serializa los subservicios del front al formato `subservicios`. Genera una
+ * entrada por cada (subservicio, etapa). Si la etapa ya existe usa
+ * `id_servicio_etapa`; si es nueva usa `orden_etapa`.
+ */
+export const serializeSubservicios = (
+  subservicios: ServicioSubservicio[],
+  fases: ServicioFase[],
+): ServicioSubservicioPayload[] => {
+  const faseInfo = new Map<string, { etapaId?: number; orden: number }>();
+  fases.forEach((fase, i) => {
+    faseInfo.set(fase.id, {
+      etapaId: isNumericId(fase.id) ? Number(fase.id) : undefined,
+      orden: i + 1,
+    });
+  });
+
+  const result: ServicioSubservicioPayload[] = [];
+  for (const sub of subservicios) {
+    if (sub.faseIds.length === 0) {
+      result.push({ ID_Servicio_subservicio: sub.id });
+      continue;
+    }
+    for (const faseId of sub.faseIds) {
+      const info = faseInfo.get(faseId);
+      if (!info) continue;
+      const entry: ServicioSubservicioPayload = {
+        ID_Servicio_subservicio: sub.id,
+      };
+      if (info.etapaId != null) entry.id_servicio_etapa = info.etapaId;
+      else entry.orden_etapa = info.orden;
+      result.push(entry);
+    }
+  }
+  return result;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLANTILLA DEL SERVICIO PRINCIPAL
+// GET /servicios/:id/principal — devuelve la cabecera del servicio principal,
+// sus etapas (fases) con actividades y la matriz de subservicios recomendados.
+// Es la fuente real de las fases/subservicios definidos en "Gestionar Servicios".
+// ─────────────────────────────────────────────────────────────────────────────
+interface PrincipalEtapaRaw {
+  id?: string | number;
+  nombre?: string;
+  name?: string;
+  descripcion?: string;
+  description?: string;
+  duracion?: number | string;
+  duration?: number | string;
+  orden?: number;
+  actividades?: unknown;
+  activities?: unknown;
+}
+
+interface PrincipalUbicacionEtapaRaw {
+  id?: string | number;
+  nombre?: string;
+  orden?: number;
+}
+
+interface PrincipalSubservicioRaw {
+  id_subservicio?: number;
+  ID_Servicio?: number;
+  nombre?: string;
+  name?: string;
+  Principal?: boolean;
+  pago_por_dia?: boolean;
+  ubicacion_etapa?: PrincipalUbicacionEtapaRaw | null;
+}
+
+export interface ServicioPrincipalTemplate {
+  fases: ServicioFase[];
+  subservicios: ServicioSubservicio[];
+  /** Si true, el servicio principal se paga por día (precio × días totales). */
+  principalPagoPorDia: boolean;
+}
+
+const mapPrincipalEtapas = (rows: PrincipalEtapaRaw[]): ServicioFase[] => {
+  const sorted = [...rows].sort(
+    (a, b) => Number(a.orden ?? 0) - Number(b.orden ?? 0),
+  );
+  return sorted.map((e) => toFase(e as FaseRaw));
+};
+
+// La matriz puede traer una fila por (subservicio, etapa). Se agrupa por el
+// servicio referenciado (ID_Servicio) y se acumulan las fases en las que
+// interviene, alineado con el modelo del front (faseIds: string[]).
+const mapPrincipalSubservicios = (
+  rows: PrincipalSubservicioRaw[],
+): ServicioSubservicio[] => {
+  const byService = new Map<number, ServicioSubservicio>();
+  for (const row of rows) {
+    const servId = Number(row.ID_Servicio ?? row.id_subservicio ?? 0);
+    if (!servId) continue;
+    const faseId =
+      row.ubicacion_etapa?.id != null ? String(row.ubicacion_etapa.id) : null;
+    const existing = byService.get(servId);
+    if (existing) {
+      if (faseId && !existing.faseIds.includes(faseId)) {
+        existing.faseIds.push(faseId);
+      }
+      if (row.pago_por_dia === true) existing.pagoPorDia = true;
+    } else {
+      byService.set(servId, {
+        id: servId,
+        nombre: row.nombre ?? row.name ?? "",
+        faseIds: faseId ? [faseId] : [],
+        pagoPorDia: row.pago_por_dia === true,
+      });
+    }
+  }
+  return Array.from(byService.values());
+};
+
+/**
+ * Obtiene la plantilla del servicio como principal: sus fases (etapas con
+ * actividades) y los subservicios recomendados. Endpoint público (sin token).
+ * Degrada de forma segura a vacío si el endpoint falla.
+ */
+export const getServicioPrincipal = async (
+  servicioId: number,
+): Promise<ServicioPrincipalTemplate> => {
+  try {
+    const response = await axiosInstance.get(
+      `/servicios/${servicioId}/principal`,
+    );
+    const body = (response.data ?? {}) as Record<string, unknown>;
+    const data = (
+      body.data && typeof body.data === "object" ? body.data : body
+    ) as Record<string, unknown>;
+
+    const principalCandidate = data.servicio_principal;
+    const principal = (
+      principalCandidate && typeof principalCandidate === "object"
+        ? principalCandidate
+        : data
+    ) as Record<string, unknown>;
+
+    const etapasValue =
+      principal.etapas ?? principal.fases ?? data.etapas ?? data.fases ?? [];
+    const subsValue =
+      data.servicios_secundarios ??
+      principal.servicios_secundarios ??
+      data.subservicios ??
+      [];
+
+    return {
+      fases: Array.isArray(etapasValue)
+        ? mapPrincipalEtapas(etapasValue as PrincipalEtapaRaw[])
+        : [],
+      subservicios: Array.isArray(subsValue)
+        ? mapPrincipalSubservicios(subsValue as PrincipalSubservicioRaw[])
+        : [],
+      principalPagoPorDia: principal.pago_por_dia === true,
+    };
+  } catch {
+    return { fases: [], subservicios: [], principalPagoPorDia: false };
+  }
+};
+
+/**
+ * Obtiene las fases de un servicio desde la plantilla del servicio principal.
+ * Degrada de forma segura a `[]`.
+ */
+export const getFasesByServicio = async (
+  servicioId: number,
+): Promise<ServicioFase[]> => {
+  const { fases } = await getServicioPrincipal(servicioId);
+  return fases;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBSERVICIOS DEL SERVICIO
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Obtiene los subservicios de un servicio desde la plantilla del servicio
+ * principal. Degrada de forma segura a `[]`.
+ */
+export const getSubserviciosByServicio = async (
+  servicioId: number,
+): Promise<ServicioSubservicio[]> => {
+  const { subservicios } = await getServicioPrincipal(servicioId);
+  return subservicios;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -14,6 +14,8 @@ export const ListQuotationsProvider: FC<{ children: ReactNode }> = ({
   const result = useQuery({
     queryKey: ["quotations", queryParams],
     queryFn: () => getAllQuotations(queryParams),
+    refetchOnWindowFocus: true,
+    refetchInterval: 15_000,
   });
 
   const query = (queryParams: GetQuotationQP) => {

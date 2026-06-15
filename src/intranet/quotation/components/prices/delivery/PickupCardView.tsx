@@ -47,17 +47,17 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
           <CardTitle className="flex flex-row items-end gap-x-1.5 mx-auto sm:mx-0">
             <Package className="text-primary" />
             <span className="pb-0.5 font-[375] text-[18px]">
-              Servicio de Recojo
+              Delivery
             </span>
           </CardTitle>
           <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-            {description ?? "Establece el costo y fecha de recojo"}
+            {description ?? "Establece el costo y fecha de entrega del producto"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col gap-4 overflow-y-auto md:flex-row">
           <div className="sm:flex-3">
             <p className="text-sm font-medium text-muted-foreground mb-1.5">
-              {"Costo de Recojo ($)"}
+              {"Costo de envio ($)"}
             </p>
             {readOnly ? (
               <p className="text-sm font-semibold text-foreground">
@@ -77,7 +77,7 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
 
           <div className="sm:flex-3">
             <p className="text-sm font-medium text-muted-foreground mb-1.5">
-              Fecha de Recojo
+              Fecha de envio
             </p>
             {readOnly ? (
               <p className="text-sm font-semibold text-foreground">
@@ -90,7 +90,6 @@ export const PickupCardView: FC<PickupCardViewProps> = memo(
                 value={pickupDate}
                 min={format(new Date(), "yyyy-MM-dd")}
                 onChange={(e) => {
-                  console.log(e.target.value);
                   onPickupDateChange?.(e.target.value);
                 }}
               />

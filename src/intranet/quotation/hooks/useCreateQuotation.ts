@@ -9,6 +9,7 @@ import { useQuotationPickupStore } from "./stores/quotation.pickup.store.provide
 import { useQuotationConditionStore } from "./stores/quotation.conditions.store.provider";
 import { useQuotationServiceStore } from "./stores/quotation.services.store.provider";
 import { useQuotationExchangeRate } from "./stores/quotation.exchange.rate.store.provider";
+import { computeServiceDates } from "../lib/quotationSchedule";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 
 interface UseCreateQuotationOptions {
@@ -27,6 +28,9 @@ export const useCreateQuotation = ({
   const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
   const quotationName = useQuotationReferenceStore((s) => s.name);
   const phases = useQuotationReferenceStore((s) => s.phases);
+  const projectStartDate = useQuotationReferenceStore(
+    (s) => s.projectStartDate,
+  );
   const pickupCost = useQuotationPickupStore((s) => s.pickupCost);
   const pickupDate = useQuotationPickupStore((s) => s.pickupDate);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
@@ -41,45 +45,62 @@ export const useCreateQuotation = ({
     if (!orderId) return;
 
     setIsSending(true);
-    toast.promise(
-      async () => {
-        await createQuotation({
-          id_solicitud: Number(orderId),
-          DNI_O_RUC: referenceData.DNIorRUC,
-          name: quotationName || "cotización",
-          inventory: Object.values(inventory),
-          services: Object.values(servicios),
-          trucks,
-          pickupService: {
-            pickupCost,
-            pickupDate,
-            pickupAddress,
-          },
-          quotationConditions: {
-            emissionDate,
-            expirationDate,
-            conditions,
-            observations,
-          },
-          quotationRate: {
-            sellingRate: rate?.sellingRate ?? 0,
-            buyingRate: rate?.buyingRate ?? 0,
-          },
-          phases,
-        });
-        navigate("/intranet/solicitudes");
-      },
-      {
-        loading: "Creando cotización...",
-        success: "Cotización creada con éxito.",
-        error: "Error al crear la cotización",
-      },
-    );
+    try {
+      await toast.promise(
+        async () => {
+          // Recalcula las fechas de cada servicio según el día de inicio y la
+          // etapa, para enviar fecha_inicio/fecha_finalizacion coherentes.
+          const servicesPayload = Object.values(servicios).map((service) => {
+            const { startDate, dueDate } = computeServiceDates(
+              service,
+              projectStartDate,
+              phases,
+            );
+            return { ...service, startDate, dueDate };
+          });
+
+          await createQuotation({
+            id_solicitud: Number(orderId),
+            DNI_O_RUC: referenceData.DNIorRUC,
+            name: quotationName || "cotización",
+            projectStartDate,
+            inventory: Object.values(inventory),
+            services: servicesPayload,
+            trucks,
+            pickupService: {
+              pickupCost,
+              pickupDate,
+              pickupAddress,
+            },
+            quotationConditions: {
+              emissionDate,
+              expirationDate,
+              conditions,
+              observations,
+            },
+            quotationRate: {
+              sellingRate: rate?.sellingRate ?? 0,
+              buyingRate: rate?.buyingRate ?? 0,
+            },
+            phases,
+          });
+          navigate("/intranet/solicitudes");
+        },
+        {
+          loading: "Creando cotización...",
+          success: "Cotización creada con éxito.",
+          error: "Error al crear la cotización",
+        },
+      );
+    } finally {
+      setIsSending(false);
+    }
   }, [
     orderId,
     referenceData,
     quotationName,
     phases,
+    projectStartDate,
     inventory,
     servicios,
     trucks,

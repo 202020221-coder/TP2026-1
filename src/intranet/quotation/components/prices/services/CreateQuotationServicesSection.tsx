@@ -6,12 +6,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
-import { useMemo, useState, type FC } from "react";
+import { useEffect, useMemo, useState, type FC } from "react";
+import { toast } from "sonner";
 import { QuotationServicesTable } from "./ServicesTable";
 import { useQuotationServiceStore } from "@/intranet/quotation/hooks/stores/quotation.services.store.provider";
+import { useQuotationReferenceStore } from "@/intranet/quotation/hooks/stores/quotation.reference.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddServicesDialog } from "./AddServicesDialog";
+import { computeServiceDates } from "@/intranet/quotation/lib/quotationSchedule";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
+import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
 
 export const CreateQuotationServicesSection: FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,7 +23,51 @@ export const CreateQuotationServicesSection: FC = () => {
   const deleteItem = useQuotationServiceStore((s) => s.removeItem);
   const updateItem = useQuotationServiceStore((s) => s.updateItem);
   const addItems = useQuotationServiceStore((s) => s.addItems);
+
+  const phases = useQuotationReferenceStore((s) => s.phases);
+  const projectStartDate = useQuotationReferenceStore(
+    (s) => s.projectStartDate,
+  );
+  const updateReference = useQuotationReferenceStore((s) => s.update);
+
   const services = useMemo(() => Object.values(items), [items]);
+
+  // Las fechas de cada servicio se calculan según el día de inicio del proyecto
+  // y la etapa en la que ocurre (no editables). Se sincronizan en el store para
+  // que el resumen, el PDF y el envío usen siempre las fechas vigentes.
+  useEffect(() => {
+    for (const service of Object.values(items)) {
+      const { startDate, dueDate } = computeServiceDates(
+        service,
+        projectStartDate,
+        phases,
+      );
+      if (service.startDate !== startDate) {
+        updateItem(service.id, "startDate", startDate);
+      }
+      if (service.dueDate !== dueDate) {
+        updateItem(service.id, "dueDate", dueDate);
+      }
+    }
+  }, [items, projectStartDate, phases, updateItem]);
+
+  // Autocompleta las fases del proyecto con las fases predeterminadas de los
+  // servicios agregados, evitando duplicar fases por nombre.
+  const mergeServicePhases = (incoming: QuotationPhase[]) => {
+    if (!incoming || incoming.length === 0) return;
+    const existing = phases.items;
+    const existingNames = new Set(
+      existing.map((p) => p.name.trim().toLowerCase()),
+    );
+    const toAdd = incoming.filter(
+      (p) => !existingNames.has(p.name.trim().toLowerCase()),
+    );
+    if (toAdd.length === 0) return;
+    updateReference("phases", { items: [...existing, ...toAdd] });
+    toast.success(
+      `Se autocompletaron ${toAdd.length} fase${toAdd.length !== 1 ? "s" : ""} del servicio.`,
+    );
+  };
 
   return (
     <Card className="gap-4 border bg-card shadow-none">
@@ -43,7 +91,7 @@ export const CreateQuotationServicesSection: FC = () => {
           <Plus /> Agregar Servicios
         </Button>
         <AddServicesDialog
-          addHandler={(items) =>
+          addHandler={(items, servicePhases) => {
             addItems(
               items.map(
                 (i): DesiredQuotationData["services"][number] => ({
@@ -55,8 +103,9 @@ export const CreateQuotationServicesSection: FC = () => {
                   schedule: i.schedule,
                 }),
               ),
-            )
-          }
+            );
+            if (servicePhases) mergeServicePhases(servicePhases);
+          }}
           onOpenChange={setIsDialogOpen}
           open={isDialogOpen}
         />
@@ -65,12 +114,6 @@ export const CreateQuotationServicesSection: FC = () => {
           onDelete={deleteItem}
           onUpdateSchedule={(id, schedule) =>
             updateItem(id, "schedule", schedule)
-          }
-          onUpdateStartDate={(id, startDate) =>
-            updateItem(id, "startDate", startDate)
-          }
-          onUpdateDueDate={(id, dueDate) =>
-            updateItem(id, "dueDate", dueDate)
           }
           onUpdateUnitPrice={(id, unitPrice) =>
             updateItem(id, "unitPrice", unitPrice)

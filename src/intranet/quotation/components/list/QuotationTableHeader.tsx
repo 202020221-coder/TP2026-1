@@ -6,6 +6,7 @@ export const QuotationTableHeader: FC = () => {
       <TableRow className="hover:bg-white">
         <TableHead className="text-gray-500 font-medium">ID</TableHead>
         <TableHead className="text-gray-500 font-medium">Nombre</TableHead>
+        <TableHead className="text-gray-500 font-medium">Version</TableHead>
         <TableHead className="text-gray-500 font-medium">
           Fecha de Emisión
         </TableHead>
