@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/shared/components/ui/table";
@@ -9,28 +9,35 @@ import {
 } from "@/shared/components/ui/select";
 import { Loader2, Save, Upload } from "lucide-react";
 import {
-  usePresupuestoItems,
+  usePresupuestoReal,
   useUpdateGastoReal,
-  useIncidencias,
+  useIncidenciasPorCotizacion,
 } from "../../../hooks/usePresupuestos";
-import type { IncidenciaPresupuesto, PresupuestoItem } from "../../../interfaces/presupuesto";
+import type { IncidenciaPresupuesto, PresupuestoRealItem } from "../../../interfaces/presupuesto";
+import { GastoRealEvidenciaButton, getIncidenciaValue, buildIncidenciaOptions } from "./gasto-real-shared";
 
 const TIPO = "Material Directo" as const;
 
 interface RowProps {
-  item: PresupuestoItem;
+  item: PresupuestoRealItem;
   cotizacionId: number;
   incidencias: IncidenciaPresupuesto[];
 }
 
 function GastoRealMaterialRow({ item, cotizacionId, incidencias }: RowProps) {
-  const [gastoReal, setGastoReal] = useState(item.gasto_real ?? "");
-  const [razon, setRazon] = useState(item.razon_gasto_real ?? "");
-  const [incidencia, setIncidencia] = useState(item.involucra_incidencia ?? "NO");
+  const [gastoReal, setGastoReal] = useState(item.costo_real ?? "");
+  const [razon, setRazon] = useState(item.razon ?? "");
+  const [incidencia, setIncidencia] = useState(getIncidenciaValue(item));
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutate: save, isPending: isSaving } = useUpdateGastoReal(cotizacionId, TIPO);
+
+  useEffect(() => {
+    setGastoReal(item.costo_real ?? "");
+    setRazon(item.razon ?? "");
+    setIncidencia(getIncidenciaValue(item));
+  }, [item]);
 
   const handleSave = () => {
     save({
@@ -39,6 +46,9 @@ function GastoRealMaterialRow({ item, cotizacionId, incidencias }: RowProps) {
       file: selectedFile ?? undefined,
     });
     setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,23 +76,26 @@ function GastoRealMaterialRow({ item, cotizacionId, incidencias }: RowProps) {
         />
       </TableCell>
       <TableCell>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1 h-8"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isSaving}
-        >
-          <Upload className="h-3 w-3" />
-          {selectedFile ? selectedFile.name.slice(0, 10) + "…" : item.evidencia_url ? "Cambiar" : "Subir"}
-        </Button>
+        <div className="flex items-center gap-1">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1 h-8"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isSaving}
+          >
+            <Upload className="h-3 w-3" />
+            {selectedFile ? selectedFile.name.slice(0, 10) + "…" : item.prueba ? "Cambiar" : "Subir"}
+          </Button>
+          <GastoRealEvidenciaButton url={item.prueba} />
+        </div>
       </TableCell>
       <TableCell>
         <Input
@@ -99,7 +112,7 @@ function GastoRealMaterialRow({ item, cotizacionId, incidencias }: RowProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="NO">NO</SelectItem>
-            {incidencias.map((inc) => (
+            {buildIncidenciaOptions(incidencias, incidencia).map((inc) => (
               <SelectItem key={inc.id_incidencia} value={String(inc.id_incidencia)}>
                 #{inc.id_incidencia} — {inc.comentario}
               </SelectItem>
@@ -117,8 +130,8 @@ function GastoRealMaterialRow({ item, cotizacionId, incidencias }: RowProps) {
 }
 
 export function GastoRealMaterialTab({ cotizacionId }: { cotizacionId: number }) {
-  const { data: items, isLoading } = usePresupuestoItems(cotizacionId, TIPO);
-  const { data: incidencias = [] } = useIncidencias();
+  const { data: items, isLoading } = usePresupuestoReal(cotizacionId, TIPO);
+  const { data: incidencias = [] } = useIncidenciasPorCotizacion(cotizacionId);
 
   return (
     <div className="rounded-lg border border-border overflow-x-auto">

@@ -3,17 +3,11 @@ import { presupuestosApi } from "../api/presupuestos.api";
 import type { AddPresupuestoItemPayload, GastoRealPayload, PresupuestoRealItem, TipoPresupuesto } from "../interfaces/presupuesto";
 import { toast } from "sonner";
 
-export const useIncidencias = () =>
+export const useIncidenciasPorCotizacion = (cotizacionId: number) =>
   useQuery({
-    queryKey: ["incidencias-presupuesto"],
-    queryFn: () => presupuestosApi.getIncidencias(),
-    select: (d) => {
-      const raw = d.data as unknown;
-      if (Array.isArray(raw)) return raw;
-      if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data))
-        return (raw as { data: unknown[] }).data;
-      return [];
-    },
+    queryKey: ["incidencias-presupuesto", "cotizacion", cotizacionId],
+    queryFn: () => presupuestosApi.getIncidenciasPorCotizacion(cotizacionId),
+    enabled: cotizacionId > 0,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -24,6 +18,7 @@ export const useUpdateGastoReal = (cotizacionId: number, tipo: TipoPresupuesto) 
       presupuestosApi.updateGastoReal(itemId, payload, file),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: itemsKey(cotizacionId, tipo) });
+      qc.invalidateQueries({ queryKey: ["presupuesto-real", cotizacionId, tipo] });
     },
     onSuccess: () => toast.success("Gasto real guardado"),
     onError: () => toast.error("Error al guardar"),

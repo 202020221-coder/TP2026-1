@@ -2,20 +2,23 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Pencil, Trash2, UserCheck, Loader2 } from "lucide-react";
+import { Pencil, Trash2, UserCheck, Loader2, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import type { Servicio } from "../interfaces/service";
 import { useServicios } from "../hooks/useServicios";
 import { ServicioFormModal } from "./ServicioFormModal";
 import { PersonalRequeridoModal } from "./PersonalRequeridoModal";
+import { InventarioServicioModal } from "./InventarioServicioModal";
 
 export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
   const { toggleActivoLocal } = useServicios();
-  const [editOpen, setEditOpen]         = useState(false);
-  const [personalOpen, setPersonalOpen] = useState(false);
+  const [editOpen, setEditOpen]           = useState(false);
+  const [personalOpen, setPersonalOpen]   = useState(false);
+  const [inventarioOpen, setInventarioOpen] = useState(false);
 
   const { toggleActivoMutation } = useServicios();
-  const isTogglingThis = toggleActivoMutation.isPending &&
+  const isTogglingThis =
+    toggleActivoMutation.isPending &&
     (toggleActivoMutation.variables as { id: number; currentActivo: boolean })?.id === servicio.id;
 
   const handleToggleActivo = () => {
@@ -25,7 +28,9 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
   return (
     <>
       <TableRow
-        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${!servicio.activo ? "opacity-60" : ""}`}
+        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+          !servicio.activo ? "opacity-60" : ""
+        }`}
       >
         <TableCell className="font-medium py-3">{servicio.nombre}</TableCell>
         <TableCell className="text-gray-700 max-w-[180px] truncate">{servicio.descripcion}</TableCell>
@@ -48,7 +53,25 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
 
         <TableCell>
           <div className="flex justify-center gap-2">
-            {/* Editar */}
+
+            {/* ── Inventario (ojo amarillo) ── */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setInventarioOpen(true)}
+                  className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal">
+                Ver Inventario
+              </TooltipContent>
+            </Tooltip>
+
+            {/* ── Editar ── */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -65,7 +88,7 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
               </TooltipContent>
             </Tooltip>
 
-            {/* Personal Requerido */}
+            {/* ── Personal Requerido ── */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -82,7 +105,7 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
               </TooltipContent>
             </Tooltip>
 
-            {/* Desactivar/Activar servicio — toggle local, cambia Estado en UI */}
+            {/* ── Desactivar / Activar ── */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -96,10 +119,11 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
                       : "text-green-500 hover:border hover:border-green-500 hover:text-green-600 hover:bg-green-50"
                   }`}
                 >
-                  {isTogglingThis
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Trash2 className="w-4 h-4" />
-                  }
+                  {isTogglingThis ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent
@@ -112,6 +136,7 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
                 {servicio.activo ? "Desactivar Servicio" : "Activar Servicio"}
               </TooltipContent>
             </Tooltip>
+
           </div>
         </TableCell>
       </TableRow>
@@ -122,6 +147,10 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
 
       {personalOpen && (
         <PersonalRequeridoModal servicio={servicio} onClose={() => setPersonalOpen(false)} />
+      )}
+
+      {inventarioOpen && (
+        <InventarioServicioModal servicio={servicio} onClose={() => setInventarioOpen(false)} />
       )}
     </>
   );

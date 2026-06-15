@@ -50,18 +50,17 @@ export interface CreateIncidentObjectBody {
   ocurrencia_camion?: string | null;
 }
 
-/** Body para `POST /incidencias/{id}/involucrados` (aún no conectado en UI). */
+/** Body para `POST /incidencias/{id}/involucrados`. */
 export interface CreateIncidentInvolvedBody {
-  dni_involucrado?: string | null;
-  id_trabajo?: number | null;
-  descargo?: string;
-  comentario?: string;
-  nombre?: string | null;
-  Involucrado_Nombre?: string;
-  Involucrado_Apellido?: string;
+  dni_involucrado: string;
+  descargo: string;
+  comentario: string;
+  nombre: string;
+  Perfil_Registrado: boolean;
+  cargo: string;
 }
 
-/** Body para `PUT /incidencias/{id}/involucrados/{ivid}` (aún no conectado en UI). */
+/** Body para `PUT /incidencias/{id}/involucrados/{ivid}`. */
 export type UpdateIncidentInvolvedBody = CreateIncidentInvolvedBody;
 
 type IncidentObjectRaw = Partial<{
@@ -328,8 +327,28 @@ const buildInvolvedName = (raw: IncidentInvolvedRaw): string => {
   return fullName;
 };
 
+const parsePerfilRegistrado = (
+  value: IncidentInvolvedRaw["Perfil_Registrado"],
+): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return (
+      normalized === "true" ||
+      normalized === "si" ||
+      normalized === "sí" ||
+      normalized === "1"
+    );
+  }
+
+  return false;
+};
+
 const toIncidentInvolved = (raw: IncidentInvolvedRaw): IncidentInvolved => {
-  const perfilRegistrado = raw.Perfil_Registrado?.trim() || null;
+  const perfilRegistrado = parsePerfilRegistrado(raw.Perfil_Registrado);
 
   return {
     id: Number(raw.id),
@@ -337,12 +356,12 @@ const toIncidentInvolved = (raw: IncidentInvolvedRaw): IncidentInvolved => {
     id_trabajo: raw.id_trabajo ?? null,
     dni: raw.dni_involucrado?.trim() || null,
     nombre: buildInvolvedName(raw),
-    cargo: perfilRegistrado,
+    cargo: raw.cargo?.trim() || null,
     descargo_persona: raw.descargo?.trim() ?? "",
     comentario_empresa: raw.comentario?.trim() ?? "",
     trabajo_comentario: raw.Trabajo_Comentario?.trim() ?? "",
-    tiene_relacion_empresa: perfilRegistrado !== null,
-    perfil_registrado: perfilRegistrado,
+    tiene_relacion_empresa: perfilRegistrado,
+    perfil_registrado: null,
   };
 };
 
@@ -361,7 +380,7 @@ export async function getIncidentInvolved(id: number) {
   return involved as GetIncidentInvolvedResponse;
 }
 
-/** Crear involucrado — `POST /incidencias/{id}/involucrados` (sin conectar en UI). */
+/** Crear involucrado — `POST /incidencias/{id}/involucrados`. */
 export async function addIncidentInvolved(
   id: number,
   body: CreateIncidentInvolvedBody,
@@ -369,7 +388,7 @@ export async function addIncidentInvolved(
   await axiosInstance.post(`/incidencias/${id}/involucrados`, body);
 }
 
-/** Actualizar involucrado — `PUT /incidencias/{id}/involucrados/{ivid}` (sin conectar en UI). */
+/** Actualizar involucrado — `PUT /incidencias/{id}/involucrados/{ivid}`. */
 export async function updateIncidentInvolved(
   id: number,
   ivid: number,
@@ -378,7 +397,7 @@ export async function updateIncidentInvolved(
   await axiosInstance.put(`/incidencias/${id}/involucrados/${ivid}`, body);
 }
 
-/** Eliminar involucrado — `DELETE /incidencias/{id}/involucrados/{ivid}` (sin conectar en UI). */
+/** Eliminar involucrado — `DELETE /incidencias/{id}/involucrados/{ivid}`. */
 export async function deleteIncidentInvolved(
   id: number,
   ivid: number,

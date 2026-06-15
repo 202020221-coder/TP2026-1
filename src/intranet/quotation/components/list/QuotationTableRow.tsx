@@ -25,7 +25,8 @@ import { canNegotiateQuotation } from "../../lib/can-negotiate-quotation";
 
 export const QuotationTableRow: FC<{
   quotation: Quotation;
-}> = ({ quotation }) => {
+  onOpenPresupuesto: (quotation: Quotation) => void;
+}> = ({ quotation, onOpenPresupuesto }) => {
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
   const [orderPurchaseModalOpen, setOrderPurchaseModalOpen] = useState(false);
@@ -95,7 +96,19 @@ export const QuotationTableRow: FC<{
         </TableCell>
 
         <TableCell>
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center items-center gap-2">
+            {(user?.rol === RolesRecord.projectAdmin ||
+              user?.rol === RolesRecord.manager) && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => onOpenPresupuesto(quotation)}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                Presupuesto
+              </Button>
+            )}
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

@@ -29,8 +29,8 @@ export function IncidentsManagementPage() {
   const navigationState = location.state as IncidentsNavigationState | null;
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
   const [objectsModalOpen, setObjectsModalOpen] = useState(false);
-  const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
   const [sumaGastosModalOpen, setSumaGastosModalOpen] = useState(false);
+  const [personnelModalOpen, setPersonnelModalOpen] = useState(false);
   const projectId = Number.isInteger(projectIdRaw) && projectIdRaw > 0
     ? projectIdRaw
     : navigationState?.projectId;
@@ -61,12 +61,12 @@ export function IncidentsManagementPage() {
           objectsModalOpen={objectsModalOpen}
           onCloseObjectsModal={() => setObjectsModalOpen(false)}
           onOpenObjectsModal={() => setObjectsModalOpen(true)}
-          personnelModalOpen={personnelModalOpen}
-          onClosePersonnelModal={() => setPersonnelModalOpen(false)}
-          onOpenPersonnelModal={() => setPersonnelModalOpen(true)}
           sumaGastosModalOpen={sumaGastosModalOpen}
           onCloseSumaGastosModal={() => setSumaGastosModalOpen(false)}
           onOpenSumaGastosModal={() => setSumaGastosModalOpen(true)}
+          personnelModalOpen={personnelModalOpen}
+          onClosePersonnelModal={() => setPersonnelModalOpen(false)}
+          onOpenPersonnelModal={() => setPersonnelModalOpen(true)}
         />
       </ListIncidentsProvider>
     </>
@@ -80,12 +80,12 @@ function IncidentsContent({
   objectsModalOpen,
   onCloseObjectsModal,
   onOpenObjectsModal,
-  personnelModalOpen,
-  onClosePersonnelModal,
-  onOpenPersonnelModal,
   sumaGastosModalOpen,
   onCloseSumaGastosModal,
   onOpenSumaGastosModal,
+  personnelModalOpen,
+  onClosePersonnelModal,
+  onOpenPersonnelModal,
 }: {
   projectId?: number;
   projectNameFromState?: string | null;
@@ -93,12 +93,12 @@ function IncidentsContent({
   objectsModalOpen: boolean;
   onCloseObjectsModal: () => void;
   onOpenObjectsModal: () => void;
-  personnelModalOpen: boolean;
-  onClosePersonnelModal: () => void;
-  onOpenPersonnelModal: () => void;
   sumaGastosModalOpen: boolean;
   onCloseSumaGastosModal: () => void;
   onOpenSumaGastosModal: () => void;
+  personnelModalOpen: boolean;
+  onClosePersonnelModal: () => void;
+  onOpenPersonnelModal: () => void;
 }) {
   const { result } = useIncidents();
   const incidents = (result.data?.data ?? []) as Incident[];
@@ -135,8 +135,8 @@ function IncidentsContent({
       <div className="bg-card p-6 rounded-2xl shadow-xs border-2 border-border/80 flex flex-col flex-1 min-h-0 overflow-hidden">
         <IncidentActionsPanel
           onOpenObjectsModal={onOpenObjectsModal}
-          onOpenPersonnelModal={onOpenPersonnelModal}
           onOpenSumaGastosModal={onOpenSumaGastosModal}
+          onOpenPersonnelModal={onOpenPersonnelModal}
           selectedIncidentId={selectedIncident?.id_incidencia}
           onSelectIncident={setSelectedIncidentId}
           selectedIncident={selectedIncident}
@@ -149,11 +149,6 @@ function IncidentsContent({
         selectedIncidentId={selectedIncident?.id_incidencia}
       />
 
-      <IncidentPersonnelSection
-        open={personnelModalOpen}
-        onClose={onClosePersonnelModal}
-        selectedIncidentId={selectedIncident?.id_incidencia}
-      />
       {selectedIncident && (
         <SumaGastosModal
           incidentId={selectedIncident.id_incidencia}
@@ -162,21 +157,26 @@ function IncidentsContent({
           onClose={onCloseSumaGastosModal}
         />
       )}
+      <IncidentPersonnelSection
+        open={personnelModalOpen}
+        onClose={onClosePersonnelModal}
+        selectedIncidentId={selectedIncident?.id_incidencia}
+      />
     </>
   );
 }
 
 function IncidentActionsPanel({
   onOpenObjectsModal,
-  onOpenPersonnelModal,
   onOpenSumaGastosModal,
+  onOpenPersonnelModal,
   selectedIncidentId,
   onSelectIncident,
   selectedIncident,
 }: {
   onOpenObjectsModal: () => void;
-  onOpenPersonnelModal: () => void;
   onOpenSumaGastosModal: () => void;
+  onOpenPersonnelModal: () => void;
   selectedIncidentId?: number;
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;

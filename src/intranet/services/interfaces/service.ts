@@ -34,8 +34,6 @@ export interface Servicio {
   precio_regular: number;
   condicional_precio: string;
   observaciones: string;
-  /** URL o ruta de la imagen del servicio (según API). Null si no tiene. */
-  foto: string | null;
   activo: boolean;
   /** Si true, el pago es precio × días en que ocurre el servicio. */
   pago_por_dia: boolean;
@@ -104,3 +102,31 @@ export interface CreatePersonalRequeridoDTO {
 }
 
 export type UpdatePersonalRequeridoDTO = Partial<CreatePersonalRequeridoDTO>;
+
+// ── Inventario Requerido del Servicio ─────────────────────────────────────────
+// Tabla: SERVICIO_INVENTARIO_REQUERIDO
+// Clave compuesta: (ID_Servicio, Id_Objeto) — NO hay id autoincremental
+// Endpoint: /servicios/{id}/inventario-requerido
+
+export interface InventarioRequerido {
+  // id = Id_Objeto (usado como identificador único en la UI)
+  id: number;
+  Id_Objeto: number;
+  ID_Servicio: number;
+  nombre_objeto: string;
+  cantidad: number;
+  estancia: string;         // ✏️ editable (antes llamado razon/metodo_traslado)
+}
+
+// POST: { Id_Objeto, cantidad, estancia }
+export interface CreateInventarioObjetoRequeridoDTO {
+  Id_Objeto: number;
+  cantidad: number;          // backend valida > 0
+  estancia: string;
+}
+
+// PUT: { cantidad, estancia }
+export interface UpdateInventarioRequeridoDTO {
+  cantidad?: number;
+  estancia?: string;
+}

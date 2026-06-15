@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/shared/components/ui/table";
@@ -9,26 +9,33 @@ import {
 } from "@/shared/components/ui/select";
 import { Loader2, Save } from "lucide-react";
 import {
-  usePresupuestoItems,
+  usePresupuestoReal,
   useUpdateGastoReal,
-  useIncidencias,
+  useIncidenciasPorCotizacion,
 } from "../../../hooks/usePresupuestos";
-import type { IncidenciaPresupuesto, PresupuestoItem } from "../../../interfaces/presupuesto";
+import type { IncidenciaPresupuesto, PresupuestoRealItem } from "../../../interfaces/presupuesto";
+import { getIncidenciaValue, buildIncidenciaOptions } from "./gasto-real-shared";
 
 const TIPO = "Gastos Administrativos" as const;
 
 interface RowProps {
-  item: PresupuestoItem;
+  item: PresupuestoRealItem;
   cotizacionId: number;
   incidencias: IncidenciaPresupuesto[];
 }
 
 function GastoRealGastoAdminRow({ item, cotizacionId, incidencias }: RowProps) {
-  const [precioReal, setPrecioReal] = useState(item.precio_real ?? "");
-  const [razon, setRazon] = useState(item.razon_gasto_real ?? "");
-  const [incidencia, setIncidencia] = useState(item.involucra_incidencia ?? "NO");
+  const [precioReal, setPrecioReal] = useState(item.precio_real ?? item.costo_real ?? "");
+  const [razon, setRazon] = useState(item.razon ?? "");
+  const [incidencia, setIncidencia] = useState(getIncidenciaValue(item));
 
   const { mutate: save, isPending: isSaving } = useUpdateGastoReal(cotizacionId, TIPO);
+
+  useEffect(() => {
+    setPrecioReal(item.precio_real ?? item.costo_real ?? "");
+    setRazon(item.razon ?? "");
+    setIncidencia(getIncidenciaValue(item));
+  }, [item]);
 
   const handleSave = () => {
     save({ itemId: item.ID, payload: { precio_real: precioReal, razon_gasto_real: razon, involucra_incidencia: incidencia } });
@@ -68,7 +75,7 @@ function GastoRealGastoAdminRow({ item, cotizacionId, incidencias }: RowProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="NO">NO</SelectItem>
-            {incidencias.map((inc) => (
+            {buildIncidenciaOptions(incidencias, incidencia).map((inc) => (
               <SelectItem key={inc.id_incidencia} value={String(inc.id_incidencia)}>
                 #{inc.id_incidencia} — {inc.comentario}
               </SelectItem>
@@ -86,8 +93,8 @@ function GastoRealGastoAdminRow({ item, cotizacionId, incidencias }: RowProps) {
 }
 
 export function GastoRealGastoAdminTab({ cotizacionId }: { cotizacionId: number }) {
-  const { data: items, isLoading } = usePresupuestoItems(cotizacionId, TIPO);
-  const { data: incidencias = [] } = useIncidencias();
+  const { data: items, isLoading } = usePresupuestoReal(cotizacionId, TIPO);
+  const { data: incidencias = [] } = useIncidenciasPorCotizacion(cotizacionId);
 
   return (
     <div className="rounded-lg border border-border overflow-x-auto">

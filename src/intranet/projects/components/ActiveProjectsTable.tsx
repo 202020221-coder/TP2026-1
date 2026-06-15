@@ -1,5 +1,6 @@
 import { useState, type FC } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -38,6 +39,8 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { getActiveCompletedProjects } from "../api/active-projects.api";
+import { getInformes } from "@/intranet/informes/api/informe.api";
+import type { Informe } from "@/intranet/informes/interfaces/informe";
 import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
 import type { Project } from "../interfaces/project";
 import { useDebounced } from "@/shared/hooks/useDebounced";
@@ -45,6 +48,14 @@ import { ProjectDetailModal } from "./ProjectDetailModal";
 
 interface ActiveProjectsTableProps {
   onVerTodos: () => void;
+}
+
+function normalizeInformesList(data: unknown): Informe[] {
+  if (Array.isArray(data)) return data as Informe[];
+  if (data && typeof data === "object" && Array.isArray((data as { data?: unknown }).data)) {
+    return (data as { data: Informe[] }).data;
+  }
+  return [];
 }
 
 export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
@@ -59,6 +70,7 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const { data, isPending, isFetching, isError, error } = useQuery({
     queryKey: ["active-projects"],
@@ -119,7 +131,47 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const paginated = filtered.slice((page - 1) * limit, page * limit);
 
-  const renderRow = (project: Project) => (
+  const informesQueries = useQueries({
+    queries: paginated.map((project) => ({
+      queryKey: ["project-informes", project.id_Proyecto],
+      queryFn: () => getInformes(project.id_Proyecto),
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const handleGestionarInformes = (project: Project) => {
+    navigate(`/intranet/informes?id_proyecto=${project.id_Proyecto}`, {
+      state: {
+        projectId: project.id_Proyecto,
+        projectName: project.Cotizacion_Nombre ?? project.descripcion_servicio,
+        clientName: project.Cliente_Nombre,
+      },
+    });
+  };
+
+  const getInformeStatus = (projectId: number) => {
+    const index = paginated.findIndex((project) => project.id_Proyecto === projectId);
+    if (index < 0) {
+      return { hasInformes: false, isLoading: false };
+    }
+
+    const query = informesQueries[index];
+    if (query.isPending || query.isFetching) {
+      return { hasInformes: false, isLoading: true };
+    }
+
+    return {
+      hasInformes: normalizeInformesList(query.data).length > 0,
+      isLoading: false,
+    };
+  };
+
+  const renderRow = (project: Project) => {
+    const { hasInformes, isLoading: loadingInformes } = getInformeStatus(
+      project.id_Proyecto,
+    );
+
+    return (
     <TableRow
       key={project.id_Proyecto}
       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
@@ -140,30 +192,60 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
         </span>
       </TableCell>
       <TableCell className="text-center">
-        {project.informe_final ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors">
-                <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />Ver
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-green-400 text-green-600">Ver informe</TooltipContent>
-          </Tooltip>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors">
-                <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />Agregar
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-orange-400 text-orange-500">Agregar / Editar informe</TooltipContent>
-          </Tooltip>
-        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={
+                hasInformes && !loadingInformes
+                  ? "h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                  : "h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
+              }
+              onClick={() => handleGestionarInformes(project)}
+              disabled={loadingInformes}
+            >
+              <FileText
+                className={`w-3.5 h-3.5 mr-1 ${
+                  hasInformes && !loadingInformes ? "text-green-600" : "text-orange-500"
+                }`}
+              />
+              {loadingInformes ? "..." : hasInformes ? "Ver" : "Agregar"}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            className={
+              hasInformes && !loadingInformes
+                ? "bg-white border border-green-400 text-green-600"
+                : "bg-white border border-orange-400 text-orange-500"
+            }
+          >
+            {hasInformes && !loadingInformes
+              ? "Gestionar informes"
+              : "Agregar informe"}
+          </TooltipContent>
+        </Tooltip>
       </TableCell>
       <TableCell className="text-center">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-amber-600 border-amber-300 bg-white hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500 transition-colors"
+              onClick={() =>
+                navigate(
+                  `/intranet/incidencias?id_proyecto=${project.id_Proyecto}`,
+                  {
+                    state: {
+                      projectId: project.id_Proyecto,
+                      projectName: project.Cotizacion_Nombre ?? project.descripcion_servicio,
+                      clientName: project.Cliente_Nombre,
+                    },
+                  },
+                )
+              }
+            >
               <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />-
             </Button>
           </TooltipTrigger>
@@ -186,7 +268,8 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
         </Tooltip>
       </TableCell>
     </TableRow>
-  );
+    );
+  };
 
   return (
     <>

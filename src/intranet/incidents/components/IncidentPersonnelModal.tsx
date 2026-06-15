@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Users } from "lucide-react";
 import {
   Dialog,
@@ -11,7 +11,12 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { toast } from "sonner";
-import { getIncidentInvolved } from "../api/incident.api";
+import {
+  addIncidentInvolved,
+  deleteIncidentInvolved,
+  getIncidentInvolved,
+  updateIncidentInvolved,
+} from "../api/incident.api";
 import type { IncidentInvolved } from "../interfaces/incident";
 import { IncidentPersonnelCard } from "./incident-personnel/IncidentPersonnelCard";
 import { IncidentPersonnelForm } from "./incident-personnel/IncidentPersonnelForm";
@@ -20,10 +25,7 @@ import {
   type EditorMode,
   type PersonnelFormState,
 } from "./incident-personnel/types";
-import { toFormState, validatePersonnelForm } from "./incident-personnel/utils";
-
-const WRITE_NOT_CONNECTED_MESSAGE =
-  "Los endpoints de creación y edición aún no están conectados.";
+import { toApiPayload, toFormState, validatePersonnelForm } from "./incident-personnel/utils";
 
 interface IncidentPersonnelModalProps {
   incidentId: number;
@@ -36,15 +38,75 @@ export function IncidentPersonnelModal({
   open,
   onClose,
 }: IncidentPersonnelModalProps) {
+  const queryClient = useQueryClient();
   const formRef = useRef<HTMLDivElement>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>("create");
+  const [editingPersonnelId, setEditingPersonnelId] = useState<number | null>(null);
   const [form, setForm] = useState<PersonnelFormState>(EMPTY_PERSONNEL_FORM);
 
+  const queryKey = ["incident-involved", incidentId];
+
   const { data: personnel = [], isLoading } = useQuery({
-    queryKey: ["incident-involved", incidentId],
+    queryKey,
     queryFn: () => getIncidentInvolved(incidentId),
     enabled: open && incidentId > 0,
   });
+
+  const resetEditor = () => {
+    setEditorMode("create");
+    setEditingPersonnelId(null);
+    setForm(EMPTY_PERSONNEL_FORM);
+  };
+
+  const createMutation = useMutation({
+    mutationFn: () => addIncidentInvolved(incidentId, toApiPayload(form)),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+      toast.success("Personal agregado correctamente.");
+      resetEditor();
+    },
+    onError: () => {
+      toast.error("No se pudo agregar el personal involucrado.");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      if (!editingPersonnelId) {
+        throw new Error("No hay registro para actualizar");
+      }
+      return updateIncidentInvolved(
+        incidentId,
+        editingPersonnelId,
+        toApiPayload(form),
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+      toast.success("Personal actualizado correctamente.");
+      resetEditor();
+    },
+    onError: () => {
+      toast.error("No se pudo actualizar el personal involucrado.");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (personnelId: number) =>
+      deleteIncidentInvolved(incidentId, personnelId),
+    onSuccess: async (_data, personnelId) => {
+      await queryClient.invalidateQueries({ queryKey });
+      toast.success("Personal eliminado correctamente.");
+      if (editingPersonnelId === personnelId) {
+        resetEditor();
+      }
+    },
+    onError: () => {
+      toast.error("No se pudo eliminar el personal involucrado.");
+    },
+  });
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   const handleSubmit = () => {
     const validationError = validatePersonnelForm(form);
@@ -53,17 +115,31 @@ export function IncidentPersonnelModal({
       return;
     }
 
-    toast.info(WRITE_NOT_CONNECTED_MESSAGE);
+    if (editorMode === "create") {
+      createMutation.mutate();
+      return;
+    }
+
+    if (editorMode === "edit") {
+      updateMutation.mutate();
+    }
   };
 
   const handleEdit = (item: IncidentInvolved) => {
     setEditorMode("edit");
+    setEditingPersonnelId(item.id);
     setForm(toFormState(item));
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleDelete = () => {
-    toast.info(WRITE_NOT_CONNECTED_MESSAGE);
+  const handleDelete = (personnelId: number) => {
+    const confirmed =
+      typeof window !== "undefined" &&
+      window.confirm(
+        "Esta acción eliminará el personal involucrado. ¿Deseas continuar?",
+      );
+    if (!confirmed) return;
+    deleteMutation.mutate(personnelId);
   };
 
   const submitLabel =
@@ -88,6 +164,7 @@ export function IncidentPersonnelModal({
               size="sm"
               type="button"
               onClick={handleSubmit}
+              disabled={isSaving}
             >
               <Plus size={14} />
               {submitLabel}
@@ -129,7 +206,7 @@ export function IncidentPersonnelModal({
                     key={item.id}
                     item={item}
                     onEdit={() => handleEdit(item)}
-                    onDelete={handleDelete}
+                    onDelete={() => handleDelete(item.id)}
                   />
                 ))
               )}
