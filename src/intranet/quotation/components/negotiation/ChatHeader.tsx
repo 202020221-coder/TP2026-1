@@ -9,6 +9,7 @@ interface ChatHeaderProps {
   contactName: string;
   contactRole: UserRole;
   onCloseChat: () => void;
+  unreadCount?: number;
 }
 
 const getInitials = (name: string) =>
@@ -23,6 +24,7 @@ export const ChatHeader: FC<ChatHeaderProps> = ({
   contactName,
   contactRole,
   onCloseChat,
+  unreadCount = 0,
 }) => {
   let roleLabel: string;
   switch (contactRole) {
@@ -46,9 +48,16 @@ export const ChatHeader: FC<ChatHeaderProps> = ({
         <p className="truncate text-[15px] font-bold leading-tight text-white drop-shadow-sm">
           {contactName}
         </p>
-        <p className="mt-0.5 text-[12px] font-medium tracking-wide text-white/65">
-          {roleLabel}
-        </p>
+        <div className="mt-0.5 flex items-center gap-2">
+          <p className="text-[12px] font-medium tracking-wide text-white/65">
+            {roleLabel}
+          </p>
+          {unreadCount > 0 && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              {unreadCount} nuevo{unreadCount === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
       </div>
       <Button
         type="button"

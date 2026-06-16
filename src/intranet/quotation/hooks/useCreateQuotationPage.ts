@@ -88,6 +88,18 @@ const adaptFromOrder = async (
     })),
     quotationRate,
     phases: { items: [] },
+    // Propagate optional solicitud-only fields so the cotización creation
+    // flow can forward them to the backend (names match PostRequestDTO so
+    // the backend can reuse the same field handlers).
+    productoenvio: getOrderResponseDTO.ProductoEnvio,
+    camionesenvio: getOrderResponseDTO.CamionesEnvio,
+    obsgenerales: getOrderResponseDTO.ObsGenerales,
+    obseleccion: getOrderResponseDTO.ObsEleccion,
+    medios: getOrderResponseDTO.medios?.map((m) => ({
+      cliente_email: m.cliente_email,
+      cliente_telefono: m.cliente_telefono,
+    })),
+    fechaCreacionSolicitud: getOrderResponseDTO.FechaCreacion,
   };
 };
 

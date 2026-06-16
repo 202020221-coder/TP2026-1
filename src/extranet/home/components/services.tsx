@@ -114,6 +114,11 @@ export default function Services() {
       const params = new URLSearchParams()
       params.set('desc', descripcion)
       if (observaciones) params.set('obs', observaciones)
+      // serviceName is the reliable identifier: static landing IDs may not
+      // match backend IDs; backend service IDs may not exist for static items.
+      // Step 6 will resolve by name first, then fall back to ID.
+      params.set('serviceName', service.name)
+      if (service.isDynamic) params.set('serviceId', String(service.id))
       navigate(`${CREATE_REQUEST_PATH}?${params.toString()}`)
     },
     [navigate],

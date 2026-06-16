@@ -9,11 +9,13 @@ import { HandCoins } from "lucide-react";
 interface ChatMessageQueueProps {
   isPending: boolean;
   messages: ChatMessage[];
+  onUnreadCountChange?: (count: number) => void;
 }
 
 export const ChatMessageQueue: FC<ChatMessageQueueProps> = ({
   isPending,
   messages,
+  onUnreadCountChange,
 }) => {
   const user = useSession((s) => s.loggedUser);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -21,6 +23,17 @@ export const ChatMessageQueue: FC<ChatMessageQueueProps> = ({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!onUnreadCountChange) return;
+    const count = messages.reduce((acc, m) => {
+      const isOwn = m.id_remitente === user?.dni_perfil;
+      const isUnread = !isOwn && m.leido === false;
+      return acc + (isUnread ? 1 : 0);
+    }, 0);
+    onUnreadCountChange(count);
+  }, [messages, user?.dni_perfil, onUnreadCountChange]);
+
   return (
     <ScrollArea className="min-h-0 flex-1 bg-gray-50 px-4 py-4 flex flex-col">
       {isPending ? (
@@ -37,13 +50,18 @@ export const ChatMessageQueue: FC<ChatMessageQueueProps> = ({
               <p>De el primer paso para obtener la mejor oferta posible!</p>
             </div>
           )}
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id_mensaje}
-              message={message}
-              isOwn={message.id_remitente === user?.dni_perfil}
-            />
-          ))}
+          {messages.map((message) => {
+            const isOwn = message.id_remitente === user?.dni_perfil;
+            const isMessagePending = !isOwn && message.leido === false;
+            return (
+              <MessageBubble
+                key={message.id_mensaje}
+                message={message}
+                isOwn={isOwn}
+                isPending={isMessagePending}
+              />
+            );
+          })}
           <div ref={bottomRef} />
         </div>
       )}

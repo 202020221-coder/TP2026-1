@@ -13,6 +13,17 @@ type CreateModeProps = BaseProps & {
   mode: "create";
   orderId: string;
   incidenciaId?: string;
+  // Optional solicitud-only fields that need to be forwarded to the backend
+  // when creating a cotización from an approved solicitud. Names match
+  // PostRequestDTO so the backend can reuse field handlers.
+  solicitudExtras?: {
+    productoenvio?: string;
+    camionesenvio?: string;
+    obsgenerales?: string;
+    obseleccion?: string;
+    medios?: { cliente_email: string; cliente_telefono: string }[];
+    fechaCreacionSolicitud?: string;
+  };
 };
 
 type UpdateModeProps = BaseProps & {
@@ -28,10 +39,18 @@ export const QuotationVisualizeSection = (
   const isCreate = props.mode === "create";
   const orderId = isCreate ? props.orderId : "";
   const incidenciaId = isCreate ? (props as CreateModeProps).incidenciaId : undefined;
+  const solicitudExtras = isCreate
+    ? (props as CreateModeProps).solicitudExtras
+    : undefined;
   const quotationId = isCreate ? "" : props.quotationId;
 
   const { isSending: createSending, handleSubmit: createSubmit } =
-    useCreateQuotation({ referenceData: props.referenceData, orderId, incidenciaId });
+    useCreateQuotation({
+      referenceData: props.referenceData,
+      orderId,
+      incidenciaId,
+      solicitudExtras,
+    });
   const { isSending: updateSending, handleSubmit: updateSubmit } =
     useUpdateQuotation({ quotationId });
 

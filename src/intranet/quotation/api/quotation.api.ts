@@ -76,9 +76,22 @@ type CreateQuotationDTO = UpsertQuotationDTO & {
   id_solicitud?: number;
   id_incidencia?: number;
   DNI_O_RUC: string;
+  // Optional fields propagated from the source solicitud when a cotización
+  // is created from an approved solicitud. Names match PostRequestDTO
+  // (solicitud) so the backend can reuse the same field handlers.
+  productoenvio?: string;
+  camionesenvio?: string;
+  obsgenerales?: string;
+  obseleccion?: string;
+  medios?: { cliente_email: string; cliente_telefono: string }[];
+  fechaCreacionSolicitud?: string;
 };
 
 export const createQuotation = async (data: CreateQuotationDTO) => {
+  // TODO: confirm backend accepts these new optional fields
+  // (productoenvio, camionesenvio, obsgenerales, obseleccion, medios,
+  //  fechaCreacionSolicitud). Until then they will simply be ignored if
+  //  the backend doesn't recognize them.
   await axiosInstance.post("/cotizaciones", data);
 };
 

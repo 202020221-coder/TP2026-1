@@ -19,6 +19,22 @@ export interface DesiredQuotationData {
     buyingRate: number;
   },
   phases: QuotationPhases;
+  // Optional fields propagated from the source solicitud when a cotización
+  // is created from an approved solicitud. All optional so existing callers
+  // (e.g. cotización from incidencia, or plain creation) are unaffected.
+  // Naming kept lowercase / consistent with PostRequestDTO so the backend
+  // can reuse the same field handlers it uses for /solicitudes.
+  productoenvio?: string;
+  camionesenvio?: string;
+  obsgenerales?: string;
+  obseleccion?: string;
+  medios?: QuotationSolicitudMedio[];
+  fechaCreacionSolicitud?: string;
+}
+
+export interface QuotationSolicitudMedio {
+  cliente_email: string;
+  cliente_telefono: string;
 }
 
 interface QuotationTruck {

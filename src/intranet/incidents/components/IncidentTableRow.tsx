@@ -10,12 +10,17 @@ import {
 import { Eye, MessageSquare, Pencil, FileCheck } from "lucide-react";
 import { toast } from "sonner";
 import type { Incident } from "../interfaces/incident";
-import {
-  type IncidentState,
-  IncidentStatesRecord,
-} from "../enum/incident-state.record";
+import { IncidentStatesRecord } from "../enum/incident-state.record";
 import { EditIncidentModal } from "./EditIncidentModal";
 import { QuotationCommentsModal } from "./detail/QuotationCommentsModal";
+
+const ConversationStatusList = [
+  "no iniciado",
+  "iniciado",
+  "mensaje pendiente",
+  "conversación finalizada",
+] as const;
+type ConversationStatus = (typeof ConversationStatusList)[number];
 
 export const IncidentTableRow: FC<{
   incident: Incident;
@@ -51,22 +56,31 @@ export const IncidentTableRow: FC<{
       ? `v${rowData.version}`
       : "—";
   const subtotalValue = rowData.precio_subtotal ?? incident.cotizacion_remuneracion;
-  const statusLabelMap: Record<IncidentState, string> = {
-    [IncidentStatesRecord.sinEnviar]: "Pendiente",
-    [IncidentStatesRecord.cotizacionSinRespuesta]: "Cotización sin respuesta",
-    [IncidentStatesRecord.cotizacionDisputada]: "Cotización disputada",
-    [IncidentStatesRecord.pagoPorRecibir]: "Pago por recibir",
-    [IncidentStatesRecord.pagoRealizado]: "Pago realizado",
-    [IncidentStatesRecord.materialRecuperado]: "Material recuperado",
+
+  const finalizedStates: ReadonlyArray<string> = [
+    IncidentStatesRecord.pagoPorRecibir,
+    IncidentStatesRecord.pagoRealizado,
+    IncidentStatesRecord.materialRecuperado,
+  ];
+  const conversationStatus: ConversationStatus = finalizedStates.includes(
+    incident.estado,
+  )
+    ? "conversación finalizada"
+    : (rowData.mensajes_pendientes ?? 0) > 0
+      ? "mensaje pendiente"
+      : (rowData.mensajes ?? 0) > 0
+        ? "iniciado"
+        : "no iniciado";
+  const conversationStatusClassMap: Record<ConversationStatus, string> = {
+    "no iniciado": "bg-gray-100 text-gray-600 border-gray-300",
+    iniciado: "bg-blue-100 text-blue-700 border-blue-300",
+    "mensaje pendiente":
+      "bg-amber-100 text-amber-700 border-amber-300 animate-pulse",
+    "conversación finalizada": "bg-green-100 text-green-700 border-green-300",
   };
-  const statusClassMap: Record<IncidentState, string> = {
-    [IncidentStatesRecord.sinEnviar]: "bg-gray-100 text-gray-600 border-gray-300",
-    [IncidentStatesRecord.cotizacionSinRespuesta]: "bg-blue-100 text-blue-700 border-blue-300",
-    [IncidentStatesRecord.cotizacionDisputada]: "bg-orange-100 text-orange-700 border-orange-300",
-    [IncidentStatesRecord.pagoPorRecibir]: "bg-amber-100 text-amber-700 border-amber-300",
-    [IncidentStatesRecord.pagoRealizado]: "bg-green-100 text-green-700 border-green-300",
-    [IncidentStatesRecord.materialRecuperado]: "bg-violet-100 text-violet-700 border-violet-300",
-  };
+  const conversationStatusLabel =
+    conversationStatus.charAt(0).toUpperCase() + conversationStatus.slice(1);
+
   const messageStatus =
     rowData.mensajes !== undefined
       ? rowData.mensajes > 0
@@ -126,9 +140,9 @@ export const IncidentTableRow: FC<{
         {/* Estado */}
         <TableCell className="text-center">
           <span
-            className={`inline-block rounded-full px-3 py-1 text-[13px] font-medium border ${statusClassMap[incident.estado]}`}
+            className={`inline-block rounded-full px-3 py-1 text-[13px] font-medium border ${conversationStatusClassMap[conversationStatus]}`}
           >
-            {statusLabelMap[incident.estado]}
+            {conversationStatusLabel}
           </span>
         </TableCell>
 

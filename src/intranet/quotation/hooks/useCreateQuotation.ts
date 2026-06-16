@@ -15,12 +15,24 @@ interface UseCreateQuotationOptions {
   referenceData: DesiredQuotationData["client"];
   orderId?: string;
   incidenciaId?: string;
+  // Optional fields propagated from the source solicitud. These are only
+  // present when creating a cotización from an approved solicitud.
+  // Names match PostRequestDTO so the backend can reuse field handlers.
+  solicitudExtras?: {
+    productoenvio?: string;
+    camionesenvio?: string;
+    obsgenerales?: string;
+    obseleccion?: string;
+    medios?: { cliente_email: string; cliente_telefono: string }[];
+    fechaCreacionSolicitud?: string;
+  };
 }
 
 export const useCreateQuotation = ({
   referenceData,
   orderId,
   incidenciaId,
+  solicitudExtras,
 }: UseCreateQuotationOptions) => {
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
@@ -67,6 +79,13 @@ export const useCreateQuotation = ({
             buyingRate: rate?.buyingRate ?? 0,
           },
           phases,
+          // Forward optional solicitud-only fields if present.
+          productoenvio: solicitudExtras?.productoenvio,
+          camionesenvio: solicitudExtras?.camionesenvio,
+          obsgenerales: solicitudExtras?.obsgenerales,
+          obseleccion: solicitudExtras?.obseleccion,
+          medios: solicitudExtras?.medios,
+          fechaCreacionSolicitud: solicitudExtras?.fechaCreacionSolicitud,
         });
         navigate(incidenciaId ? "/intranet/incidencias" : "/intranet/solicitudes");
       },
@@ -94,6 +113,7 @@ export const useCreateQuotation = ({
     observations,
     rate,
     navigate,
+    solicitudExtras,
   ]);
 
   return { isSending, handleSubmit };

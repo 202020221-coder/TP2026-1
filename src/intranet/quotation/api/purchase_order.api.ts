@@ -87,3 +87,10 @@ export const uploadPurchaseOrder = async (
 
   return response.data;
 };
+
+// TODO: Franco Leiva — confirm endpoint path/method/body once backend is ready
+export const approveQuotationOrder = async (
+  id: number | string,
+): Promise<void> => {
+  await axiosInstance.post(`/cotizaciones/${id}/aprobar-orden`);
+};

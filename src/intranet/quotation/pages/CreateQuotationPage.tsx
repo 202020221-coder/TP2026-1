@@ -149,6 +149,15 @@ export function CreateQuotationPage() {
                               orderId={orderId ?? ""}
                               incidenciaId={incidenciaId}
                               referenceData={initialData.client}
+                              solicitudExtras={{
+                                productoenvio: initialData.productoenvio,
+                                camionesenvio: initialData.camionesenvio,
+                                obsgenerales: initialData.obsgenerales,
+                                obseleccion: initialData.obseleccion,
+                                medios: initialData.medios,
+                                fechaCreacionSolicitud:
+                                  initialData.fechaCreacionSolicitud,
+                              }}
                             />
                           </TabsContent>
                         </div>

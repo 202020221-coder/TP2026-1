@@ -229,6 +229,8 @@ export function CreateRequestPage() {
 
     // Autocompletado desde la landing ("Solicitar" en Nuestros Servicios).
     const [searchParams] = useSearchParams();
+    const preSelectedServiceId = searchParams.get('serviceId');
+    const preSelectedServiceName = searchParams.get('serviceName');
     useEffect(() => {
         const desc = searchParams.get('desc');
         const obs = searchParams.get('obs');
@@ -497,6 +499,8 @@ export function CreateRequestPage() {
                         onUpdateServiceDireccion={updateTruckDireccion}
                         onUpdateServiceObservaciones={updateTruckObservaciones}
                         onRemoveService={removeTruck}
+                        preSelectedServiceId={preSelectedServiceId}
+                        preSelectedServiceName={preSelectedServiceName}
                     />
                 )}
 

@@ -16,17 +16,29 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import {
   Eye,
   MessageCircle,
   Pencil,
   FileCheck,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import { QuotationCommentsModal } from "./QuotationCommentsModal";
 import { EditIncidentQuotationModal } from "./EditIncidentQuotationModal";
-import { downloadPurchaseOrder } from "@/intranet/quotation/api/purchase_order.api";
+import {
+  approveQuotationOrder,
+  downloadPurchaseOrder,
+} from "@/intranet/quotation/api/purchase_order.api";
 
 // ── Badge style map (all states) ──────────────────────────────────────────────
 const quotationStatusStyles = new Map<QuotationState, string>([
@@ -211,6 +223,28 @@ const QuotationTableRow: FC<{
   const hasPending = (quotation.mensajes_pendientes ?? 0) > 0;
   const navigate = useNavigate();
 
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+
+  const handleApproveConfirm = async () => {
+    setApproveLoading(true);
+    try {
+      await approveQuotationOrder(quotation.id);
+      toast.success("Orden aprobada");
+      setApproveOpen(false);
+    } catch {
+      toast.error("No se pudo aprobar la orden de compra");
+      setApproveOpen(false);
+    } finally {
+      setApproveLoading(false);
+    }
+  };
+
+  const handleApproveCancel = () => {
+    if (approveLoading) return;
+    setApproveOpen(false);
+  };
+
   return (
     <TableRow className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors">
       {/* Nombre */}
@@ -333,6 +367,7 @@ const QuotationTableRow: FC<{
                   downloadPurchaseOrder(quotation.id).catch(() =>
                     toast.error("No se pudo descargar la orden de compra")
                   );
+                  setApproveOpen(true);
                 }}
                 className="h-7 w-7 text-violet-500 hover:text-violet-700 hover:bg-violet-50 transition-colors"
                 aria-label="Ver orden de compra"
@@ -345,6 +380,46 @@ const QuotationTableRow: FC<{
             </TooltipContent>
           </Tooltip>
         </div>
+
+        {/* Approval dialog (rendered via portal) */}
+        <Dialog
+          open={approveOpen}
+          onOpenChange={(next) => {
+            if (approveLoading) return;
+            setApproveOpen(next);
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Aprobar orden de compra</DialogTitle>
+              <DialogDescription>
+                ¿Quiere usted aprobar la orden?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={handleApproveCancel}
+                disabled={approveLoading}
+              >
+                No
+              </Button>
+              <Button
+                onClick={handleApproveConfirm}
+                disabled={approveLoading}
+              >
+                {approveLoading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                    Aprobando...
+                  </>
+                ) : (
+                  "Sí"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </TableCell>
     </TableRow>
   );

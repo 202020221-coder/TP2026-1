@@ -15,4 +15,10 @@ export interface ChatMessage {
   nombre_remitente: string;
   mensaje: string;
   fecha_hora: string;
+  /**
+   * Whether the message has already been read by the receiver.
+   * Optional — when undefined we assume the message is already read so
+   * legacy data coming from the backend does not appear visually pending.
+   */
+  leido?: boolean;
 }

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { MapPin, ShoppingCart, Trash2, Wrench } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -25,7 +26,20 @@ interface StepServicesSelectionProps {
     onUpdateServiceDireccion: (id: string, direccion: string) => void;
     onUpdateServiceObservaciones: (id: string, observaciones: string) => void;
     onRemoveService: (id: string) => void;
+    /**
+     * Si viene desde la landing pública con un servicio elegido,
+     * lo seleccionamos automáticamente al cargar las opciones.
+     * preSelectedServiceName es el identificador preferido (más estable
+     * que el ID porque la landing mezcla servicios estáticos con IDs
+     * hardcodeados y servicios del backend con IDs reales). Si falla el
+     * match por nombre, intentamos por ID.
+     */
+    preSelectedServiceId?: number | string | null;
+    preSelectedServiceName?: string | null;
 }
+
+const normalizeServiceName = (value: string) =>
+    value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 function ServiceCardVisual({
     imageUrl,
@@ -63,7 +77,54 @@ export function StepServicesSelection({
     onUpdateServiceDireccion,
     onUpdateServiceObservaciones,
     onRemoveService,
+    preSelectedServiceId,
+    preSelectedServiceName,
 }: StepServicesSelectionProps) {
+    // Auto-agregar el servicio elegido desde la landing una sola vez,
+    // cuando la lista de servicios públicos termina de cargar. Probamos
+    // primero por nombre (más estable: los IDs estáticos de la landing no
+    // necesariamente coinciden con los del backend) y luego por ID.
+    const autoSelectedRef = useRef(false);
+    useEffect(() => {
+        if (autoSelectedRef.current) return;
+        if (isLoading || serviceOptions.length === 0) return;
+
+        const hasName = !!preSelectedServiceName && preSelectedServiceName.trim() !== '';
+        const hasId = preSelectedServiceId !== null
+            && preSelectedServiceId !== undefined
+            && preSelectedServiceId !== '';
+        if (!hasName && !hasId) return;
+
+        let match = undefined;
+        if (hasName) {
+            const target = normalizeServiceName(preSelectedServiceName!);
+            match = serviceOptions.find((s) => normalizeServiceName(s.name) === target);
+        }
+        if (!match && hasId) {
+            const targetId = Number(preSelectedServiceId);
+            if (!Number.isNaN(targetId)) {
+                match = serviceOptions.find((s) => s.serviceId === targetId);
+            }
+        }
+        if (!match) return;
+
+        const alreadyPicked = selectedServices.some((s) => s.serviceId === match.serviceId);
+        if (alreadyPicked) {
+            autoSelectedRef.current = true;
+            return;
+        }
+
+        onAddService(match.serviceId, match.name, match.price, match.description);
+        autoSelectedRef.current = true;
+    }, [
+        preSelectedServiceId,
+        preSelectedServiceName,
+        isLoading,
+        serviceOptions,
+        selectedServices,
+        onAddService,
+    ]);
+
     return (
         <div className="mb-8 rounded-xl border border-gray-200 bg-slate-50/70 p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
