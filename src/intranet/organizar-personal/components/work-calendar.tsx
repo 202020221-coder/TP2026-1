@@ -1,7 +1,17 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calendar, dateFnsLocalizer, type Event } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import {
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  startOfMonth,
+  addMonths,
+  subMonths,
+} from 'date-fns';
 import { es } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import type { Trabajo } from '../types';
 
@@ -29,6 +39,7 @@ const parseISODateOnly = (iso: string | null): Date | null => {
   return new Date(y, m - 1, d);
 };
 const hhmm = (t: string) => (t ? t.slice(0, 5) : '');
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 interface DayCoverage {
   total: number;
@@ -41,6 +52,47 @@ export function WorkCalendar({
   fechaInicio,
   fechaFin,
 }: Props) {
+  const start = useMemo(() => parseISODateOnly(fechaInicio), [fechaInicio]);
+  const end = useMemo(() => parseISODateOnly(fechaFin), [fechaFin]);
+  const projectStartMonth = useMemo(
+    () => (start ? startOfMonth(start) : null),
+    [start],
+  );
+  const projectEndMonth = useMemo(
+    () => (end ? startOfMonth(end) : null),
+    [end],
+  );
+
+  const [visibleMonth, setVisibleMonth] = useState<Date>(() =>
+    startOfMonth(start ?? new Date()),
+  );
+
+  useEffect(() => {
+    if (start) {
+      setVisibleMonth(startOfMonth(start));
+    }
+  }, [fechaInicio, start]);
+
+  const monthOptions = useMemo(() => {
+    if (!projectStartMonth) return [];
+    const endMonth = projectEndMonth ?? projectStartMonth;
+    const options: { value: string; label: string }[] = [];
+    let cursor = projectStartMonth;
+    while (cursor <= endMonth) {
+      options.push({
+        value: format(cursor, 'yyyy-MM'),
+        label: capitalize(format(cursor, 'MMMM yyyy', { locale: es })),
+      });
+      cursor = addMonths(cursor, 1);
+    }
+    return options;
+  }, [projectStartMonth, projectEndMonth]);
+
+  const canGoPrev =
+    !projectStartMonth || visibleMonth > projectStartMonth;
+  const canGoNext =
+    !projectEndMonth || visibleMonth < projectEndMonth;
+
   const events: Event[] = useMemo(
     () =>
       trabajos.map((t) => {
@@ -58,7 +110,6 @@ export function WorkCalendar({
     [trabajos],
   );
 
-  // Cobertura por día: slots totales vs slots con trabajador asignado.
   const coverageByDay = useMemo(() => {
     const map = new Map<string, DayCoverage>();
     for (const t of trabajos) {
@@ -71,9 +122,6 @@ export function WorkCalendar({
     }
     return map;
   }, [trabajos]);
-
-  const start = useMemo(() => parseISODateOnly(fechaInicio), [fechaInicio]);
-  const end = useMemo(() => parseISODateOnly(fechaFin), [fechaFin]);
 
   const eventPropGetter = (event: Event) => {
     const t = (event as Event & { resource?: Trabajo }).resource;
@@ -103,10 +151,8 @@ export function WorkCalendar({
       };
     }
 
-    // Sin slots ese día → neutro.
     if (!coverage || coverage.total === 0) return {};
 
-    // Ningún slot asignado → rojo.
     if (coverage.asignados === 0) {
       return {
         style: {
@@ -116,7 +162,6 @@ export function WorkCalendar({
       };
     }
 
-    // Algunos slots sin asignar → naranja.
     if (coverage.asignados < coverage.total) {
       return {
         style: {
@@ -126,7 +171,6 @@ export function WorkCalendar({
       };
     }
 
-    // Todos los slots asignados → verde.
     return {
       style: {
         backgroundColor: 'rgba(34, 197, 94, 0.18)',
@@ -138,9 +182,70 @@ export function WorkCalendar({
   const isDateInProject = (date: Date) =>
     (!start || date >= start) && (!end || date <= end);
 
+  const serviceRangeLabel = useMemo(() => {
+    if (!start && !end) return null;
+    const fmt = (d: Date) => format(d, 'dd/MM/yyyy');
+    if (start && end) return `${fmt(start)} – ${fmt(end)}`;
+    if (start) return `Desde ${fmt(start)}`;
+    return `Hasta ${fmt(end!)}`;
+  }, [start, end]);
+
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 pt-3 pb-2 shrink-0">
+      <div className="px-4 pt-3 pb-2 shrink-0 space-y-2 border-b bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setVisibleMonth((m) => subMonths(m, 1))}
+              disabled={!canGoPrev}
+              aria-label="Mes anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {monthOptions.length > 1 ? (
+              <select
+                className="h-8 min-w-[10rem] rounded-md border border-input bg-white px-2 text-sm font-medium capitalize"
+                value={format(visibleMonth, 'yyyy-MM')}
+                onChange={(e) => {
+                  const [y, m] = e.target.value.split('-').map(Number);
+                  setVisibleMonth(new Date(y, m - 1, 1));
+                }}
+              >
+                {monthOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="px-2 text-sm font-semibold min-w-[10rem] text-center capitalize">
+                {capitalize(format(visibleMonth, 'MMMM yyyy', { locale: es }))}
+              </span>
+            )}
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setVisibleMonth((m) => addMonths(m, 1))}
+              disabled={!canGoNext}
+              aria-label="Mes siguiente"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {serviceRangeLabel && (
+            <p className="text-xs text-muted-foreground">
+              Servicio: {serviceRangeLabel}
+            </p>
+          )}
+        </div>
+
         <p className="text-xs text-muted-foreground">
           Haz clic en un día para gestionar el personal
           {' · '}
@@ -160,7 +265,8 @@ export function WorkCalendar({
           </span>
         </p>
       </div>
-      <div className="flex-1 overflow-hidden px-2 pb-4 min-h-0">
+
+      <div className="flex-1 overflow-hidden px-2 pb-4 min-h-0 [&_.rbc-toolbar]:hidden">
         <Calendar
           localizer={localizer}
           events={events}
@@ -168,6 +274,13 @@ export function WorkCalendar({
           endAccessor="end"
           style={{ height: '100%' }}
           culture="es"
+          date={visibleMonth}
+          onNavigate={(date) => setVisibleMonth(startOfMonth(date))}
+          views={['month']}
+          view="month"
+          toolbar={false}
+          min={start ?? undefined}
+          max={end ?? undefined}
           onSelectSlot={(slot) => {
             if (!isDateInProject(slot.start)) return;
             onSelectDate(slot.start);
@@ -180,14 +293,6 @@ export function WorkCalendar({
           selectable
           dayPropGetter={dayPropGetter}
           eventPropGetter={eventPropGetter}
-          messages={{
-            next: 'Sig',
-            previous: 'Ant',
-            today: 'Hoy',
-            month: 'Mes',
-            week: 'Semana',
-            day: 'Día',
-          }}
         />
       </div>
     </div>

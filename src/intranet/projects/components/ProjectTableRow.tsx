@@ -166,7 +166,11 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                 Ver detalle-proyecto
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => navigate("/intranet/organizar-personal")}
+                onClick={() =>
+                  navigate(
+                    `/intranet/organizar-personal/${project.id_Proyecto}`,
+                  )
+                }
               >
                 Organizar personal
               </DropdownMenuItem>
