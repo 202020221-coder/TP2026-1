@@ -13,7 +13,9 @@ export interface GetAvailableTrucksQP {
 export interface GetQuotationQP {
   page?: number;
   per_page?: number;
+  limit?: number;
   dni_o_ruc?: string;
   estado?: QuotationState;
-  nombre?:string;
+  nombre?: string;
+  pendiente_aprobacion?: boolean;
 }

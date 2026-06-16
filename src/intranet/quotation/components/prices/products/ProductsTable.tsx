@@ -39,7 +39,18 @@ type UpdateRentedDaysHandler = (
   id: QuotationProduct["id"],
   dias: QuotationProduct["dias_alquilados"],
 ) => void;
+type UpdateRentalServiceHandler = (
+  id: QuotationProduct["id"],
+  serviceId: string,
+) => void;
 type DeleteHandler = (id: QuotationProduct["id"]) => void;
+
+/** Servicio al que se puede vincular un alquiler (deriva las fechas en backend). */
+export interface RentalServiceOption {
+  id: string;
+  name: string;
+}
+
 type OptionalProps =
   | {
       readOnly: true;
@@ -47,7 +58,9 @@ type OptionalProps =
       onUpdateUnitPrice: undefined;
       onUpdateIntention: undefined;
       onUpdateRentedDays: undefined;
+      onUpdateRentalService?: undefined;
       onDelete: undefined;
+      serviceOptions?: undefined;
     }
   | {
       readOnly: false;
@@ -55,7 +68,9 @@ type OptionalProps =
       onUpdateUnitPrice: UpdateUnitPriceHandler;
       onUpdateIntention: UpdateIntentionHandler;
       onUpdateRentedDays: UpdateRentedDaysHandler;
+      onUpdateRentalService?: UpdateRentalServiceHandler;
       onDelete: DeleteHandler;
+      serviceOptions?: RentalServiceOption[];
     };
 
 type QuotationTableProps = {
@@ -123,7 +138,9 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
     onUpdateUnitPrice,
     onUpdateIntention,
     onUpdateRentedDays,
+    onUpdateRentalService,
     onDelete,
+    serviceOptions,
   }) => {
     const formattedSubtotal = useMemo(() => {
       const subtotal =
@@ -177,32 +194,64 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
           )}
         </TableCell>
         <TableCell className="text-center">
-          {readOnly ? (
-            product.intencion === "alquilar" ? (
+          {product.intencion !== "alquilar" ? (
+            <span className="text-muted-foreground">—</span>
+          ) : readOnly ? (
+            <div className="flex flex-col items-center gap-0.5">
               <span className="text-sm text-foreground">
-                {product.dias_alquilados}
+                {product.dias_alquilados ?? "—"}
               </span>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )
-          ) : (
-            <>
-              {product.intencion === "alquilar" ? (
-                <Input
-                  type="number"
-                  min={1}
-                  value={product.dias_alquilados ?? 1}
-                  className="h-9 border-border bg-background text-sm"
-                  readOnly={readOnly}
-                  onChange={(e) =>
-                    onUpdateRentedDays?.(product.id, Number(e.target.value))
-                  }
-                  disabled={readOnly}
-                />
-              ) : (
-                <span className="text-muted-foreground">—</span>
+              {product.uso && (
+                <span className="text-xs text-muted-foreground">
+                  {serviceOptions?.find((o) => o.id === String(product.uso))
+                    ?.name ?? `Servicio #${product.uso}`}
+                </span>
               )}
-            </>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <Input
+                type="number"
+                min={1}
+                value={product.dias_alquilados ?? 1}
+                className="h-9 border-border bg-background text-sm"
+                disabled={Boolean(product.uso)}
+                title={
+                  product.uso
+                    ? "Los días se calculan del servicio vinculado. Use «Alquiler manual» para fijar días personalizados."
+                    : undefined
+                }
+                onChange={(e) =>
+                  onUpdateRentedDays?.(product.id, Number(e.target.value))
+                }
+              />
+              {onUpdateRentalService && serviceOptions && (
+                <select
+                  value={product.uso ?? ""}
+                  onChange={(e) =>
+                    onUpdateRentalService(product.id, e.target.value)
+                  }
+                  className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs"
+                  title="Vincular el alquiler a un servicio (las fechas se derivan del servicio)"
+                >
+                  <option value="">Alquiler manual (sin servicio)</option>
+                  {serviceOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {product.uso ? (
+                <span className="text-[10px] text-muted-foreground text-left">
+                  Días según servicio vinculado
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground text-left">
+                  Días libres (no limitados al proyecto)
+                </span>
+              )}
+            </div>
           )}
         </TableCell>
 

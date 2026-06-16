@@ -2,10 +2,12 @@ import axios from "@/shared/api/axios.config";
 import type {
   Proyecto,
   PaginatedResponse,
-  Jornada,
-  JornadaRaw,
-  TrabajadorDisponible,
-  CreateJornadaBody,
+  Trabajo,
+  TrabajoRaw,
+  Asistencia,
+  PerfilDisponible,
+  PerfilDisponibleRaw,
+  UpdateTrabajoBody,
 } from "../types";
 
 const toNumber = (v: unknown): number => {
@@ -13,24 +15,58 @@ const toNumber = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const normalizeJornada = (raw: JornadaRaw): Jornada => ({
-  Id_Jornada: toNumber(raw.Id_Jornada ?? raw.id_jornada ?? raw.id),
-  Id_Trabajo: toNumber(raw.Id_Trabajo ?? raw.id_trabajo),
-  DNI_Trabajador: String(raw.DNI_Trabajador ?? raw.dni_trabajador ?? ""),
-  dia: String(raw.dia ?? raw.fecha ?? ""),
-  horario_entrada: String(raw.horario_entrada ?? ""),
-  horario_salida: String(raw.horario_salida ?? ""),
-  Trabajador_Nombre: String(
-    raw.Trabajador_Nombre ?? raw.trabajador_nombre ?? raw.nombre ?? "",
-  ),
-  Trabajador_Apellido: String(
-    raw.Trabajador_Apellido ??
-      raw.trabajador_apellido ??
-      raw.apellidos ??
-      raw.apellido ??
-      "",
-  ),
-});
+const toNullableNumber = (v: unknown): number | null => {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const toNullableString = (v: unknown): string | null => {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+};
+
+const ASISTENCIAS: Asistencia[] = ["Programada", "Cancelada", "Realizada"];
+
+const normalizeTrabajo = (raw: TrabajoRaw): Trabajo => {
+  const asistencia = ASISTENCIAS.find((a) => a === raw.asistencia) ?? null;
+  return {
+    Id_trabajo: toNumber(raw.Id_trabajo ?? raw.id_trabajo ?? raw.id),
+    Id_Proyecto: toNumber(raw.Id_Proyecto ?? raw.id_proyecto),
+    dia: String(raw.dia ?? raw.fecha ?? "").slice(0, 10),
+    horario_entrada: String(raw.horario_entrada ?? ""),
+    horario_salida: String(raw.horario_salida ?? ""),
+    DNI_Trabajador: toNullableString(raw.DNI_Trabajador ?? raw.dni_trabajador),
+    profesion: String(raw.profesion ?? ""),
+    ID_Servicio: toNullableNumber(raw.ID_Servicio ?? raw.id_servicio),
+    comentario: toNullableString(raw.comentario),
+    asistencia,
+    Trabajador_Nombre: toNullableString(
+      raw.Trabajador_Nombre ?? raw.trabajador_nombre ?? raw.nombre,
+    ),
+    Trabajador_Apellido: toNullableString(
+      raw.Trabajador_Apellido ?? raw.trabajador_apellido ?? raw.apellido ?? raw.apellidos,
+    ),
+  };
+};
+
+const normalizePerfil = (raw: PerfilDisponibleRaw): PerfilDisponible => {
+  const estado = raw.estado;
+  return {
+    DNI: String(raw.DNI ?? raw.dni ?? ""),
+    Nombre: String(raw.Nombre ?? raw.nombre ?? ""),
+    Apellido: String(raw.Apellido ?? raw.apellido ?? raw.apellidos ?? ""),
+    profesion_clasificacion: String(
+      raw.profesion_clasificacion ?? raw.profesion ?? "",
+    ),
+    rol: toNullableString(raw.rol),
+    estado:
+      estado === "disponible" || estado === "en trabajo" || estado === "inhabilitado"
+        ? estado
+        : "disponible",
+  };
+};
 
 export const proyectoService = {
   getAll: (page = 1, limit = 50) =>
@@ -98,38 +134,38 @@ export const personalRequeridoService = {
 };
 
 export const trabajoService = {
-  getJornadas: (idTrabajo: number) =>
+  /** Lista todos los slots TRABAJO del proyecto (ordenados por dia/hora/id). */
+  getByProyecto: (idProyecto: number) =>
     axios
-      .get<unknown>(`/trabajos/${idTrabajo}/jornadas`)
+      .get<unknown>(`/trabajos/proyecto/${idProyecto}`)
       .then((r) => {
         const raw = r.data;
-        const arr: JornadaRaw[] = Array.isArray(raw)
-          ? (raw as JornadaRaw[])
-          : ((raw as { data?: JornadaRaw[] })?.data ?? []);
-        return arr.map(normalizeJornada);
+        const arr: TrabajoRaw[] = Array.isArray(raw)
+          ? (raw as TrabajoRaw[])
+          : ((raw as { data?: TrabajoRaw[] })?.data ?? []);
+        return arr.map(normalizeTrabajo);
       }),
 
-  createJornada: (idTrabajo: number, body: CreateJornadaBody) =>
+  /** Asigna/actualiza un slot: DNI_Trabajador, asistencia, comentario. */
+  update: (idTrabajo: number, body: UpdateTrabajoBody) =>
     axios
-      .post<{ message: string; id: number }>(
-        `/trabajos/${idTrabajo}/jornadas`,
-        body,
-      )
-      .then((r) => r.data),
-
-  deleteJornada: (idTrabajo: number, idJornada: number) =>
-    axios
-      .delete<{ message: string }>(
-        `/trabajos/${idTrabajo}/jornadas/${idJornada}`,
-      )
+      .put<{ message?: string }>(`/trabajos/${idTrabajo}`, body)
       .then((r) => r.data),
 };
 
 export const perfilService = {
-  getAvailable: (fecha: string) =>
+  /**
+   * Trabajadores disponibles para una fecha y profesión (enum). Para "piloto"
+   * el backend exige brevete. Solo devuelve estados "disponible"/"en trabajo".
+   */
+  getDisponibles: (fecha: string, profesion: string) =>
     axios
-      .get<TrabajadorDisponible[]>(`/perfiles/trabajadores/disponibles`, {
-        params: { fecha },
-      })
-      .then((r) => r.data),
+      .get<unknown>(`/perfiles/disponibles`, { params: { fecha, profesion } })
+      .then((r) => {
+        const raw = r.data;
+        const arr: PerfilDisponibleRaw[] = Array.isArray(raw)
+          ? (raw as PerfilDisponibleRaw[])
+          : ((raw as { data?: PerfilDisponibleRaw[] })?.data ?? []);
+        return arr.map(normalizePerfil);
+      }),
 };

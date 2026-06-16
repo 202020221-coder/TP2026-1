@@ -43,7 +43,10 @@ interface QuotationService {
   name?: string;
   startDate: string; //ISO — se calcula según la etapa (no editable)
   dueDate: string; //   se calcula según la etapa (no editable)
-  schedule: string; //campo de texto (jornada)
+  /** Hora de inicio de la jornada (HH:mm). En el API: jornada_comienzo. */
+  scheduleStart: string;
+  /** Hora de fin de la jornada (HH:mm). En el API: jornada_final. */
+  scheduleEnd: string;
   unitPrice: number;
   /** true si es el servicio principal (abarca todo el proyecto). */
   isPrincipal?: boolean;
@@ -65,6 +68,8 @@ type QuotationProduct = {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  /** Id del servicio (catálogo) al que se vincula un alquiler. Solo para "alquilar". */
+  uso?: string | null;
 } & (
   | {
       intencion: Extract<QuotationProductIntention, "comprar">;

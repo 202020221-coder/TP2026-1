@@ -7,7 +7,8 @@ export const ServiceFormItemSchema = z.object({
   unitPrice: z.number().min(0.01, "El precio debe ser mayor a 0"),
   startDate: z.string().min(1, "La fecha de inicio es requerida"),
   dueDate: z.string().min(1, "La fecha de vencimiento es requerida"),
-  schedule: z.string().min(1, "La jornada es requerida"),
+  scheduleStart: z.string().min(1, "La hora de inicio es requerida"),
+  scheduleEnd: z.string().min(1, "La hora de fin es requerida"),
 });
 
 export const AddServicesFormSchema = z.object({
@@ -27,6 +28,7 @@ export const defaultServiceFormItem = (
   unitPrice: 0,
   startDate: format(new Date(), "yyyy-MM-dd"),
   dueDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
-  schedule: "",
+  scheduleStart: "08:00",
+  scheduleEnd: "17:00",
   ...overrides,
 });

@@ -1,77 +1,141 @@
-import { serializeEtapas } from "@/intranet/services/api/service.api";
-import type { CreateQuotationBody } from "../interfaces/responses.dto";
+import type {
+  QuotationApiBody,
+  QuotationInventoryBody,
+  QuotationServiceBody,
+  QuotationTruckBody,
+} from "../interfaces/responses.dto";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 
 type UpsertQuotationData = Omit<DesiredQuotationData, "status" | "client">;
 
-/** Convierte el estado del front al body que espera POST/PUT /cotizaciones. */
+/** Convierte "yyyy-MM-dd" (o ISO) a DATETIME MySQL "yyyy-MM-dd HH:mm:ss". */
+const toMysqlDateTime = (value: string | null | undefined): string | undefined => {
+  if (!value) return undefined;
+  const datePart = value.split("T")[0].split(" ")[0];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return undefined;
+  return `${datePart} 00:00:00`;
+};
+
+/**
+ * Convierte el estado del front al body que esperan POST/PUT /cotizaciones.
+ *
+ * El vínculo camión → servicio se envía como `serviceIndex` (posición del
+ * servicio en el array `services`). El backend, tras crear las filas
+ * COTIZACION_SERVICIO en ese mismo orden, resuelve el PK correspondiente y lo
+ * asigna como `uso` del camión. Así no necesitamos conocer el PK por adelantado
+ * (que solo existe después de guardar).
+ */
 export const toQuotationApiBody = (
   data: UpsertQuotationData,
-): Omit<CreateQuotationBody, "id_solicitud" | "DNI_O_RUC"> => {
-  const body: Omit<CreateQuotationBody, "id_solicitud" | "DNI_O_RUC"> = {
-    nombre: data.name || "cotización",
-    condiciones: {
-      condiciones: data.quotationConditions.conditions,
-      fechaEmision: data.quotationConditions.emissionDate,
-      fechaVigencia: data.quotationConditions.expirationDate,
-      observaciones: data.quotationConditions.observations,
-    },
-    costoRecojo: {
-      costo: data.pickupService.pickupCost,
-      direccionRecojo: data.pickupService.pickupAddress,
-      fechaRecojo: data.pickupService.pickupDate,
-    },
-    id_camion: data.trucks[0]?.plate ?? "",
-    productos: data.inventory.map(({ nombre: _nombre, ...rest }) => rest),
-    servicios: data.services.map((service) => ({
-      id: service.id,
+): QuotationApiBody => {
+  const services: QuotationServiceBody[] = data.services.map((service) => {
+    const base: QuotationServiceBody = {
+      id: String(service.id),
+      name: service.name ?? `Servicio #${service.id}`,
       startDate: service.startDate,
       dueDate: service.dueDate,
-      schedule: service.schedule,
+      jornada_comienzo: service.scheduleStart,
+      jornada_final: service.scheduleEnd,
       unitPrice: service.unitPrice,
-      fecha_inicio: service.startDate,
-      fecha_finalizacion: service.dueDate,
-      jornada: service.schedule,
-      precio_comercial: service.unitPrice,
-      ...(service.name ? { nombre: service.name } : {}),
-      ...(service.isPrincipal !== undefined
-        ? { isPrincipal: service.isPrincipal }
-        : {}),
-      ...(service.faseOrden != null ? { faseOrden: service.faseOrden } : {}),
-      ...(service.pagoPorDia !== undefined
-        ? { pago_por_dia: service.pagoPorDia }
-        : {}),
-    })),
-    tasaCambio: {
-      tasaCompra: data.quotationRate.buyingRate,
-      tasaVenta: data.quotationRate.sellingRate,
-    },
-  };
+      Principal: Boolean(service.isPrincipal),
+    };
 
-  if (data.phases.items.length > 0) {
-    body.etapas = serializeEtapas(data.phases.items);
-  }
+    if (!service.isPrincipal && service.faseOrden != null) {
+      base.id_servicio_subservicio = service.faseOrden;
+    }
 
-  if (data.projectStartDate) {
-    body.fecha_inicio_proyecto = data.projectStartDate;
-  }
+    if (service.pagoPorDia !== undefined) {
+      base.pago_por_dia = service.pagoPorDia;
+    }
 
-  if (data.trucks.length > 0) {
-    body.camiones = data.trucks.map((truck) => ({
-      placa: truck.plate,
-      modelo: truck.model,
+    return base;
+  });
+
+  // Índice de cada servicio por su id de catálogo, para resolver camiones e
+  // ítems de inventario en alquiler vinculados a un servicio.
+  const serviceIndexById = new Map<string, number>();
+  data.services.forEach((service, index) => {
+    serviceIndexById.set(String(service.id), index);
+  });
+
+  const inventory: QuotationInventoryBody[] = data.inventory.map((item) => {
+    const base: QuotationInventoryBody = {
+      id: String(item.id),
+      nombre: item.nombre,
+      cantidad: item.cantidad,
+      precio_unitario: item.precio_unitario,
+      intencion: item.intencion,
+    };
+
+    if (item.intencion === "alquilar") {
+      const linkedIndex =
+        item.uso != null && item.uso !== ""
+          ? serviceIndexById.get(String(item.uso))
+          : undefined;
+
+      if (linkedIndex !== undefined) {
+        // Vinculado a servicio: el backend deriva los días desde las fechas del
+        // servicio. No enviar dias_alquilados para evitar conflictos.
+        base.serviceIndex = linkedIndex;
+      } else {
+        // Alquiler manual (sin servicio): días explícitos, sin límite del proyecto.
+        const dias = Number(item.dias_alquilados);
+        base.dias_alquilados =
+          Number.isFinite(dias) && dias > 0 ? dias : 1;
+      }
+    }
+
+    return base;
+  });
+
+  const trucks: QuotationTruckBody[] = data.trucks.map((truck) => {
+    const base: QuotationTruckBody = {
+      plate: truck.plate,
+      model: truck.model,
       color: truck.color,
-      caracteristicas: truck.description,
-      fechaProximaRevision: truck.maintenanceDate,
-      ...(truck.uso ? { uso: truck.uso } : {}),
-      ...(truck.fecha_hora_entrada
-        ? { fecha_hora_entrada: truck.fecha_hora_entrada }
-        : {}),
-      ...(truck.fecha_hora_salida
-        ? { fecha_hora_salida: truck.fecha_hora_salida }
-        : {}),
-    }));
-  }
+      maintenanceDate: truck.maintenanceDate,
+      description: truck.description,
+    };
 
-  return body;
+    const linkedIndex =
+      truck.uso != null ? serviceIndexById.get(String(truck.uso)) : undefined;
+    if (linkedIndex !== undefined) {
+      base.serviceIndex = linkedIndex;
+
+      // Enviamos las fechas en formato MySQL DATETIME para que el backend las
+      // inserte directamente (evita el error "Incorrect datetime value" cuando
+      // el backend reformatea la fecha del servicio como Date.toString()).
+      const linkedService = data.services[linkedIndex];
+      const entrada = toMysqlDateTime(linkedService?.startDate);
+      const salida = toMysqlDateTime(linkedService?.dueDate);
+      if (entrada) base.fecha_hora_entrada = entrada;
+      if (salida) base.fecha_hora_salida = salida;
+    }
+
+    return base;
+  });
+
+  return {
+    name: data.name || "cotización",
+    fecha_inicio_proyecto: data.projectStartDate || undefined,
+    quotationConditions: {
+      emissionDate: data.quotationConditions.emissionDate,
+      expirationDate: data.quotationConditions.expirationDate,
+      conditions: data.quotationConditions.conditions,
+      observations: data.quotationConditions.observations,
+    },
+    quotationRate: {
+      buyingRate: data.quotationRate.buyingRate,
+      sellingRate: data.quotationRate.sellingRate,
+    },
+    inventory,
+    services,
+    trucks,
+    pickupService: {
+      pickupCost: data.pickupService.pickupCost,
+      pickupDate: data.pickupService.pickupDate,
+      pickupAddress: data.pickupService.pickupAddress,
+    },
+    phases: data.phases,
+  };
 };

@@ -15,14 +15,24 @@ import { QuotationTableControls } from "./QuotationTableControls";
 import { QuotationTableHeader } from "./QuotationTableHeader";
 import { QuotationPlaceHolder } from "./QuotationTablePlaceHolder";
 import { QuotationTableRow } from "./QuotationTableRow";
+import { QuotationApproveOrderDialog } from "./QuotationApproveOrderDialog";
+import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
 
 export const QuotationTable: FC = () => {
   const { result, queryParams } = useQuotation();
-  const { isPending, isFetching, isError, error, data } = result;
+  const { isPending, isError, error, data } = result;
   const [selectedCotizacion, setSelectedCotizacion] = useState<Cotizacion | null>(
     null,
   );
   const [isPresupuestoOpen, setIsPresupuestoOpen] = useState(false);
+  const [approveQuotation, setApproveQuotation] = useState<Quotation | null>(
+    null,
+  );
+  const [uploadQuotationId, setUploadQuotationId] = useState<number | null>(
+    null,
+  );
+
+  const isInitialLoading = isPending && !data;
 
   const handleOpenPresupuesto = (quotation: Quotation) => {
     setSelectedCotizacion(quotationToCotizacion(quotation));
@@ -40,7 +50,7 @@ export const QuotationTable: FC = () => {
         <Table containerClassname="flex-1 overflow-auto flex-col">
           <QuotationTableHeader />
           <TableBody>
-            {isPending || isFetching ? (
+            {isInitialLoading ? (
               <QuotationPlaceHolder rows={queryParams.per_page ?? 5} />
             ) : isError ? (
               <TableRow>
@@ -49,11 +59,13 @@ export const QuotationTable: FC = () => {
             ) : (
               <>
                 {data.data.length > 0 ? (
-                  data.data.map((q, i) => (
+                  data.data.map((q) => (
                     <QuotationTableRow
                       quotation={q}
-                      key={`${q.ID}-${i}`}
+                      key={q.ID}
                       onOpenPresupuesto={handleOpenPresupuesto}
+                      onReviewPurchaseOrder={setApproveQuotation}
+                      onUploadPurchaseOrder={setUploadQuotationId}
                     />
                   ))
                 ) : (
@@ -77,6 +89,30 @@ export const QuotationTable: FC = () => {
         isOpen={isPresupuestoOpen}
         onClose={handleClosePresupuesto}
       />
+
+      {approveQuotation && (
+        <QuotationApproveOrderDialog
+          quotation={approveQuotation}
+          open={approveQuotation !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setApproveQuotation(null);
+            }
+          }}
+        />
+      )}
+
+      {uploadQuotationId !== null && (
+        <QuotationOrderPurchaseDialog
+          quotationId={uploadQuotationId}
+          open={uploadQuotationId !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setUploadQuotationId(null);
+            }
+          }}
+        />
+      )}
     </>
   );
 };

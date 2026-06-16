@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 import { updateQuotation } from "../api/quotation.api";
 import { useQuotationProductStore } from "./stores/quotation.products.store.provider";
 import { useQuotationTruckStore } from "./stores/quotation.truck.store.provider";
@@ -82,7 +83,32 @@ export const useUpdateQuotation = ({
         {
           loading: "Actualizando cotización...",
           success: "Cotización actualizada con éxito.",
-          error: "Error al actualizar la cotización",
+          error: (err) => {
+            console.error("[updateQuotation] error:", err);
+            if (isAxiosError(err)) {
+              console.error(
+                "[updateQuotation] status:",
+                err.response?.status,
+                "data:",
+                err.response?.data,
+              );
+              const apiMessage =
+                (err.response?.data as { message?: string; error?: string })
+                  ?.message ??
+                (err.response?.data as { message?: string; error?: string })
+                  ?.error;
+              if (err.code === "ECONNABORTED") {
+                return "La actualización tardó demasiado (timeout). Intenta nuevamente.";
+              }
+              if (apiMessage) {
+                return `Error al actualizar la cotización: ${apiMessage}`;
+              }
+              if (err.response?.status) {
+                return `Error al actualizar la cotización (HTTP ${err.response.status}).`;
+              }
+            }
+            return "Error al actualizar la cotización";
+          },
         },
       );
     } finally {

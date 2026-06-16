@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, Pencil, Trash2, Send } from "lucide-react";
+import { Eye, Mail, Pencil, Trash2, Send, Calculator, FileCheck2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -16,24 +16,30 @@ import {
   type QuotationState,
 } from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
-import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
 import { QuotationChatStatusCell } from "./QuotationChatStatusCell";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { canNegotiateQuotation } from "../../lib/can-negotiate-quotation";
+import {
+  canApprovePurchaseOrder,
+  hasPendingPurchaseOrderApproval,
+} from "../../lib/can-approve-purchase-order";
 
 export const QuotationTableRow: FC<{
   quotation: Quotation;
   onOpenPresupuesto: (quotation: Quotation) => void;
-}> = ({ quotation, onOpenPresupuesto }) => {
+  onReviewPurchaseOrder: (quotation: Quotation) => void;
+  onUploadPurchaseOrder: (quotationId: number) => void;
+}> = ({
+  quotation,
+  onOpenPresupuesto,
+  onReviewPurchaseOrder,
+  onUploadPurchaseOrder,
+}) => {
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
-  const [orderPurchaseModalOpen, setOrderPurchaseModalOpen] = useState(false);
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
-
-  const quotationDisplayName =
-    quotation.nombre.split(" - ").slice(1).join(" - ") || quotation.nombre;
 
   const statusStyles = new Map<QuotationState, string>([
     [
@@ -48,7 +54,7 @@ export const QuotationTableRow: FC<{
   ]);
 
   const handleModalSend = () => {
-    setOrderPurchaseModalOpen(true);
+    onUploadPurchaseOrder(quotation.ID);
   };
 
   const handleNavigateDetails = () => {
@@ -68,12 +74,15 @@ export const QuotationTableRow: FC<{
   };
 
   const canNegotiate = canNegotiateQuotation(quotation, user?.rol);
+  const showApproveOrderAction =
+    canApprovePurchaseOrder(user?.rol) &&
+    hasPendingPurchaseOrderApproval(quotation);
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
         <TableCell className="font-medium py-3">{quotation.ID}</TableCell>
         <TableCell className="font-medium py-3">
-          {quotationDisplayName}
+          {quotation.nombre}
         </TableCell>
         <TableCell className="text-gray-700">{quotation.version}</TableCell>
         <TableCell className="text-gray-700">
@@ -99,14 +108,25 @@ export const QuotationTableRow: FC<{
           <div className="flex justify-center items-center gap-2">
             {(user?.rol === RolesRecord.projectAdmin ||
               user?.rol === RolesRecord.manager) && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => onOpenPresupuesto(quotation)}
-                className="bg-green-600 text-white hover:bg-green-700"
-              >
-                Presupuesto
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-green-600 hover:border hover:border-green-600 hover:text-green-700 transition-colors hover:bg-green-50"
+                    onClick={() => onOpenPresupuesto(quotation)}
+                  >
+                    <Calculator className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-green-600 text-green-600 font-normal text-center"
+                  align="center"
+                >
+                  Presupuesto
+                </TooltipContent>
+              </Tooltip>
             )}
 
             <Tooltip>
@@ -127,6 +147,27 @@ export const QuotationTableRow: FC<{
                 Ver Cotizacion
               </TooltipContent>
             </Tooltip>
+
+            {showApproveOrderAction && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-violet-600 hover:border hover:border-violet-600 hover:text-violet-700 transition-colors hover:bg-violet-50"
+                    onClick={() => onReviewPurchaseOrder(quotation)}
+                  >
+                    <FileCheck2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-violet-600 text-violet-600 font-normal text-center"
+                  align="center"
+                >
+                  Revisar orden de compra
+                </TooltipContent>
+              </Tooltip>
+            )}
 
             {user?.rol === RolesRecord.client &&
               quotation.estado !== QuotationStatesRecord.approved && (
@@ -230,11 +271,6 @@ export const QuotationTableRow: FC<{
           />
         </TableCell>
       </TableRow>
-      <QuotationOrderPurchaseDialog
-        quotationId={quotation.ID}
-        open={orderPurchaseModalOpen}
-        onOpenChange={setOrderPurchaseModalOpen}
-      />
     </>
   );
 };

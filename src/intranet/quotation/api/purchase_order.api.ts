@@ -1,4 +1,5 @@
 import axiosInstance from "@/shared/api/axios.config";
+import { resolveBackendFileUrl } from "@/intranet/trucks/lib/maintenance-pdf";
 
 export type UploadPurchaseOrderResponse = {
   message: string;
@@ -70,6 +71,50 @@ export const downloadPurchaseOrder = async (
   a.click();
   a.remove();
   URL.revokeObjectURL(objUrl);
+};
+
+export type PurchaseOrderJsonResponse = {
+  url: string;
+};
+
+export const resolvePurchaseOrderPublicUrl = (ordenCompra?: string | null) => {
+  if (!ordenCompra?.trim()) {
+    return "";
+  }
+  return resolveBackendFileUrl(ordenCompra);
+};
+
+export const getPurchaseOrderJsonUrl = async (
+  id: number | string,
+): Promise<string | null> => {
+  try {
+    const response = await axiosInstance.get<PurchaseOrderJsonResponse>(
+      `/cotizaciones/${id}/orden-compra`,
+      { params: { format: "json" } },
+    );
+    return response.data?.url?.trim() || null;
+  } catch {
+    return null;
+  }
+};
+
+/** Carga el PDF con token (para iframe o vista previa autenticada). */
+export const fetchPurchaseOrderBlobUrl = async (
+  id: number | string,
+): Promise<string> => {
+  const response = await axiosInstance.get<ArrayBuffer>(
+    `/cotizaciones/${id}/orden-compra`,
+    {
+      responseType: "arraybuffer",
+      headers: { Accept: "application/pdf" },
+    } as Parameters<typeof axiosInstance.get>[1],
+  );
+
+  const contentType = String(
+    response.headers["content-type"] ?? "application/pdf",
+  );
+  const blob = new Blob([response.data], { type: contentType });
+  return URL.createObjectURL(blob);
 };
 
 export const uploadPurchaseOrder = async (

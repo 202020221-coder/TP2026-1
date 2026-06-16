@@ -100,7 +100,8 @@ export const CreateQuotationServicesSection: FC = () => {
                   unitPrice: i.unitPrice,
                   startDate: i.startDate,
                   dueDate: i.dueDate,
-                  schedule: i.schedule,
+                  scheduleStart: i.scheduleStart,
+                  scheduleEnd: i.scheduleEnd,
                 }),
               ),
             );
@@ -112,8 +113,8 @@ export const CreateQuotationServicesSection: FC = () => {
         <QuotationServicesTable
           items={services}
           onDelete={deleteItem}
-          onUpdateSchedule={(id, schedule) =>
-            updateItem(id, "schedule", schedule)
+          onUpdateSchedule={(id, field, value) =>
+            updateItem(id, field, value)
           }
           onUpdateUnitPrice={(id, unitPrice) =>
             updateItem(id, "unitPrice", unitPrice)

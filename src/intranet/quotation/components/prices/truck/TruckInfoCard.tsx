@@ -28,7 +28,7 @@ export const TruckInfoCard: FC<TruckInfoCardProps> = ({ trucks }) => {
           </span>
         </CardTitle>
         <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-          Visualice los datos de los camiones vinculados a la cotización.
+          Visualice los datos de los camiones vinculados a la cotizaciรณn.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -63,14 +63,14 @@ const TruckCard: FC<{ truck: Truck }> = memo(({ truck }) => {
               {truck.plate}
             </span>
             <Badge variant={needsRevisionSoon ? "destructive" : "secondary"}>
-              {needsRevisionSoon ? "Revisión próxima" : "Vigente"}
+              {needsRevisionSoon ? "Revisiรณn prรณxima" : "Vigente"}
             </Badge>
           </div>
           <div className="text-sm text-muted-foreground">
-            {truck.model} • {truck.color}
+            {truck.model} โ�ข {truck.color}
           </div>
           <div className="text-xs text-muted-foreground">
-            Próx revisión: {format(revisionDate, "dd MMM yyyy")}
+            Prรณx revisiรณn: {format(revisionDate, "dd MMM yyyy")}
           </div>
           {truck.description && (
             <div className="text-xs text-muted-foreground">

@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Eraser, Search } from "lucide-react";
 import { useEffect, useState, type FC, type ReactNode } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,8 @@ import {
   type QuotationState,
 } from "../../enum/quotation-state.record";
 import { useDebounced } from "@/shared/hooks/useDebounced";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canApprovePurchaseOrder } from "../../lib/can-approve-purchase-order";
 
 export const QuotationTableControls: FC<{ children: ReactNode }> = ({
   children,
@@ -33,11 +36,14 @@ export const QuotationTableControls: FC<{ children: ReactNode }> = ({
 
 const TopControls: FC = () => {
   const { query, queryParams, result } = useQuotation();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const showPendingApprovalFilter = canApprovePurchaseOrder(role);
   const onNameChange = useDebounced((nameSearch: string) => {
     query({ ...queryParams, page: 1, nombre: nameSearch });
-  }, 500);  
+  }, 500);
   return (
-    <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
       <div className="col-span-1 md:col-span-3 relative">
         <Input
           placeholder="Buscar por nombre"
@@ -81,6 +87,25 @@ const TopControls: FC = () => {
           <Eraser />
         </Button>
       </div>
+      </div>
+      {showPendingApprovalFilter && (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="pendiente-aprobacion"
+            checked={queryParams.pendiente_aprobacion === true}
+            onCheckedChange={(checked) => {
+              query({
+                ...queryParams,
+                page: 1,
+                pendiente_aprobacion: checked === true ? true : undefined,
+              });
+            }}
+          />
+          <Label htmlFor="pendiente-aprobacion" className="font-normal cursor-pointer">
+            Solo pendientes de aprobación de orden de compra
+          </Label>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,7 +13,7 @@ import {
   trabajoService,
   personalRequeridoService,
 } from '../services/organizar-personal.service';
-import type { Proyecto, Jornada } from '../types';
+import type { Proyecto, Trabajo } from '../types';
 
 export default function OrganizarPersonalPage() {
   const { idProyecto } = useParams<{ idProyecto: string }>();
@@ -24,7 +24,7 @@ export default function OrganizarPersonalPage() {
 
   const [proyecto, setProyecto] = useState<Proyecto | null>(null);
   const [loadingProyecto, setLoadingProyecto] = useState(true);
-  const [jornadas, setJornadas] = useState<Jornada[]>([]);
+  const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [personalRequerido, setPersonalRequerido] = useState(0);
 
@@ -49,20 +49,20 @@ export default function OrganizarPersonalPage() {
       .catch(() => setPersonalRequerido(0));
   }, [proyecto?.id_cotizacion]);
 
-  const loadJornadas = useCallback(() => {
-    if (!proyecto?.ID_Trabajo) {
-      setJornadas([]);
+  const loadTrabajos = useCallback(() => {
+    if (!projectId) {
+      setTrabajos([]);
       return;
     }
     trabajoService
-      .getJornadas(proyecto.ID_Trabajo)
-      .then(setJornadas)
-      .catch(() => setJornadas([]));
-  }, [proyecto?.ID_Trabajo]);
+      .getByProyecto(projectId)
+      .then(setTrabajos)
+      .catch(() => setTrabajos([]));
+  }, [projectId]);
 
   useEffect(() => {
-    loadJornadas();
-  }, [loadJornadas]);
+    loadTrabajos();
+  }, [loadTrabajos]);
 
   const projectName =
     proyecto?.descripcion_servicio ??
@@ -108,21 +108,18 @@ export default function OrganizarPersonalPage() {
         <TabsContent value="cronograma" className="flex flex-1 overflow-hidden m-0">
           <main className="flex-1 flex flex-col overflow-hidden">
             <WorkCalendar
-              jornadas={jornadas}
+              trabajos={trabajos}
               onSelectDate={setSelectedDate}
-              personalRequerido={personalRequerido}
               fechaInicio={proyecto?.fecha_inicio ?? null}
               fechaFin={proyecto?.fecha_fin ?? null}
             />
           </main>
 
-          <aside className="w-72 shrink-0 border-l bg-white flex flex-col overflow-hidden">
+          <aside className="w-96 shrink-0 border-l bg-white flex flex-col overflow-hidden">
             <DailyStaffPanel
               selectedDate={selectedDate}
-              idTrabajo={proyecto?.ID_Trabajo ?? null}
-              jornadas={jornadas}
-              personalRequerido={personalRequerido}
-              onRefresh={loadJornadas}
+              trabajos={trabajos}
+              onRefresh={loadTrabajos}
               fechaInicio={proyecto?.fecha_inicio ?? null}
               fechaFin={proyecto?.fecha_fin ?? null}
               canEdit={canEdit}
@@ -132,8 +129,7 @@ export default function OrganizarPersonalPage() {
 
         <TabsContent value="presupuesto" className="flex-1 overflow-y-auto p-4 m-0">
           <BudgetAnalysis
-            jornadas={jornadas}
-            personalRequerido={personalRequerido}
+            trabajos={trabajos}
             fechaInicio={proyecto?.fecha_inicio ?? null}
             fechaFin={proyecto?.fecha_fin ?? null}
           />

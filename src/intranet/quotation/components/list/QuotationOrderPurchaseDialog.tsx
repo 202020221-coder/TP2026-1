@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -25,6 +26,7 @@ export default function QuotationOrderPurchaseDialog({
     open,
     onOpenChange,
 }: QuotationOrderPurchaseDialogProps) {
+    const queryClient = useQueryClient();
     const [orderPurchaseFile, setOrderPurchaseFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -81,6 +83,8 @@ export default function QuotationOrderPurchaseDialog({
                     parsePurchaseOrderFileName(response.ruta),
                 );
             }
+
+            await queryClient.invalidateQueries({ queryKey: ["quotations"] });
         })();
 
         toast.promise(uploadPromise, {

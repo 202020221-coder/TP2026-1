@@ -11,6 +11,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { X, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PROFESIONES } from "@/shared/constants/profesiones";
 
 interface Props {
   servicio: Servicio;
@@ -201,8 +202,16 @@ export const PersonalRequeridoModal: FC<Props> = ({ servicio, onClose }) => {
               {editingId === p.id ? (
                 <>
                   <div className={colClass}>
-                    <Input className={inputCls} value={editRow.profesion}
-                      onChange={(e) => setEditRow((r) => ({ ...r, profesion: e.target.value }))} />
+                    <select
+                      className={`${inputCls} w-full rounded-md border px-2`}
+                      value={editRow.profesion}
+                      onChange={(e) => setEditRow((r) => ({ ...r, profesion: e.target.value }))}
+                    >
+                      <option value="">Seleccionar…</option>
+                      {PROFESIONES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className={colClass}>
                     <Input className={inputCls} type="number" min={1} value={editRow.cantidad}
@@ -272,8 +281,16 @@ export const PersonalRequeridoModal: FC<Props> = ({ servicio, onClose }) => {
           {adding && (
             <div className="flex gap-3 items-center py-3 mt-2 border-t border-dashed border-green-200 bg-green-50/40 rounded-lg px-2">
               <div className={colClass}>
-                <Input className={inputCls} placeholder="Profesión" value={newRow.profesion}
-                  onChange={(e) => setNewRow((r) => ({ ...r, profesion: e.target.value }))} />
+                <select
+                  className={`${inputCls} w-full rounded-md border px-2`}
+                  value={newRow.profesion}
+                  onChange={(e) => setNewRow((r) => ({ ...r, profesion: e.target.value }))}
+                >
+                  <option value="">Profesión…</option>
+                  {PROFESIONES.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
               </div>
               <div className={colClass}>
                 <Input className={inputCls} type="number" min={1} placeholder="Cant." value={newRow.cantidad}

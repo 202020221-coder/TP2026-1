@@ -3,7 +3,7 @@ import { Calendar, dateFnsLocalizer, type Event } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import type { Jornada } from '../types';
+import type { Trabajo } from '../types';
 
 const locales = { es };
 const localizer = dateFnsLocalizer({
@@ -15,9 +15,8 @@ const localizer = dateFnsLocalizer({
 });
 
 interface Props {
-  jornadas: Jornada[];
+  trabajos: Trabajo[];
   onSelectDate: (date: Date) => void;
-  personalRequerido: number;
   fechaInicio: string | null;
   fechaFin: string | null;
 }
@@ -29,49 +28,70 @@ const parseISODateOnly = (iso: string | null): Date | null => {
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 };
+const hhmm = (t: string) => (t ? t.slice(0, 5) : '');
+
+interface DayCoverage {
+  total: number;
+  asignados: number;
+}
 
 export function WorkCalendar({
-  jornadas,
+  trabajos,
   onSelectDate,
-  personalRequerido,
   fechaInicio,
   fechaFin,
 }: Props) {
   const events: Event[] = useMemo(
     () =>
-      jornadas.map((j) => ({
-        title: `${j.Trabajador_Nombre} ${j.Trabajador_Apellido} (${j.horario_entrada}-${j.horario_salida})`,
-        start: new Date(`${j.dia}T${j.horario_entrada}`),
-        end: new Date(`${j.dia}T${j.horario_salida}`),
-        resource: j,
-      })),
-    [jornadas],
+      trabajos.map((t) => {
+        const asignado = Boolean(t.DNI_Trabajador);
+        const label = asignado
+          ? `${t.Trabajador_Nombre ?? ''} ${t.Trabajador_Apellido ?? ''}`.trim()
+          : `Sin asignar · ${t.profesion}`;
+        return {
+          title: `${label} (${hhmm(t.horario_entrada)}-${hhmm(t.horario_salida)})`,
+          start: new Date(`${t.dia}T${t.horario_entrada || '00:00:00'}`),
+          end: new Date(`${t.dia}T${t.horario_salida || '23:59:00'}`),
+          resource: t,
+        };
+      }),
+    [trabajos],
   );
 
-  // Count unique workers per day (avoid double-count if same DNI shows twice)
-  const assignedByDay = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    for (const j of jornadas) {
-      const key = j.dia?.slice(0, 10);
+  // Cobertura por día: slots totales vs slots con trabajador asignado.
+  const coverageByDay = useMemo(() => {
+    const map = new Map<string, DayCoverage>();
+    for (const t of trabajos) {
+      const key = t.dia?.slice(0, 10);
       if (!key) continue;
-      if (!map.has(key)) map.set(key, new Set());
-      map.get(key)!.add(j.DNI_Trabajador);
+      const c = map.get(key) ?? { total: 0, asignados: 0 };
+      c.total += 1;
+      if (t.DNI_Trabajador) c.asignados += 1;
+      map.set(key, c);
     }
-    const counts = new Map<string, number>();
-    map.forEach((set, k) => counts.set(k, set.size));
-    return counts;
-  }, [jornadas]);
+    return map;
+  }, [trabajos]);
 
   const start = useMemo(() => parseISODateOnly(fechaInicio), [fechaInicio]);
   const end = useMemo(() => parseISODateOnly(fechaFin), [fechaFin]);
 
+  const eventPropGetter = (event: Event) => {
+    const t = (event as Event & { resource?: Trabajo }).resource;
+    const asignado = Boolean(t?.DNI_Trabajador);
+    return {
+      style: {
+        backgroundColor: asignado ? 'rgb(34, 197, 94)' : 'rgb(148, 163, 184)',
+        borderColor: asignado ? 'rgb(22, 163, 74)' : 'rgb(100, 116, 139)',
+        fontSize: '11px',
+      },
+    };
+  };
+
   const dayPropGetter = (date: Date) => {
     const key = toDateKey(date);
-    const assigned = assignedByDay.get(key) ?? 0;
-    const inRange =
-      (!start || date >= start) && (!end || date <= end);
+    const coverage = coverageByDay.get(key);
+    const inRange = (!start || date >= start) && (!end || date <= end);
 
-    // Fuera del rango del proyecto → atenuado y no seleccionable
     if (!inRange) {
       return {
         style: {
@@ -83,8 +103,11 @@ export function WorkCalendar({
       };
     }
 
-    // En rango pero sin nadie asignado → rojo (requisito)
-    if (assigned === 0) {
+    // Sin slots ese día → neutro.
+    if (!coverage || coverage.total === 0) return {};
+
+    // Ningún slot asignado → rojo.
+    if (coverage.asignados === 0) {
       return {
         style: {
           backgroundColor: 'rgba(239, 68, 68, 0.18)',
@@ -93,8 +116,8 @@ export function WorkCalendar({
       };
     }
 
-    // Hay personal pero no llega al requerido → naranja (parcial)
-    if (personalRequerido > 0 && assigned < personalRequerido) {
+    // Algunos slots sin asignar → naranja.
+    if (coverage.asignados < coverage.total) {
       return {
         style: {
           backgroundColor: 'rgba(249, 115, 22, 0.18)',
@@ -103,7 +126,7 @@ export function WorkCalendar({
       };
     }
 
-    // Personal completo (≥ requerido, o cualquier asignación si no hay requerido) → verde
+    // Todos los slots asignados → verde.
     return {
       style: {
         backgroundColor: 'rgba(34, 197, 94, 0.18)',
@@ -123,17 +146,13 @@ export function WorkCalendar({
           {' · '}
           <span className="inline-flex items-center gap-1">
             <span className="inline-block w-2 h-2 rounded-sm bg-red-500/60" />
-            sin personal
+            sin asignar
           </span>
-          {personalRequerido > 0 && (
-            <>
-              {' · '}
-              <span className="inline-flex items-center gap-1">
-                <span className="inline-block w-2 h-2 rounded-sm bg-orange-500/60" />
-                parcial
-              </span>
-            </>
-          )}
+          {' · '}
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block w-2 h-2 rounded-sm bg-orange-500/60" />
+            parcial
+          </span>
           {' · '}
           <span className="inline-flex items-center gap-1">
             <span className="inline-block w-2 h-2 rounded-sm bg-green-500/60" />
@@ -154,12 +173,13 @@ export function WorkCalendar({
             onSelectDate(slot.start);
           }}
           onSelectEvent={(event) => {
-            const start = (event as Event & { start: Date }).start;
-            if (!isDateInProject(start)) return;
-            onSelectDate(start);
+            const evStart = (event as Event & { start: Date }).start;
+            if (!isDateInProject(evStart)) return;
+            onSelectDate(evStart);
           }}
           selectable
           dayPropGetter={dayPropGetter}
+          eventPropGetter={eventPropGetter}
           messages={{
             next: 'Sig',
             previous: 'Ant',

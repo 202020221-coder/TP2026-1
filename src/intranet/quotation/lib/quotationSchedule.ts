@@ -100,6 +100,35 @@ export const computeServiceDates = (
 export const toDateTimeStart = (date: string): string =>
   date ? `${date}T00:00:00` : "";
 
+/** Normaliza una hora a "HH:mm" (acepta "8:00", "08:00:00", etc.). */
+export const normalizeTime = (value?: string | null): string => {
+  if (!value) return "";
+  const m = String(value).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return "";
+  return `${m[1].padStart(2, "0")}:${m[2]}`;
+};
+
+/** Extrae inicio/fin de una jornada en texto tipo "08:00 - 17:00". */
+export const parseJornada = (
+  value?: string | null,
+): { start: string; end: string } => {
+  if (!value) return { start: "", end: "" };
+  const m = String(value).match(/(\d{1,2}:\d{2})\D+(\d{1,2}:\d{2})/);
+  if (m) return { start: normalizeTime(m[1]), end: normalizeTime(m[2]) };
+  return { start: "", end: "" };
+};
+
+/** Formatea un rango de jornada para mostrar ("08:00 - 17:00"). */
+export const formatJornada = (
+  start?: string | null,
+  end?: string | null,
+): string => {
+  const s = normalizeTime(start);
+  const e = normalizeTime(end);
+  if (s && e) return `${s} - ${e}`;
+  return s || e || "—";
+};
+
 /** Costo de un servicio según pago_por_dia: precio × días o solo el precio. */
 export const computeServiceCost = (
   service: Pick<QuotationService, "unitPrice" | "pagoPorDia">,

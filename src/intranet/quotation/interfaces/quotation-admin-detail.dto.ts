@@ -1,8 +1,11 @@
+import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/service";
+
 export type QuotationAdminDetailData = {
   id: number;
   nombre: string;
   estado: string;
   version: number;
+  id_solicitud?: number | null;
   cliente: {
     documentoIdentidad: string;
     nombreComercial: string;
@@ -13,18 +16,28 @@ export type QuotationAdminDetailData = {
     nombre: string;
     cantidad: number;
     precioUnitario: number;
+    /** Vínculo al servicio del que un alquiler deriva sus fechas (FK). Nombres
+     *  tolerados según el backend. */
+    servicio_a_alquilar?: number | string | null;
+    id_servicio_alquiler?: number | string | null;
+    ID_Servicio?: number | string | null;
   } & (
     | { intencion: "comprar"; dias_alquilados: null }
-    | { intencion: "alquilar"; dias_alquilados: number }
+    | { intencion: "alquilar"; dias_alquilados: number; diasAlquilados?: number | null }
   ))[];
   servicios: {
     idServicio: number;
     nombre: string;
     fecha_inicio: string;
     fecha_finalizacion: string;
-    jornada:string;
+    jornada?: string | null;
+    jornada_comienzo?: string | null;
+    jornada_final?: string | null;
     precio_comercial: string;
     ubicacion: string;
+    isPrincipal?: boolean;
+    faseOrden?: number | null;
+    pagoPorDia?: boolean;
   }[];
   camiones: {
     placa: string;
@@ -41,6 +54,9 @@ export type QuotationAdminDetailData = {
     soatEmpresa: string;
     soatPrecio: string;
     soatDiaPago: string;
+    uso?: string | null;
+    fecha_hora_entrada?: string | null;
+    fecha_hora_salida?: string | null;
   }[];
   costoRecojo: {
     costo: number;
@@ -57,6 +73,8 @@ export type QuotationAdminDetailData = {
     tasaCompra: number;
     tasaVenta: number;
   };
-  etapas: number | null;
-  duracion_etapas: number | null;
+  /** Etapas guardadas de la cotización (mismo esquema que servicios). */
+  etapas?: ServicioEtapaPayload[] | null;
+  duracion_etapas?: number | null;
+  fecha_inicio_proyecto?: string | null;
 };

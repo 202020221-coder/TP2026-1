@@ -12,10 +12,15 @@ import { TableCell, TableRow } from "@/shared/components/ui/table";
 import { Bird, Eraser } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
+import { formatJornada } from "@/intranet/quotation/lib/quotationSchedule";
 
 type Service = DesiredQuotationData["services"][number];
 
-type UpdateScheduleHandler = (id: Service["id"], schedule: Service["schedule"]) => void;
+type UpdateScheduleHandler = (
+  id: Service["id"],
+  field: "scheduleStart" | "scheduleEnd",
+  value: string,
+) => void;
 type UpdateUnitPriceHandler = (id: Service["id"], unitPrice: Service["unitPrice"]) => void;
 type DeleteHandler = (id: Service["id"]) => void;
 
@@ -59,7 +64,7 @@ export const QuotationServicesTable: FC<ServicesTableProps> = memo(
               <TableHead className="w-[200px] overflow-hidden">
                 Nombre
               </TableHead>
-              <TableHead className="text-center min-w-[140px]">Jornada</TableHead>
+              <TableHead className="text-center min-w-[240px]">Jornada</TableHead>
               <TableHead className="text-center min-w-[130px]">F. Inicio</TableHead>
               <TableHead className="text-center min-w-[130px]">F. Vencimiento</TableHead>
               <TableHead className="text-center min-w-[70px]">Días</TableHead>
@@ -126,15 +131,29 @@ const ServiceRow: FC<ServiceRowProps> = memo(
       </TableCell>
       <TableCell className="text-center">
         {readOnly ? (
-          <span className="text-sm text-foreground">{service.schedule}</span>
+          <span className="text-sm text-foreground">
+            {formatJornada(service.scheduleStart, service.scheduleEnd)}
+          </span>
         ) : (
-          <Input
-            value={service.schedule}
-            className="h-9 border-border bg-background text-sm"
-            onChange={(e) =>
-              onUpdateSchedule?.(service.id, e.target.value)
-            }
-          />
+          <div className="flex items-center justify-center gap-1">
+            <Input
+              type="time"
+              value={service.scheduleStart}
+              className="h-9 w-[110px] border-border bg-background text-sm"
+              onChange={(e) =>
+                onUpdateSchedule?.(service.id, "scheduleStart", e.target.value)
+              }
+            />
+            <span className="text-muted-foreground">-</span>
+            <Input
+              type="time"
+              value={service.scheduleEnd}
+              className="h-9 w-[110px] border-border bg-background text-sm"
+              onChange={(e) =>
+                onUpdateSchedule?.(service.id, "scheduleEnd", e.target.value)
+              }
+            />
+          </div>
         )}
       </TableCell>
       {/* Las fechas se calculan según el día de inicio y la etapa (no editables). */}

@@ -9,19 +9,36 @@ import {
 import { useMemo, useState, type FC } from "react";
 import { QuotationProductsTable } from "./ProductsTable";
 import { useQuotationProductStore } from "@/intranet/quotation/hooks/stores/quotation.products.store.provider";
+import { useQuotationServiceStore } from "@/intranet/quotation/hooks/stores/quotation.services.store.provider";
+import { useQuotationReferenceStore } from "@/intranet/quotation/hooks/stores/quotation.reference.store.provider";
 import { Button } from "@/shared/components/ui/button";
 import { AddProductsDialog } from "./AddProductsDialog";
 import { CreateQuotationPickupSection } from "../delivery/CreateQuotationPickupSection";
 import type { QuotationProduct } from "@/intranet/quotation/interfaces/quotation";
+import { computeServiceDates } from "@/intranet/quotation/lib/quotationSchedule";
 export const CreateQuotationProductsSection: FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const items = useQuotationProductStore((s) => s.items);
   const deleteItem = useQuotationProductStore((s) => s.removeItem);
   const updateItem = useQuotationProductStore((s) => s.updateItem);
   const addItems = useQuotationProductStore((s) => s.addItems);
+  const serviceItems = useQuotationServiceStore((s) => s.items);
+  const projectStartDate = useQuotationReferenceStore((s) => s.projectStartDate);
+  const phases = useQuotationReferenceStore((s) => s.phases);
   const products = useMemo(() => {
     return Object.values(items);
   }, [items]);
+
+  // Servicios a los que se puede vincular un ítem en alquiler (las fechas de
+  // alquiler las deriva el backend del servicio elegido).
+  const serviceOptions = useMemo(
+    () =>
+      Object.values(serviceItems).map((service) => ({
+        id: service.id,
+        name: service.name ?? `Servicio #${service.id}`,
+      })),
+    [serviceItems],
+  );
   return (
     <Card className="gap-4 border bg-card shadow-none">
       <CardHeader className="pb-0">
@@ -55,6 +72,7 @@ export const CreateQuotationProductsSection: FC = () => {
                     nombre: i.nombre,
                     precio_unitario: i.precio_unitario,
                     dias_alquilados: i.dias_alquilados,
+                    uso: null,
                   };
                 }
                 return {
@@ -73,6 +91,7 @@ export const CreateQuotationProductsSection: FC = () => {
         />
         <QuotationProductsTable
           items={products}
+          serviceOptions={serviceOptions}
           onDelete={deleteItem}
           onUpdateQuantity={(id, quantity) =>
             updateItem(id, "cantidad", quantity)
@@ -86,6 +105,18 @@ export const CreateQuotationProductsSection: FC = () => {
           onUpdateRentedDays={(id, dias) =>
             updateItem(id, "dias_alquilados", dias)
           }
+          onUpdateRentalService={(id, serviceId) => {
+            updateItem(id, "uso", serviceId || null);
+            if (!serviceId) return;
+            const service = serviceItems[serviceId];
+            if (!service) return;
+            const { days } = computeServiceDates(
+              service,
+              projectStartDate,
+              phases,
+            );
+            updateItem(id, "dias_alquilados", Math.max(1, days));
+          }}
           readOnly={false}
         />
 

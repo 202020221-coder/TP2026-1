@@ -1,9 +1,7 @@
 import type { Quotation, QuotationProduct, ServiceItem } from "../interfaces/quotation";
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
 import axiosInstance from "@/shared/api/axios.config";
-import type {
-  GetQuotationsResponse,
-} from "../interfaces/responses.dto";
+import type { GetQuotationsResponse } from "../interfaces/responses.dto";
 import type { GetQuotationQP } from "../interfaces/query-params.dto";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
@@ -13,63 +11,86 @@ import type { Client } from "@/intranet/quotation/interfaces/create/client";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 import { toQuotationApiBody } from "../lib/adaptQuotationToApi";
 
+type QuotationAdminDetailRaw = QuotationAdminDetailData & {
+  ID?: number;
+  ID_solicitud?: number;
+};
+
+const normalizeQuotationAdminDetail = (
+  raw: QuotationAdminDetailRaw,
+): QuotationAdminDetailData => ({
+  ...raw,
+  id: raw.id ?? raw.ID ?? 0,
+  id_solicitud: raw.id_solicitud ?? raw.ID_solicitud ?? null,
+  costoRecojo: raw.costoRecojo ?? {
+    costo: 0,
+    fechaRecojo: "",
+    direccionRecojo: "",
+  },
+});
+
+const toQuotationsApiParams = (params: GetQuotationQP) => {
+  const { per_page, limit, pendiente_aprobacion, ...rest } = params;
+  return {
+    ...rest,
+    limit: per_page ?? limit,
+    ...(pendiente_aprobacion != null
+      ? { pendiente_aprobacion }
+      : {}),
+  };
+};
+
 export const getAllQuotations = async (
   params: GetQuotationQP,
 ): Promise<GetQuotationsResponse> => {
-  //Obtain session state outside components
   const sessionState = useSession.getState();
-  console.log("PARAMETROS");
-  
-  console.log(params);
-  
+  const apiParams = toQuotationsApiParams(params);
+
   let response;
   if (sessionState.loggedUser?.rol === RolesRecord.client) {
-    /**query for client's quotation*/
     response = await axiosInstance.get<GetQuotationsResponse>(
-      `/perfiles/${sessionState.loggedUser.dni_perfil}/cotizaciones?${toSearchParams(params)}`,
+      `/perfiles/${sessionState.loggedUser.dni_perfil}/cotizaciones?${toSearchParams(apiParams)}`,
     );
   } else {
-    /**query for project asistant*/
     response = await axiosInstance.get<GetQuotationsResponse>(
-      `/cotizaciones?${toSearchParams(params)}`,
+      `/cotizaciones?${toSearchParams(apiParams)}`,
     );
   }
+  return response.data;
+};
+
+export type ApproveQuotationResponse = {
+  message: string;
+  id_proyecto: number;
+  trabajos_creados: number;
+};
+
+export const approveQuotation = async (
+  id: number,
+): Promise<ApproveQuotationResponse> => {
+  const response = await axiosInstance.put<ApproveQuotationResponse>(
+    `/cotizaciones/${id}/aprobar`,
+    {},
+  );
   return response.data;
 };
 
 export const getQuotationForClient = async (
   id: Quotation["ID"],
 ): Promise<QuotationAdminDetailData> => {
-  const response = await axiosInstance.get<QuotationAdminDetailData>(
+  const response = await axiosInstance.get<QuotationAdminDetailRaw>(
     `/cotizaciones/${id}/detalles-franco`,
   );
-  const costoRecojo = response.data.costoRecojo ?? {
-    costo: 0,
-    fechaRecojo: "",
-    direccionRecojo: "",
-  };
-  return ({
-    ...response.data,
-    costoRecojo,
-  });
+  return normalizeQuotationAdminDetail(response.data);
 };
 
 export const getQuotationForAdmin = async (
   id: Quotation["ID"],
 ): Promise<QuotationAdminDetailData> => {
-  const response = await axiosInstance.get<QuotationAdminDetailData>(
+  const response = await axiosInstance.get<QuotationAdminDetailRaw>(
     `/cotizaciones/${id}/detalles-franco`,
   );
-
-  const costoRecojo = response.data.costoRecojo ?? {
-    costo: 0,
-    fechaRecojo: "",
-    direccionRecojo: "",
-  };
-  return {
-    ...response.data,
-    costoRecojo,
-  };
+  return normalizeQuotationAdminDetail(response.data);
 };
 
 type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">
@@ -77,19 +98,26 @@ type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">
 type CreateQuotationDTO = UpsertQuotationDTO & {
   id_solicitud: number;
   DNI_O_RUC: string;
+  Id_incidencia?: number | null;
 };
 
 export const createQuotation = async (data: CreateQuotationDTO) => {
   const body = {
+    ...toQuotationApiBody(data),
     id_solicitud: data.id_solicitud,
     DNI_O_RUC: data.DNI_O_RUC,
-    ...toQuotationApiBody(data),
+    Id_incidencia: data.Id_incidencia ?? null,
   };
   await axiosInstance.post("/cotizaciones", body);
 };
 
 export const updateQuotation = async (id: number, data: UpsertQuotationDTO) => {
-  await axiosInstance.put(`/cotizaciones/${id}`, toQuotationApiBody(data));
+  const body = toQuotationApiBody(data);
+  console.log("[updateQuotation] PUT body /cotizaciones/" + id, {
+    services: body.services.map((s) => ({ id: s.id, startDate: s.startDate })),
+    trucks: body.trucks,
+  });
+  await axiosInstance.put(`/cotizaciones/${id}`, body);
 };
 
 export type AdminQuotationDetailsData = {

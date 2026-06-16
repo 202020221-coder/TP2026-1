@@ -1,4 +1,5 @@
 import type { ServicesState } from "@/intranet/quotation/hooks/stores/quotation.services.store";
+import { formatJornada } from "@/intranet/quotation/lib/quotationSchedule";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
@@ -66,7 +67,9 @@ const ServicesTable = ({ items }: { items: ServicesState["items"] }) => {
               <Text style={styles.tableCell}>{item.name}</Text>
             </View>
             <View style={styles.tableCol}>
-              <Text style={styles.tableCell}>{item.schedule}</Text>
+              <Text style={styles.tableCell}>
+                {formatJornada(item.scheduleStart, item.scheduleEnd)}
+              </Text>
             </View>
             <View style={styles.tableCol}>
               <Text style={styles.tableCell}>{item.startDate}</Text>

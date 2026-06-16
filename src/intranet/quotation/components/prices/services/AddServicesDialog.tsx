@@ -346,27 +346,48 @@ const SelectedItemsList: FC<SelectedItemsListProps> = ({
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                        Jornada
+                        Jornada (inicio / fin)
                       </label>
-                      <Controller
-                        name={`items.${index}.schedule`}
-                        control={control}
-                        render={({ field, fieldState: { error } }) => (
-                          <>
-                            <Input
-                              placeholder="Ej: Diurna"
-                              value={field.value}
-                              onChange={(e) => field.onChange(e.target.value)}
-                              className="h-8 border-border bg-background text-xs"
-                            />
-                            {error && (
-                              <p className="text-destructive font-bold text-sm">
-                                {error.message}
-                              </p>
-                            )}
-                          </>
-                        )}
-                      />
+                      <div className="flex gap-2">
+                        <Controller
+                          name={`items.${index}.scheduleStart`}
+                          control={control}
+                          render={({ field, fieldState: { error } }) => (
+                            <div className="flex-1">
+                              <Input
+                                type="time"
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="h-8 border-border bg-background text-xs"
+                              />
+                              {error && (
+                                <p className="text-destructive font-bold text-sm">
+                                  {error.message}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        />
+                        <Controller
+                          name={`items.${index}.scheduleEnd`}
+                          control={control}
+                          render={({ field, fieldState: { error } }) => (
+                            <div className="flex-1">
+                              <Input
+                                type="time"
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="h-8 border-border bg-background text-xs"
+                              />
+                              {error && (
+                                <p className="text-destructive font-bold text-sm">
+                                  {error.message}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        />
+                      </div>
                     </div>
                   </div>
 

@@ -12,7 +12,9 @@ import type {
   ServicioFase,
   ServicioPrincipalTemplate,
 } from "@/intranet/services/interfaces/service";
-import { computeServiceDates } from "./quotationSchedule";
+import { computeServiceDates, parseJornada } from "./quotationSchedule";
+
+const DEFAULT_SCHEDULE = { start: "08:00", end: "17:00" } as const;
 
 const EMPTY_TEMPLATE: ServicioPrincipalTemplate = {
   fases: [],
@@ -210,7 +212,8 @@ export async function enrichOrderQuotationData(
     isPrincipal: boolean;
     faseOrden: number | null;
     pagoPorDia: boolean;
-    schedule: string;
+    scheduleStart: string;
+    scheduleEnd: string;
   }): QuotationService => {
     const dates = computeServiceDates(
       { isPrincipal: opts.isPrincipal, faseOrden: opts.faseOrden },
@@ -222,7 +225,8 @@ export async function enrichOrderQuotationData(
       name: opts.name,
       startDate: dates.startDate,
       dueDate: dates.dueDate,
-      schedule: opts.schedule,
+      scheduleStart: opts.scheduleStart,
+      scheduleEnd: opts.scheduleEnd,
       unitPrice: opts.unitPrice,
       isPrincipal: opts.isPrincipal,
       faseOrden: opts.faseOrden,
@@ -247,7 +251,8 @@ export async function enrichOrderQuotationData(
           pagoPorDia:
             principalTemplate.principalPagoPorDia ||
             catalog?.pago_por_dia === true,
-          schedule: "Todo el proyecto",
+          scheduleStart: DEFAULT_SCHEDULE.start,
+          scheduleEnd: DEFAULT_SCHEDULE.end,
         }),
       );
       addedIds.add(principalServiceId.toString());
@@ -283,7 +288,8 @@ export async function enrichOrderQuotationData(
         isPrincipal: false,
         faseOrden,
         pagoPorDia: sub.pagoPorDia === true || catalog?.pago_por_dia === true,
-        schedule: "Por definir",
+        scheduleStart: DEFAULT_SCHEDULE.start,
+        scheduleEnd: DEFAULT_SCHEDULE.end,
       }),
     );
     addedIds.add(sub.id.toString());
@@ -306,7 +312,13 @@ export async function enrichOrderQuotationData(
         isPrincipal: false,
         faseOrden: null,
         pagoPorDia: catalog?.pago_por_dia === true,
-        schedule: linkedService.horario_servicio || "Por definir",
+        ...(() => {
+          const parsed = parseJornada(linkedService.horario_servicio);
+          return {
+            scheduleStart: parsed.start || DEFAULT_SCHEDULE.start,
+            scheduleEnd: parsed.end || DEFAULT_SCHEDULE.end,
+          };
+        })(),
       }),
     );
     addedIds.add(id.toString());
@@ -322,13 +334,18 @@ export async function enrichOrderQuotationData(
         : Number(item.precio_unitario);
 
       if (item.intencion === "alquilar") {
+        const dias =
+          Number(item.dias_alquilados) ||
+          Number((item as { diasAlquilados?: number }).diasAlquilados) ||
+          1;
         return {
           id: item.ID_Inventario.toString(),
           nombre: catalogItem?.nombre_objeto ?? item.nombre,
           cantidad: item.cantidad,
           precio_unitario: Number.isFinite(precio) ? precio : 0,
           intencion: "alquilar" as const,
-          dias_alquilados: item.dias_alquilados ?? 1,
+          dias_alquilados: dias,
+          uso: null,
         };
       }
 
