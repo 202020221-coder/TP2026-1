@@ -18,8 +18,11 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { toast } from "sonner";
+import { EditProyectoModal } from "@/intranet/organizar-recursos";
 import { GastoRealModal } from "@/intranet/presupuestos/components/GastoRealModal";
 import type { Cotizacion } from "@/intranet/presupuestos/interfaces/presupuesto";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canEditResources } from "@/intranet/layout/sidebar-links";
 import type { Project } from "../interfaces/project";
 import { projectToCotizacion } from "../lib/project-to-cotizacion";
 import {
@@ -37,7 +40,10 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
   const [gastoRealCotizacion, setGastoRealCotizacion] =
     useState<Cotizacion | null>(null);
   const [isGastoRealOpen, setIsGastoRealOpen] = useState(false);
+  const [isRecursosOpen, setIsRecursosOpen] = useState(false);
   const navigate = useNavigate();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canEditProjectResources = canEditResources(role);
 
   const statusStyles = new Map<ProjectState, string>([
     [
@@ -115,6 +121,13 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
         }}
       />
 
+      <EditProyectoModal
+        projectId={project.id_Proyecto}
+        isOpen={isRecursosOpen}
+        canEdit={canEditProjectResources}
+        onClose={() => setIsRecursosOpen(false)}
+      />
+
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
         {/* Nombre */}
         <TableCell className="font-medium py-3">
@@ -174,9 +187,7 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
               >
                 Organizar personal
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate("/intranet/organizar-recursos")}
-              >
+              <DropdownMenuItem onClick={() => setIsRecursosOpen(true)}>
                 Organizar recursos
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleGestionarGastos}>
