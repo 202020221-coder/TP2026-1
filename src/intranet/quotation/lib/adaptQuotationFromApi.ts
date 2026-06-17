@@ -1,6 +1,6 @@
 import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/service";
-import type { ServicioFase, ServicioPrincipalTemplate } from "@/intranet/services/interfaces/service";
-import { getServicioPrincipal } from "@/intranet/services/api/service.api";
+import type { ServicioFase } from "@/intranet/services/interfaces/service";
+import { getServicioPrincipal, type ServicioPrincipalTemplate } from "@/intranet/services/api/service.api";
 import { getOrder } from "@/intranet/orders/api/order.api";
 import type { QuotationPhase } from "../interfaces/phases.types";
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
@@ -82,11 +82,11 @@ async function resolvePhasesFromQuotationServices(
 
   if (serviceIds.length === 0) return [];
 
-  const templates = await Promise.all(
+  const templates = (await Promise.all(
     serviceIds.map((id) =>
       getServicioPrincipal(id).catch(() => EMPTY_TEMPLATE),
     ),
-  );
+  )) as ServicioPrincipalTemplate[];
 
   const principalService = services.find((s) => s.isPrincipal);
   if (principalService) {

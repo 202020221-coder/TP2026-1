@@ -12,7 +12,6 @@ export const ListIncidentsProvider: FC<{
 }> = ({
   children,
   initialQueryParams,
-  projectId,
   clientId,
 }) => {
   const [queryParams, setQueryParams] = useState<GetIncidentsQP>({

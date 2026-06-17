@@ -6,11 +6,11 @@ import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
 import {
   getServicioPrincipal,
   getServicios,
+  type ServicioPrincipalTemplate,
 } from "@/intranet/services/api/service.api";
 import type {
   Servicio,
   ServicioFase,
-  ServicioPrincipalTemplate,
 } from "@/intranet/services/interfaces/service";
 import { computeServiceDates, parseJornada } from "./quotationSchedule";
 

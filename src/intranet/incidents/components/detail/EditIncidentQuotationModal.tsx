@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { FileText, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";

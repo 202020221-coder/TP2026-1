@@ -41,6 +41,7 @@ export interface Servicio {
   fases: ServicioFase[];
   /** Subservicios que intervienen en las fases del servicio. */
   subservicios: ServicioSubservicio[];
+  foto: string | null
 }
 
 // ── Payload de guardado (PUT/POST /servicios) ─────────────────────────────────
@@ -52,6 +53,7 @@ export interface ServicioEtapaActividadPayload {
   id?: number;
   nombre: string;
   orden: number;
+  name?:string;
 }
 
 export interface ServicioEtapaPayload {

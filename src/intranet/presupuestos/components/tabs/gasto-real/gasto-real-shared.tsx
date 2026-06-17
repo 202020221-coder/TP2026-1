@@ -1,7 +1,7 @@
 import { Button } from "@/shared/components/ui/button";
 import { FileText } from "lucide-react";
 import { getEvidenciaStaticUrl } from "@/intranet/informes/api/informe.api";
-import type { PresupuestoRealItem, IncidenciaPresupuesto } from "../../interfaces/presupuesto";
+import type { IncidenciaPresupuesto, PresupuestoRealItem } from "@/intranet/presupuestos/interfaces/presupuesto";
 
 export function getIncidenciaValue(item: PresupuestoRealItem): string {
   return item.ID_Incidencia ? String(item.ID_Incidencia) : "NO";

@@ -38,6 +38,7 @@ export interface UpdateIncidentBody {
   cotizacion_remuneracion?: number;
   comentario?: string;
   estado?: string;
+  nombre_incidencia?:string|null
 }
 
 export interface CreateIncidentObjectBody {
@@ -118,8 +119,12 @@ const toInvolvedObject = (raw: IncidentObjectRaw): InvolvedObject => {
   const hasTruckSignals =
     (raw.id_proyecto_camion !== null && raw.id_proyecto_camion !== undefined) ||
     (raw.ocurrencia_camion !== null && raw.ocurrencia_camion !== undefined) ||
-    String(raw.categoria ?? "").toLowerCase().includes("camion") ||
-    String(raw.tipo ?? "").toLowerCase().includes("camion");
+    String(raw.categoria ?? "")
+      .toLowerCase()
+      .includes("camion") ||
+    String(raw.tipo ?? "")
+      .toLowerCase()
+      .includes("camion");
 
   const categoria = hasTruckSignals ? "Camiones" : "Objetos";
 
@@ -287,7 +292,8 @@ export async function updateIncidentObject(
     await axiosInstance.put(`/incidencias/${id}/objetos/${oid}`, body);
     return;
   } catch (error: unknown) {
-    const status = (error as { response?: { status?: number } })?.response?.status;
+    const status = (error as { response?: { status?: number } })?.response
+      ?.status;
 
     // En algunos entornos el backend no expone PUT para objetos de incidencia.
     // Fallback: borrar y volver a registrar con POST.
@@ -309,7 +315,9 @@ export async function deleteIncidentObject(
   await axiosInstance.delete(`/incidencias/${id}/objetos/${oid}`);
 }
 
-const extractIncidentInvolvedArray = (payload: unknown): IncidentInvolvedRaw[] => {
+const extractIncidentInvolvedArray = (
+  payload: unknown,
+): IncidentInvolvedRaw[] => {
   if (Array.isArray(payload)) {
     return payload as IncidentInvolvedRaw[];
   }
@@ -330,8 +338,8 @@ const buildInvolvedName = (raw: IncidentInvolvedRaw): string => {
     return fromProfile;
   }
 
-  const fullName = `${raw.Involucrado_Nombre ?? ""} ${raw.Involucrado_Apellido ?? ""}`
-    .trim();
+  const fullName =
+    `${raw.Involucrado_Nombre ?? ""} ${raw.Involucrado_Apellido ?? ""}`.trim();
   return fullName;
 };
 
@@ -446,16 +454,22 @@ const extractCreatedQuotationId = (raw: unknown): number => {
   return 0;
 };
 
-const normalizeIncidentQuotation = (raw: Record<string, unknown>): IncidentQuotation => ({
+const normalizeIncidentQuotation = (
+  raw: Record<string, unknown>,
+): IncidentQuotation => ({
   id: extractCreatedQuotationId(raw),
-  id_incidencia: raw.id_incidencia != null ? Number(raw.id_incidencia) : undefined,
+  id_incidencia:
+    raw.id_incidencia != null ? Number(raw.id_incidencia) : undefined,
   nombre: String(raw.nombre ?? ""),
   version: Number(raw.version ?? 1),
   desactualizado:
     raw.desactualizado != null ? String(raw.desactualizado) : undefined,
   estado: String(raw.estado ?? "Pendiente") as IncidentQuotation["estado"],
-  precioTotal:
-    raw.precioTotal ?? raw.precio_total ?? raw.precio_subtotal ?? null,
+  precioTotal: (raw.precioTotal ??
+    raw.precio_total ??
+    raw.precio_subtotal ??
+    null) as string | number | null | undefined,
+
   precio_subtotal:
     raw.precio_subtotal != null ? Number(raw.precio_subtotal) : null,
   nombreCliente:
@@ -464,8 +478,7 @@ const normalizeIncidentQuotation = (raw: Record<string, unknown>): IncidentQuota
       : raw.nombre_cliente != null
         ? String(raw.nombre_cliente)
         : null,
-  destinatario:
-    raw.destinatario != null ? String(raw.destinatario) : null,
+  destinatario: raw.destinatario != null ? String(raw.destinatario) : null,
   fecha_emision:
     raw.fecha_emision != null
       ? String(raw.fecha_emision)
@@ -521,8 +534,8 @@ const normalizeCreateIncidentQuotationResponse = (
     id,
     version: Number(record.version ?? 1),
     nombre: String(record.nombre ?? ""),
-    DNI_O_RUC: String(record.DNI_O_RUC ?? record.dni_o_ruc ?? ""),
-    precio_total: record.precio_total ?? record.precioTotal ?? 0,
+    DNI_O_RUC: String(record.DNI_O_RUC ?? ""),
+    precio_total: record.precio_total ?? 0,
     presupuesto_autorrellenado: Array.isArray(record.presupuesto_autorrellenado)
       ? record.presupuesto_autorrellenado
       : undefined,
@@ -534,9 +547,10 @@ const normalizeCreateIncidentQuotationResponse = (
 export async function getIncidentQuotationDestinatarios(
   id: number,
 ): Promise<IncidentQuotationDestinatariosResponse> {
-  const response = await axiosInstance.get<IncidentQuotationDestinatariosResponse>(
-    `/incidencias/${id}/cotizaciones/destinatarios`,
-  );
+  const response =
+    await axiosInstance.get<IncidentQuotationDestinatariosResponse>(
+      `/incidencias/${id}/cotizaciones/destinatarios`,
+    );
   return {
     incidencia: response.data.incidencia ?? {},
     opciones: Array.isArray(response.data.opciones)

@@ -201,12 +201,6 @@ const QuotationProductRow: FC<QuotationProductRowProps> = memo(
               <span className="text-sm text-foreground">
                 {product.dias_alquilados ?? "—"}
               </span>
-              {product.uso && (
-                <span className="text-xs text-muted-foreground">
-                  {serviceOptions?.find((o) => o.id === String(product.uso))
-                    ?.name ?? `Servicio #${product.uso}`}
-                </span>
-              )}
             </div>
           ) : (
             <div className="flex flex-col gap-1">

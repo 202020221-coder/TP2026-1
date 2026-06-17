@@ -260,6 +260,7 @@ export const updateServicio = async (
       activo: dto.activo ?? true,
       fases: [],
       subservicios: [],
+      pago_por_dia: raw.pago_por_dia ?? true
     };
   }
   return toServicio(raw);
