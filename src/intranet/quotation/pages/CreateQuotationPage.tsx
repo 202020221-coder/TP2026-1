@@ -147,7 +147,7 @@ export function CreateQuotationPage() {
                             <QuotationVisualizeSection
                               mode="create"
                               orderId={orderId ?? ""}
-                              incidenciaId={incidenciaId}
+                              incidenciaId={incidenciaId ?? ""}
                               referenceData={initialData.client}
                               solicitudExtras={{
                                 productoenvio: initialData.productoenvio,

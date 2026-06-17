@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { FileText, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -62,7 +61,7 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
     try {
       await updateQuotation(quotation.id, {
         name: form.nombre.trim(),
-        inventory: {},
+        inventory: [],
         services: [],
         trucks: [],
         pickupService: { pickupCost: 0, pickupDate: "", pickupAddress: "" },
