@@ -36,12 +36,14 @@ interface AddServicesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   addHandler: AddServicesHandler;
+  incidentCatalog?: boolean;
 }
 
 export const AddServicesDialog: FC<AddServicesDialogProps> = ({
   open,
   onOpenChange,
   addHandler,
+  incidentCatalog = false,
 }) => {
   const {
     toggleItem,
@@ -54,7 +56,7 @@ export const AddServicesDialog: FC<AddServicesDialogProps> = ({
     selectedItemsIds,
     selectedItems,
     formControl,
-  } = useAddServicesDialog(open, onOpenChange, addHandler);
+  } = useAddServicesDialog(open, onOpenChange, addHandler, incidentCatalog);
 
   const { isPending, isError, data } = queryServicios;
   return (
@@ -63,8 +65,9 @@ export const AddServicesDialog: FC<AddServicesDialogProps> = ({
         <DialogHeader className="border-b border-border px-6 pt-6 pb-4">
           <DialogTitle className="text-xl">Agregar servicios</DialogTitle>
           <DialogDescription>
-            Navegue y seleccione servicios del catálogo, luego personalice
-            precios y fechas.
+            {incidentCatalog
+              ? "Seleccione servicios del catálogo de incidencias."
+              : "Navegue y seleccione servicios del catálogo, luego personalice precios y fechas."}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +96,7 @@ export const AddServicesDialog: FC<AddServicesDialogProps> = ({
             </div>
 
             {/* Pagination */}
-            {!isError && (
+            {!isError && !incidentCatalog && (
               <div className="border-t border-border/80 pt-4">
                 <PaginationControls
                   currentPage={data?.pagination.page || 1}

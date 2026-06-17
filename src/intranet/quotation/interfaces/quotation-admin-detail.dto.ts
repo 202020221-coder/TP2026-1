@@ -77,4 +77,5 @@ export type QuotationAdminDetailData = {
   etapas?: ServicioEtapaPayload[] | null;
   duracion_etapas?: number | null;
   fecha_inicio_proyecto?: string | null;
+  Id_incidencia?: number | null;
 };

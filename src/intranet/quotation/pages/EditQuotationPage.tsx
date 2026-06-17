@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
+import { IncidentQuotationProductsSection } from "../components/prices/products/IncidentQuotationProductsSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
@@ -31,16 +32,20 @@ import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { QuotationVisualizeSection } from "../components/visualize/QuotationVisualizeSection";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { CreateQuotationServicesSection } from "../components/prices/services/CreateQuotationServicesSection";
 import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
+import { IncidentQuotationModeProvider } from "../context/IncidentQuotationModeContext";
 
 export function EditQuotationPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { quotationId, data, isPending, isError } = useViewQuotationPage();
+  const isIncidentQuotation = Boolean(data?.incidentQuotationId);
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
 
   if (!quotationId) {
     throw new Error("Id de cotización no especificado");
@@ -54,23 +59,41 @@ export function EditQuotationPage() {
     return <EditQuotationPageError />;
   }
 
+  const handleBack = () => {
+    if (returnTo) {
+      navigate(returnTo);
+      return;
+    }
+    if (data.incidentQuotationId) {
+      navigate(`/intranet/incidencias/${data.incidentQuotationId}`);
+      return;
+    }
+    navigate("/intranet/cotizaciones");
+  };
+
   const baseTriggerClass =
     "flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:bg-accent hover:text-accent-foreground";
 
   return (
-    <>
+    <IncidentQuotationModeProvider value={isIncidentQuotation}>
       <div className="flex h-full flex-col p-6 min-h-0">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <div className="h-7 w-1 rounded-full bg-primary" />
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Editar Cotización
-            </h1>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {isIncidentQuotation
+                  ? "Editar Cotización de Incidencia"
+                  : "Editar Cotización"}
+              </h1>
+              {isIncidentQuotation && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Incidencia #{data.incidentQuotationId}
+                </p>
+              )}
+            </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/intranet/cotizaciones")}
-          >
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4" />
             Regresar
           </Button>
@@ -141,7 +164,14 @@ export function EditQuotationPage() {
                               <ReferencePhasesCard />
                             </TabsContent>
                             <TabsContent value="prices" className="space-y-6">
-                              <CreateQuotationProductsSection />
+                              {isIncidentQuotation && data.incidentQuotationId ? (
+                                <IncidentQuotationProductsSection
+                                  cotizacionId={Number(quotationId)}
+                                  incidentId={data.incidentQuotationId}
+                                />
+                              ) : (
+                                <CreateQuotationProductsSection />
+                              )}
                               <CreateQuotationServicesSection />
                               <CreateQuotationTruckSelector />
                               <CreateQuotationSummaryCard />
@@ -153,6 +183,7 @@ export function EditQuotationPage() {
                               <QuotationVisualizeSection
                                 mode="update"
                                 quotationId={quotationId}
+                                incidentQuotationId={data.incidentQuotationId}
                                 referenceData={data.client}
                               />
                             </TabsContent>
@@ -173,7 +204,7 @@ export function EditQuotationPage() {
         contactName={data.client.companyName}
         contactRole={RolesRecord.client}
       />
-    </>
+    </IncidentQuotationModeProvider>
   );
 }
 

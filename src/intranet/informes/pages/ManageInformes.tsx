@@ -18,6 +18,7 @@ type InformesNavState = {
   projectId?: number;
   projectName?: string | null;
   clientName?: string;
+  incidentId?: number;
 };
 
 export function ManageInformesPage() {
@@ -26,10 +27,21 @@ export function ManageInformesPage() {
   const navState = location.state as InformesNavState | null;
 
   const projectIdRaw = Number(searchParams.get("id_proyecto"));
+  const incidentIdRaw = Number(searchParams.get("id_incidencia"));
   const projectId =
     Number.isInteger(projectIdRaw) && projectIdRaw > 0
       ? projectIdRaw
       : navState?.projectId;
+
+  const incidentFilterFromNavigation = useMemo(() => {
+    if (Number.isInteger(incidentIdRaw) && incidentIdRaw > 0) {
+      return String(incidentIdRaw);
+    }
+    if (navState?.incidentId && navState.incidentId > 0) {
+      return String(navState.incidentId);
+    }
+    return "TODO";
+  }, [incidentIdRaw, navState?.incidentId]);
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -45,7 +57,9 @@ export function ManageInformesPage() {
   // Filters
   const today = new Date().toISOString().slice(0, 10);
   const [fechaTabla, setFechaTabla] = useState(today);
-  const [filterIncidencia, setFilterIncidencia] = useState<string>("TODO");
+  const [filterIncidencia, setFilterIncidencia] = useState<string>(
+    incidentFilterFromNavigation,
+  );
   const [filterEtapa, setFilterEtapa] = useState<string>("TODO");
   const [filterActividad, setFilterActividad] = useState<string>("TODO");
   const [busqueda, setBusqueda] = useState("");
@@ -99,6 +113,10 @@ export function ManageInformesPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    setFilterIncidencia(incidentFilterFromNavigation);
+  }, [incidentFilterFromNavigation]);
 
   // ── Filtered informes ──────────────────────────────────────────────────────
 

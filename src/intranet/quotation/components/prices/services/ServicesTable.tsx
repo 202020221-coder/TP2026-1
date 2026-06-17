@@ -13,6 +13,7 @@ import { Bird, Eraser } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 import { formatJornada } from "@/intranet/quotation/lib/quotationSchedule";
+import { useIncidentQuotationMode } from "@/intranet/quotation/context/IncidentQuotationModeContext";
 
 type Service = DesiredQuotationData["services"][number];
 
@@ -113,6 +114,7 @@ const ServiceRow: FC<ServiceRowProps> = memo(
     onDelete,
   }) => {
     const days = serviceDays(service);
+    const incidentCatalog = useIncidentQuotationMode();
     return (
     <TableRow
       key={service.id}
@@ -122,7 +124,7 @@ const ServiceRow: FC<ServiceRowProps> = memo(
       <TableCell className="whitespace-break-spaces">
         <div className="flex flex-col gap-1">
           <span>{service.name ?? "-"}</span>
-          {service.isPrincipal && (
+          {service.isPrincipal && !incidentCatalog && (
             <Badge variant="secondary" className="w-fit text-[10px]">
               Principal
             </Badge>

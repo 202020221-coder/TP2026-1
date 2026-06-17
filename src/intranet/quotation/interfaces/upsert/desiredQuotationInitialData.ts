@@ -22,6 +22,8 @@ export interface DesiredQuotationData {
     buyingRate: number;
   },
   phases: QuotationPhases;
+  /** FK a INCIDENCIA cuando es cotización derivada de una incidencia. */
+  incidentQuotationId?: number | null;
 }
 
 interface QuotationTruck {

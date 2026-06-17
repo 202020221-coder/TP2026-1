@@ -221,6 +221,20 @@ export const getServiciosPublicos = async (): Promise<Servicio[]> => {
   return arr.map(toServicio);
 };
 
+/** Catálogo de servicios permitidos en cotizaciones de incidencia. */
+export const getIncidentServiceCatalog = async (): Promise<Servicio[]> => {
+  const response = await axiosInstance.get<unknown>(
+    "/servicios/incidencia/catalogo",
+  );
+  const raw = response.data;
+  const arr: ServicioRaw[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray((raw as { data?: unknown[] })?.data)
+      ? ((raw as { data: ServicioRaw[] }).data ?? [])
+      : [];
+  return arr.map(toServicio);
+};
+
 export const createServicio = async (dto: CreateServicioDTO): Promise<Servicio> => {
   const response = await axiosInstance.post("/servicios", dto);
   const raw = extractRaw(response.data);

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { updateQuotation } from "../api/quotation.api";
@@ -11,16 +11,21 @@ import { useQuotationConditionStore } from "./stores/quotation.conditions.store.
 import { useQuotationServiceStore } from "./stores/quotation.services.store.provider";
 import { useQuotationExchangeRate } from "./stores/quotation.exchange.rate.store.provider";
 import { computeServiceDates } from "../lib/quotationSchedule";
+import { useIncidentQuotationMode } from "../context/IncidentQuotationModeContext";
 
 interface UseUpdateQuotationOptions {
   quotationId: string;
+  incidentQuotationId?: number | null;
 }
 
 export const useUpdateQuotation = ({
   quotationId,
+  incidentQuotationId = null,
 }: UseUpdateQuotationOptions) => {
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
 
   const inventory = useQuotationProductStore((s) => s.items);
   const trucks = useQuotationTruckStore((s) => s.selectedTrucks);
@@ -38,6 +43,8 @@ export const useUpdateQuotation = ({
   const observations = useQuotationConditionStore((s) => s.observations);
   const servicios = useQuotationServiceStore((s) => s.items);
   const rate = useQuotationExchangeRate((s) => s.rate);
+  const isIncidentQuotation = useIncidentQuotationMode();
+  const isIncidentQuote = isIncidentQuotation || Boolean(incidentQuotationId);
 
   const handleSubmit = useCallback(async () => {
     if (!quotationId) return;
@@ -52,7 +59,12 @@ export const useUpdateQuotation = ({
               projectStartDate,
               phases,
             );
-            return { ...service, startDate, dueDate };
+            return {
+              ...service,
+              startDate,
+              dueDate,
+              isPrincipal: isIncidentQuote ? false : service.isPrincipal,
+            };
           });
 
           await updateQuotation(Number(quotationId), {
@@ -78,7 +90,13 @@ export const useUpdateQuotation = ({
             },
             phases,
           });
-          navigate("/intranet/cotizaciones");
+          if (returnTo) {
+            navigate(returnTo);
+          } else if (isIncidentQuote && incidentQuotationId) {
+            navigate(`/intranet/incidencias/${incidentQuotationId}`);
+          } else {
+            navigate("/intranet/cotizaciones");
+          }
         },
         {
           loading: "Actualizando cotización...",
@@ -131,6 +149,9 @@ export const useUpdateQuotation = ({
     observations,
     rate,
     navigate,
+    isIncidentQuote,
+    incidentQuotationId,
+    returnTo,
   ]);
 
   return { isSending, handleSubmit };

@@ -1,4 +1,5 @@
-import { useState, type FC } from "react";
+import { useEffect, useMemo, useState, type FC } from "react";
+import { useNavigate } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -6,121 +7,223 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
-import { FileText, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { createIncidentQuotation } from "../../api/incident.api";
+import {
+  createIncidentQuotation,
+  getIncidentQuotationDestinatarios,
+  getIncidentQuotations,
+} from "../../api/incident.api";
+import type {
+  CreateIncidentQuotationDestinatarioBody,
+  IncidentQuotationDestinatarioOption,
+} from "../../interfaces/incident-quotation";
 
 interface CreateIncidentQuotationModalProps {
   incidentId: number;
   open: boolean;
   onClose: () => void;
+  returnTo?: string;
 }
 
-export const CreateIncidentQuotationModal: FC<CreateIncidentQuotationModalProps> = ({
-  incidentId,
-  open,
-  onClose,
-}) => {
-  const queryClient = useQueryClient();
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    nombre: "",
-    precio_subtotal: "",
-    notas: "",
-  });
+const optionKey = (
+  option: IncidentQuotationDestinatarioOption,
+  index: number,
+): string => {
+  if (option.tipo === "involucrado") {
+    return `involucrado-${option.involucrado_id ?? index}`;
+  }
+  if (option.tipo === "empresa") {
+    return `empresa-${option.dni_o_ruc ?? index}`;
+  }
+  return "no_especificado";
+};
 
-  const handleGuardar = async () => {
-    if (!form.nombre.trim()) {
-      toast.error("El nombre de la cotización es obligatorio.");
+const toDestinatarioBody = (
+  option: IncidentQuotationDestinatarioOption,
+): CreateIncidentQuotationDestinatarioBody => {
+  if (option.tipo === "involucrado") {
+    return {
+      tipo: "involucrado",
+      involucrado_id: option.involucrado_id,
+    };
+  }
+  if (option.tipo === "empresa") {
+    return {
+      tipo: "empresa",
+      ...(option.dni_o_ruc ? { dni_o_ruc: option.dni_o_ruc } : {}),
+    };
+  }
+  return { tipo: "no_especificado" };
+};
+
+export const CreateIncidentQuotationModal: FC<
+  CreateIncidentQuotationModalProps
+> = ({ incidentId, open, onClose, returnTo }) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [options, setOptions] = useState<IncidentQuotationDestinatarioOption[]>(
+    [],
+  );
+  const [selectedKey, setSelectedKey] = useState("");
+
+  useEffect(() => {
+    if (!open || !incidentId) return;
+
+    let cancelled = false;
+    setLoadingOptions(true);
+    setSelectedKey("");
+
+    getIncidentQuotationDestinatarios(incidentId)
+      .then((response) => {
+        if (cancelled) return;
+        setOptions(response.opciones);
+        if (response.opciones.length > 0) {
+          setSelectedKey(optionKey(response.opciones[0], 0));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          toast.error("No se pudieron cargar los destinatarios.");
+          setOptions([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingOptions(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, incidentId]);
+
+  const selectedOption = useMemo(
+    () =>
+      options.find((option, index) => optionKey(option, index) === selectedKey),
+    [options, selectedKey],
+  );
+
+  const handleConfirm = async () => {
+    if (!selectedOption) {
+      toast.error("Selecciona un destinatario.");
       return;
     }
+
     setSaving(true);
     try {
-      await createIncidentQuotation(incidentId, {
-        nombre: form.nombre.trim(),
-        precio_subtotal: form.precio_subtotal
-          ? Number(form.precio_subtotal)
-          : undefined,
-        notas: form.notas.trim() || undefined,
+      const created = await createIncidentQuotation(incidentId, {
+        destinatario: toDestinatarioBody(selectedOption),
       });
-      await queryClient.invalidateQueries({ queryKey: ["incident-quotations", incidentId] });
-      toast.success("Cotización creada correctamente.");
-      setForm({ nombre: "", precio_subtotal: "", notas: "" });
+
+      let quotationId = created.id;
+
+      if (!quotationId) {
+        const quotations = await getIncidentQuotations(incidentId);
+        quotationId = quotations.reduce(
+          (max, q) => (q.id > max ? q.id : max),
+          0,
+        );
+      }
+
+      if (!quotationId) {
+        toast.error(
+          "La cotización se creó pero no se pudo obtener su ID. Revise el listado de cotizaciones de la incidencia.",
+        );
+        await queryClient.invalidateQueries({
+          queryKey: ["incident-quotations", incidentId],
+        });
+        onClose();
+        return;
+      }
+
+      if (
+        Array.isArray(created.presupuesto_autorrellenado) &&
+        created.presupuesto_autorrellenado.length > 0
+      ) {
+        queryClient.setQueryData(
+          ["presupuesto-items", quotationId, "Material Directo"],
+          { data: created.presupuesto_autorrellenado },
+        );
+      } else {
+        await queryClient.invalidateQueries({
+          queryKey: ["presupuesto-items", quotationId, "Material Directo"],
+        });
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["incident-quotations", incidentId],
+      });
+      toast.success("Cotización de incidencia creada correctamente.");
       onClose();
+      navigate(`/intranet/cotizaciones/editar/${quotationId}`, {
+        state: returnTo ? { returnTo } : undefined,
+      });
     } catch {
-      toast.error("No se pudo crear la cotización.");
+      toast.error("No se pudo crear la cotización de incidencia.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(next) => !next && !saving && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            Crear cotización de incidencia
+          <DialogTitle className="text-xl font-bold">
+            ¿A quién estará destinada esta cotización?
           </DialogTitle>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground">
             Incidencia #{incidentId}
           </p>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 py-2">
-          {/* Nombre */}
-          <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-nombre">
-              Nombre <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="cq-nombre"
-              placeholder="Ej: COT-INC-004"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            />
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="destinatario-cotizacion">Destinatario</Label>
+            {loadingOptions ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cargando destinatarios…
+              </div>
+            ) : options.length === 0 ? (
+              <p className="text-sm text-amber-700">
+                No hay destinatarios disponibles para esta incidencia.
+              </p>
+            ) : (
+              <select
+                id="destinatario-cotizacion"
+                className="w-full h-10 rounded-md border border-input bg-white px-3 text-sm"
+                value={selectedKey}
+                onChange={(e) => setSelectedKey(e.target.value)}
+                disabled={saving}
+              >
+                {options.map((option, index) => (
+                  <option key={optionKey(option, index)} value={optionKey(option, index)}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {/* Precio subtotal */}
-          <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-precio">Precio Subtotal (S/) — Opcional</Label>
-            <Input
-              id="cq-precio"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="0.00"
-              value={form.precio_subtotal}
-              onChange={(e) =>
-                setForm({ ...form, precio_subtotal: e.target.value })
-              }
-            />
-          </div>
-
-          {/* Notas */}
-          <div className="col-span-2 flex flex-col gap-1">
-            <Label htmlFor="cq-notas">Notas — Opcional</Label>
-            <Textarea
-              id="cq-notas"
-              rows={3}
-              placeholder="Notas o comentarios sobre esta cotización..."
-              value={form.notas}
-              onChange={(e) => setForm({ ...form, notas: e.target.value })}
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="col-span-2 flex justify-end gap-2 pt-1">
-            <Button variant="outline" type="button" onClick={onClose}>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleGuardar} disabled={saving} className="gap-1">
-              <Plus size={14} />
-              {saving ? "Creando..." : "Crear Cotización"}
+            <Button
+              onClick={() => void handleConfirm()}
+              disabled={saving || loadingOptions || !selectedOption}
+            >
+              {saving ? "Creando..." : "Crear cotización"}
             </Button>
           </div>
         </div>

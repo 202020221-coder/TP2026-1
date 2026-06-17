@@ -14,6 +14,8 @@ import { toQuotationApiBody } from "../lib/adaptQuotationToApi";
 type QuotationAdminDetailRaw = QuotationAdminDetailData & {
   ID?: number;
   ID_solicitud?: number;
+  id_incidencia?: number | null;
+  Id_incidencia?: number | null;
 };
 
 const normalizeQuotationAdminDetail = (
@@ -22,6 +24,8 @@ const normalizeQuotationAdminDetail = (
   ...raw,
   id: raw.id ?? raw.ID ?? 0,
   id_solicitud: raw.id_solicitud ?? raw.ID_solicitud ?? null,
+  Id_incidencia:
+    raw.Id_incidencia ?? raw.id_incidencia ?? null,
   costoRecojo: raw.costoRecojo ?? {
     costo: 0,
     fechaRecojo: "",

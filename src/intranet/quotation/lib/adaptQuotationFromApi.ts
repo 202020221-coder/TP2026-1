@@ -404,6 +404,7 @@ export const adaptQuotationAdminDetail = (
     }),
     phases: { items: phases },
     projectStartDate,
+    incidentQuotationId: dto.Id_incidencia ?? null,
   };
 };
 

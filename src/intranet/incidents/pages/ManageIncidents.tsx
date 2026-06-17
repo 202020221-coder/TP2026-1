@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useLocation, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { Building2, FileText, Hash, TriangleAlert } from "lucide-react";
 import {
   IncidentObjectsModal,
@@ -17,6 +17,9 @@ import {
   IncidentStatesRecord,
 } from "../enum/incident-state.record";
 import { SumaGastosModal } from "../components/detail/SumaGastosModal";
+import { IncidentQuotationsTable } from "../components/detail/IncidentQuotationsTable";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canCreateIncidentQuotation } from "../lib/can-create-incident-quotation";
 
 type IncidentsNavigationState = {
   projectId?: number;
@@ -155,6 +158,8 @@ function IncidentsContent({
         <SumaGastosModal
           incidentId={selectedIncident.id_incidencia}
           idProyecto={selectedIncident.id_proyecto}
+          cotizacionNombre={selectedIncident.Cotizacion_Nombre}
+          clienteNombre={selectedIncident.Cliente_Nombre}
           open={sumaGastosModalOpen}
           onClose={onCloseSumaGastosModal}
         />
@@ -183,24 +188,32 @@ function IncidentActionsPanel({
   onSelectIncident: (incidentId: number) => void;
   selectedIncident?: Incident;
 }) {
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canCreateQuotation = canCreateIncidentQuotation(role);
   const [createQuotationOpen, setCreateQuotationOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnTo = `${location.pathname}${location.search}`;
   return (
     <div className="flex flex-col gap-4 w-full min-w-0 h-full overflow-y-auto overflow-x-hidden pr-1">
-      <div>
-        <Button
-          className="h-10 px-5 font-medium"
-          onClick={() => setCreateQuotationOpen(true)}
-          disabled={!selectedIncidentId}
-        >
-          Crear cotizacion de incidencia
-        </Button>
-      </div>
+      {canCreateQuotation && (
+        <div>
+          <Button
+            className="h-10 px-5 font-medium"
+            onClick={() => setCreateQuotationOpen(true)}
+            disabled={!selectedIncidentId}
+          >
+            Crear cotización de incidencia
+          </Button>
+        </div>
+      )}
 
       {selectedIncident && (
         <CreateIncidentQuotationModal
           incidentId={selectedIncident.id_incidencia}
           open={createQuotationOpen}
           onClose={() => setCreateQuotationOpen(false)}
+          returnTo={returnTo}
         />
       )}
 
@@ -236,10 +249,40 @@ function IncidentActionsPanel({
         >
           Suma de gastos
         </Button>
-        <Button variant="outline" className="h-10 w-full px-4 justify-center">
+        <Button
+          variant="outline"
+          className="h-10 w-full px-4 justify-center"
+          disabled={!selectedIncidentId || !selectedIncident?.id_proyecto}
+          onClick={() => {
+            if (!selectedIncident?.id_proyecto) return;
+            navigate(
+              `/intranet/informes?id_proyecto=${selectedIncident.id_proyecto}&id_incidencia=${selectedIncident.id_incidencia}`,
+              {
+                state: {
+                  projectId: selectedIncident.id_proyecto,
+                  projectName: selectedIncident.Cotizacion_Nombre,
+                  clientName: selectedIncident.Cliente_Nombre,
+                  incidentId: selectedIncident.id_incidencia,
+                },
+              },
+            );
+          }}
+        >
           Ocurrencias de la incidencia
         </Button>
       </div>
+
+      {selectedIncidentId ? (
+        <div className="w-full min-w-0 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Cotizaciones de esta incidencia
+          </p>
+          <IncidentQuotationsTable
+            incidentId={selectedIncidentId}
+            returnTo={returnTo}
+          />
+        </div>
+      ) : null}
 
       <div className="w-full min-w-0">
         {!selectedIncidentId ? (

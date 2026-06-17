@@ -17,6 +17,7 @@ type CreateModeProps = BaseProps & {
 type UpdateModeProps = BaseProps & {
   mode: "update";
   quotationId: string;
+  incidentQuotationId?: number | null;
 };
 
 type QuotationVisualizeSectionProps = CreateModeProps | UpdateModeProps;
@@ -31,7 +32,11 @@ export const QuotationVisualizeSection = (
   const { isSending: createSending, handleSubmit: createSubmit } =
     useCreateQuotation({ referenceData: props.referenceData, orderId });
   const { isSending: updateSending, handleSubmit: updateSubmit } =
-    useUpdateQuotation({ quotationId });
+    useUpdateQuotation({
+      quotationId,
+      incidentQuotationId:
+        props.mode === "update" ? props.incidentQuotationId : null,
+    });
 
   const isSending = createSending || updateSending;
   const handleSubmit = isCreate ? createSubmit : updateSubmit;

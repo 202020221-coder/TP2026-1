@@ -17,7 +17,10 @@ import { computeServiceDates } from "@/intranet/quotation/lib/quotationSchedule"
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
 
+import { useIncidentQuotationMode } from "@/intranet/quotation/context/IncidentQuotationModeContext";
+
 export const CreateQuotationServicesSection: FC = () => {
+  const incidentCatalog = useIncidentQuotationMode();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const items = useQuotationServiceStore((s) => s.items);
   const deleteItem = useQuotationServiceStore((s) => s.removeItem);
@@ -79,8 +82,9 @@ export const CreateQuotationServicesSection: FC = () => {
           </span>
         </CardTitle>
         <CardDescription className="tracking-[0.5px] text-[14px] text-center sm:text-left">
-          Interactúa con los servicios seleccionados por el cliente, cambia
-          precios y elimina o agrega nuevos items.
+          {incidentCatalog
+            ? "Agregue servicios del catálogo de incidencias. Ningún servicio puede ser principal."
+            : "Interactúa con los servicios seleccionados por el cliente, cambia precios y elimina o agrega nuevos items."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -102,11 +106,13 @@ export const CreateQuotationServicesSection: FC = () => {
                   dueDate: i.dueDate,
                   scheduleStart: i.scheduleStart,
                   scheduleEnd: i.scheduleEnd,
+                  isPrincipal: false,
                 }),
               ),
             );
-            if (servicePhases) mergeServicePhases(servicePhases);
+            if (servicePhases && !incidentCatalog) mergeServicePhases(servicePhases);
           }}
+          incidentCatalog={incidentCatalog}
           onOpenChange={setIsDialogOpen}
           open={isDialogOpen}
         />

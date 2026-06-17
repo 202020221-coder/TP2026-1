@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useState, useMemo, type FC } from "react";
 import {
   Table,
   TableHeader,
@@ -10,6 +10,9 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { X, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { GastoRealModal } from "@/intranet/presupuestos/components/GastoRealModal";
+import type { Cotizacion } from "@/intranet/presupuestos/interfaces/presupuesto";
 import {
   usePresupuestoReal,
   useProyectoCotizacionId,
@@ -68,6 +71,8 @@ const MOCK_INCIDENT_QUOTATIONS: IncidentQuotation[] = [
 interface SumaGastosModalProps {
   incidentId: number;
   idProyecto: number | undefined;
+  cotizacionNombre?: string | null;
+  clienteNombre?: string | null;
   open: boolean;
   onClose: () => void;
 }
@@ -76,19 +81,51 @@ interface SumaGastosModalProps {
 export const SumaGastosModal: FC<SumaGastosModalProps> = ({
   incidentId,
   idProyecto,
+  cotizacionNombre,
+  clienteNombre,
   open,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>("material");
+  const [gastoRealOpen, setGastoRealOpen] = useState(false);
 
-  // Obtener id_cotizacion del proyecto para usar en el endpoint /real
   const { data: cotizacionId, isLoading: loadingProyecto } =
     useProyectoCotizacionId(idProyecto);
+
+  const gastoRealCotizacion = useMemo((): Cotizacion | null => {
+    if (!cotizacionId) return null;
+    return {
+      ID: cotizacionId,
+      nombre: cotizacionNombre ?? `Cotización #${cotizacionId}`,
+      precioTotal: "0",
+      version: 1,
+      estado: "En ejecución",
+      nombreCliente: clienteNombre ?? "—",
+      DNI_O_RUC: "",
+      Tasa_Cambio: 0,
+      id_solicitud: 0,
+    };
+  }, [cotizacionId, cotizacionNombre, clienteNombre]);
+
+  const handleOpenComparativa = () => {
+    if (!gastoRealCotizacion) {
+      toast.error("Este proyecto no tiene una cotización asociada.");
+      return;
+    }
+    setGastoRealOpen(true);
+  };
 
   if (!open) return null;
 
   return (
-    <div
+    <>
+      <GastoRealModal
+        cotizacion={gastoRealOpen ? gastoRealCotizacion : null}
+        isOpen={gastoRealOpen}
+        onClose={() => setGastoRealOpen(false)}
+      />
+
+      <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       role="dialog"
       aria-modal="true"
@@ -120,7 +157,8 @@ export const SumaGastosModal: FC<SumaGastosModalProps> = ({
               size="sm"
               className="gap-1.5 font-medium bg-emerald-600 hover:bg-emerald-700 text-white"
               title="Abre la vista comparativa de gasto real del presupuesto"
-              disabled={!cotizacionId}
+              disabled={!cotizacionId || loadingProyecto}
+              onClick={handleOpenComparativa}
             >
               <ExternalLink size={12} />
               Comparativa de gastos
@@ -183,6 +221,7 @@ export const SumaGastosModal: FC<SumaGastosModalProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import {
   getServicios,
+  getIncidentServiceCatalog,
   getServicioPrincipal,
 } from "@/intranet/services/api/service.api";
 import type { Servicio, ServicioFase } from "@/intranet/services/interfaces/service";
@@ -23,6 +24,7 @@ export const useAddServicesDialog = (
   isDialogOpen: boolean,
   onOpenChange: (open: boolean) => void,
   addHandler: AddServicesHandler,
+  incidentCatalog = false,
 ) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [preSelectedIds, setPreSelectedIds] = useState<Set<string>>(new Set());
@@ -42,8 +44,21 @@ export const useAddServicesDialog = (
   });
 
   const queryServicios = useQuery({
-    queryKey: ["servicios", currentPage],
-    queryFn: () => getServicios({ page: currentPage, limit: 6 }),
+    queryKey: incidentCatalog
+      ? ["servicios", "incidencia-catalogo"]
+      : ["servicios", currentPage],
+    queryFn: () =>
+      incidentCatalog
+        ? getIncidentServiceCatalog().then((data) => ({
+            data,
+            pagination: {
+              page: 1,
+              limit: data.length,
+              total: data.length,
+              totalPages: 1,
+            },
+          }))
+        : getServicios({ page: currentPage, limit: 6 }),
     enabled: isDialogOpen,
   });
 
@@ -85,24 +100,26 @@ export const useAddServicesDialog = (
           name: item.nombre,
           unitPrice: Number(item.precio_regular),
         }));
-        // Trae las fases reales (etapas) del servicio para autocompletarlas
-        // luego en la cotización.
-        if (item.fases && item.fases.length > 0) {
-          selectedFasesRef.current.set(item.id.toString(), item.fases);
-        } else {
-          getServicioPrincipal(item.id)
-            .then(({ fases }) => {
-              if (fases.length > 0) {
-                selectedFasesRef.current.set(item.id.toString(), fases);
-              }
-            })
-            .catch(() => {
-              /* sin fases: no se autocompleta nada */
-            });
+        if (!incidentCatalog) {
+          // Trae las fases reales (etapas) del servicio para autocompletarlas
+          // luego en la cotización.
+          if (item.fases && item.fases.length > 0) {
+            selectedFasesRef.current.set(item.id.toString(), item.fases);
+          } else {
+            getServicioPrincipal(item.id)
+              .then(({ fases }) => {
+                if (fases.length > 0) {
+                  selectedFasesRef.current.set(item.id.toString(), fases);
+                }
+              })
+              .catch(() => {
+                /* sin fases: no se autocompleta nada */
+              });
+          }
         }
       }
     },
-    [fields, append, remove],
+    [fields, append, remove, incidentCatalog],
   );
 
   const removeItem = useCallback(

@@ -9,7 +9,13 @@ import type {
   GetIncidentQuotationsResponse,
 } from "../interfaces/responses.dto";
 import type { Incident } from "../interfaces/incident";
-import type { InvolvedObject } from "../interfaces/incident-quotation";
+import type {
+  InvolvedObject,
+  CreateIncidentQuotationBody,
+  CreateIncidentQuotationResponse,
+  IncidentQuotation,
+  IncidentQuotationDestinatariosResponse,
+} from "../interfaces/incident-quotation";
 import type {
   IncidentInvolved,
   IncidentInvolvedRaw,
@@ -409,26 +415,154 @@ export async function deleteIncidentInvolved(
 
 // ── Cotizaciones de incidencia ────────────────────────────────────────────────
 
-export interface CreateIncidentQuotationBody {
-  nombre: string;
-  precio_subtotal?: number;
-  notas?: string;
+const extractCreatedQuotationId = (raw: unknown): number => {
+  if (!raw || typeof raw !== "object") return 0;
+
+  const record = raw as Record<string, unknown>;
+
+  if (record.data && typeof record.data === "object") {
+    const nested = extractCreatedQuotationId(record.data);
+    if (nested > 0) return nested;
+  }
+
+  if (record.cotizacion && typeof record.cotizacion === "object") {
+    const nested = extractCreatedQuotationId(record.cotizacion);
+    if (nested > 0) return nested;
+  }
+
+  const candidates = [
+    record.id,
+    record.ID,
+    record.id_cotizacion,
+    record.ID_Cotizacion,
+    record.idCotizacion,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = Number(candidate);
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+  }
+
+  return 0;
+};
+
+const normalizeIncidentQuotation = (raw: Record<string, unknown>): IncidentQuotation => ({
+  id: extractCreatedQuotationId(raw),
+  id_incidencia: raw.id_incidencia != null ? Number(raw.id_incidencia) : undefined,
+  nombre: String(raw.nombre ?? ""),
+  version: Number(raw.version ?? 1),
+  desactualizado:
+    raw.desactualizado != null ? String(raw.desactualizado) : undefined,
+  estado: String(raw.estado ?? "Pendiente") as IncidentQuotation["estado"],
+  precioTotal:
+    raw.precioTotal ?? raw.precio_total ?? raw.precio_subtotal ?? null,
+  precio_subtotal:
+    raw.precio_subtotal != null ? Number(raw.precio_subtotal) : null,
+  nombreCliente:
+    raw.nombreCliente != null
+      ? String(raw.nombreCliente)
+      : raw.nombre_cliente != null
+        ? String(raw.nombre_cliente)
+        : null,
+  destinatario:
+    raw.destinatario != null ? String(raw.destinatario) : null,
+  fecha_emision:
+    raw.fecha_emision != null
+      ? String(raw.fecha_emision)
+      : raw.fechaEmision != null
+        ? String(raw.fechaEmision)
+        : null,
+  fecha_envio:
+    raw.fecha_envio != null
+      ? String(raw.fecha_envio)
+      : raw.fechaEnvio != null
+        ? String(raw.fechaEnvio)
+        : null,
+  esCotizacionIncidencia: Boolean(
+    raw.esCotizacionIncidencia ?? raw.id_incidencia ?? raw.Id_incidencia,
+  ),
+  mensajes: raw.mensajes != null ? Number(raw.mensajes) : undefined,
+  mensajes_pendientes:
+    raw.mensajes_pendientes != null
+      ? Number(raw.mensajes_pendientes)
+      : undefined,
+});
+
+const normalizeIncidentQuotationList = (raw: unknown): IncidentQuotation[] => {
+  if (Array.isArray(raw)) {
+    return raw.map((item) =>
+      normalizeIncidentQuotation(item as Record<string, unknown>),
+    );
+  }
+  if (
+    raw &&
+    typeof raw === "object" &&
+    Array.isArray((raw as { data?: unknown[] }).data)
+  ) {
+    return (raw as { data: Record<string, unknown>[] }).data.map(
+      normalizeIncidentQuotation,
+    );
+  }
+  return [];
+};
+
+const normalizeCreateIncidentQuotationResponse = (
+  raw: unknown,
+): CreateIncidentQuotationResponse => {
+  const record =
+    raw && typeof raw === "object"
+      ? (raw as Record<string, unknown> & CreateIncidentQuotationResponse)
+      : ({} as CreateIncidentQuotationResponse);
+
+  const id = extractCreatedQuotationId(raw);
+
+  return {
+    ...record,
+    id,
+    version: Number(record.version ?? 1),
+    nombre: String(record.nombre ?? ""),
+    DNI_O_RUC: String(record.DNI_O_RUC ?? record.dni_o_ruc ?? ""),
+    precio_total: record.precio_total ?? record.precioTotal ?? 0,
+    presupuesto_autorrellenado: Array.isArray(record.presupuesto_autorrellenado)
+      ? record.presupuesto_autorrellenado
+      : undefined,
+    servicios: Array.isArray(record.servicios) ? record.servicios : undefined,
+  };
+};
+
+/** Destinatarios posibles — `GET /incidencias/{id}/cotizaciones/destinatarios`. */
+export async function getIncidentQuotationDestinatarios(
+  id: number,
+): Promise<IncidentQuotationDestinatariosResponse> {
+  const response = await axiosInstance.get<IncidentQuotationDestinatariosResponse>(
+    `/incidencias/${id}/cotizaciones/destinatarios`,
+  );
+  return {
+    incidencia: response.data.incidencia ?? {},
+    opciones: Array.isArray(response.data.opciones)
+      ? response.data.opciones
+      : [],
+  };
 }
 
 /** Listar cotizaciones de una incidencia — `GET /incidencias/{id}/cotizaciones`. */
 export async function getIncidentQuotations(
   id: number,
 ): Promise<GetIncidentQuotationsResponse> {
-  const response = await axiosInstance.get<GetIncidentQuotationsResponse>(
+  const response = await axiosInstance.get<unknown>(
     `/incidencias/${id}/cotizaciones`,
   );
-  return response.data;
+  return normalizeIncidentQuotationList(response.data);
 }
 
 /** Crear cotización de incidencia — `POST /incidencias/{id}/cotizaciones`. */
 export async function createIncidentQuotation(
   id: number,
   body: CreateIncidentQuotationBody,
-): Promise<void> {
-  await axiosInstance.post(`/incidencias/${id}/cotizaciones`, body);
+): Promise<CreateIncidentQuotationResponse> {
+  const response = await axiosInstance.post<unknown>(
+    `/incidencias/${id}/cotizaciones`,
+    body,
+  );
+  return normalizeCreateIncidentQuotationResponse(response.data);
 }
