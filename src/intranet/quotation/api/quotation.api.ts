@@ -1,5 +1,10 @@
 import type { Quotation, QuotationProduct, ServiceItem } from "../interfaces/quotation";
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
+import type {
+  QuotationInitialPayment,
+  QuotationPaymentInstallment,
+  QuotationPaymentTerms,
+} from "../interfaces/quotation-payment-terms";
 import axiosInstance from "@/shared/api/axios.config";
 import type { GetQuotationsResponse } from "../interfaces/responses.dto";
 import type { GetQuotationQP } from "../interfaces/query-params.dto";
@@ -95,6 +100,30 @@ export const getQuotationForAdmin = async (
     `/cotizaciones/${id}/detalles-franco`,
   );
   return normalizeQuotationAdminDetail(response.data);
+};
+
+type QuotationPaymentTermsRaw = {
+  plazos_pago?: QuotationPaymentInstallment[] | null;
+  pago_inicial?: QuotationInitialPayment | null;
+  requiere_confirmacion_pago_inicial?: boolean | null;
+};
+
+export const getQuotationPaymentTerms = async (
+  id: Quotation["ID"],
+): Promise<QuotationPaymentTerms> => {
+  const response = await axiosInstance.get<QuotationPaymentTermsRaw>(
+    `/cotizaciones/${id}/detalles-franco`,
+  );
+  const { plazos_pago, pago_inicial, requiere_confirmacion_pago_inicial } =
+    response.data;
+
+  return {
+    plazos_pago: [...(plazos_pago ?? [])].sort((a, b) => a.orden - b.orden),
+    pago_inicial: pago_inicial ?? null,
+    requiere_confirmacion_pago_inicial: Boolean(
+      requiere_confirmacion_pago_inicial,
+    ),
+  };
 };
 
 type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">

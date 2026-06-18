@@ -17,6 +17,7 @@ import {
 } from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import { QuotationChatStatusCell } from "./QuotationChatStatusCell";
+import { QuotationPaymentTermsCells } from "./QuotationPaymentTermsCells";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
@@ -94,6 +95,7 @@ export const QuotationTableRow: FC<{
         <TableCell className="font-medium py-3">
           {formatCurrency(quotation.precioTotal, "PEN", 2)}
         </TableCell>
+        <QuotationPaymentTermsCells quotationId={quotation.ID} />
         <TableCell className="">
           <Badge
             className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(

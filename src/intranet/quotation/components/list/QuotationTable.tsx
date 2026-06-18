@@ -54,7 +54,7 @@ export const QuotationTable: FC = () => {
               <QuotationPlaceHolder rows={queryParams.per_page ?? 5} />
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={7}>{error.message}</TableCell>
+                <TableCell colSpan={11}>{error.message}</TableCell>
               </TableRow>
             ) : (
               <>
@@ -71,7 +71,7 @@ export const QuotationTable: FC = () => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={11}
                       className="text-center py-8 text-gray-500"
                     >
                       No hay cotizaciones para mostrar.

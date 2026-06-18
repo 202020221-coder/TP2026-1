@@ -27,6 +27,12 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
           <TableCell>
             <Skeleton className="h-4 w-52 bg-gray-50" />
           </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-28 bg-gray-50" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-12 bg-gray-50" />
+          </TableCell>
           <TableCell className="text-center">
             <Skeleton className="h-6 w-20 mx-auto rounded-full bg-gray-50" />
           </TableCell>
@@ -37,6 +43,9 @@ export const QuotationPlaceHolder: FC<{ rows: number }> = ({ rows }) => {
               <Skeleton className="h-8 w-8 rounded bg-gray-50" />
               <Skeleton className="h-8 w-8 rounded bg-gray-50" />
             </div>
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-7 w-36 mx-auto rounded-full bg-gray-50" />
           </TableCell>
         </TableRow>
       ))}

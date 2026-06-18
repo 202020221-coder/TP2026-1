@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FC } from "react";
-import { ExternalLink, FileCheck2, Loader2 } from "lucide-react";
+import { CircleDollarSign, ExternalLink, FileCheck2, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -17,6 +17,8 @@ import {
   resolvePurchaseOrderPublicUrl,
 } from "../../api/purchase_order.api";
 import { useApproveQuotation } from "../../hooks/useApproveQuotation";
+import { useQuotationPaymentTerms } from "../../hooks/useQuotationPaymentTerms";
+import { getInitialPaymentAmount, getInitialPaymentPercentage } from "../../lib/quotation-initial-payment";
 
 type QuotationApproveOrderDialogProps = {
   quotation: Quotation;
@@ -28,6 +30,10 @@ export const QuotationApproveOrderDialog: FC<
   QuotationApproveOrderDialogProps
 > = ({ quotation, open, onOpenChange }) => {
   const approveMutation = useApproveQuotation();
+  const { terms, isLoading: isLoadingPaymentTerms } = useQuotationPaymentTerms(
+    quotation.ID,
+    { enabled: open },
+  );
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [publicPdfUrl, setPublicPdfUrl] = useState<string | null>(null);
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
@@ -123,6 +129,18 @@ export const QuotationApproveOrderDialog: FC<
     }
   };
 
+  const requiresInitialPaymentConfirmation =
+    terms?.requiere_confirmacion_pago_inicial ?? false;
+  const initialPaymentPercentage = getInitialPaymentPercentage(terms);
+  const initialPaymentAmount = getInitialPaymentAmount(
+    quotation.precioTotal,
+    terms,
+  );
+  const initialPaymentLabel =
+    initialPaymentAmount != null
+      ? formatCurrency(initialPaymentAmount, "PEN", 2)
+      : "—";
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -199,9 +217,40 @@ export const QuotationApproveOrderDialog: FC<
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>¿Estás seguro?</DialogTitle>
-            <DialogDescription>
-              Se aprobará la orden de compra y se creará el proyecto con sus
-              trabajos asociados. Esta acción no se puede deshacer.
+            <DialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                {requiresInitialPaymentConfirmation && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-amber-800">
+                      <CircleDollarSign className="h-5 w-5 shrink-0" />
+                      <span className="text-sm font-semibold">
+                        Confirmación de pago inicial
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-amber-950/90">
+                      ¿La persona ha pagado el{" "}
+                      <span className="inline-flex items-center rounded-full border border-amber-300 bg-white px-2 py-0.5 text-sm font-bold text-amber-700">
+                        {initialPaymentPercentage != null
+                          ? `${initialPaymentPercentage}%`
+                          : "—"}
+                      </span>{" "}
+                      de la cotización ya?
+                    </p>
+                    <div className="flex items-center justify-between rounded-md border border-amber-200 bg-white px-4 py-3">
+                      <span className="text-sm text-muted-foreground">
+                        Pago inicial
+                      </span>
+                      <span className="text-lg font-bold text-amber-700">
+                        {initialPaymentLabel}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <p>
+                  Se aprobará la orden de compra y se creará el proyecto con sus
+                  trabajos asociados. Esta acción no se puede deshacer.
+                </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -216,9 +265,16 @@ export const QuotationApproveOrderDialog: FC<
             <Button
               type="button"
               onClick={() => void handleConfirmApprove()}
-              disabled={approveMutation.isPending}
+              disabled={
+                approveMutation.isPending ||
+                (requiresInitialPaymentConfirmation && isLoadingPaymentTerms)
+              }
             >
-              {approveMutation.isPending ? "Aprobando..." : "Confirmar"}
+              {approveMutation.isPending
+                ? "Aprobando..."
+                : requiresInitialPaymentConfirmation && isLoadingPaymentTerms
+                  ? "Cargando..."
+                  : "Confirmar"}
             </Button>
           </DialogFooter>
         </DialogContent>
