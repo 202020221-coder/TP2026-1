@@ -23,6 +23,8 @@ export interface CreateInformeBody {
   id_incidencia?: number | null;
   id_proyecto_etapa?: number | null;
   id_proyecto_actividad?: number | null;
+  implicancia?: "ninguno" | "colateral" | "principal";
+  tiempo_perdido?: number | null;
 }
 
 export interface UpdateInformeBody {
@@ -33,6 +35,8 @@ export interface UpdateInformeBody {
   id_incidencia?: number | null;
   id_proyecto_etapa?: number | null;
   id_proyecto_actividad?: number | null;
+  implicancia?: "ninguno" | "colateral" | "principal";
+  tiempo_perdido?: number | null;
 }
 
 /** Listar informes del proyecto (con filtros opcionales) */

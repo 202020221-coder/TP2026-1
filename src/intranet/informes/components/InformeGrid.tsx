@@ -71,6 +71,8 @@ function informeToRow(inf: Informe): InformeRowData {
     evidenciaUrl: inf.evidencia,
     isNew: false,
     isSaving: false,
+    implicancia: inf.implicancia ?? "ninguno",
+    tiempo_perdido: inf.tiempo_perdido ?? 0,
   };
 }
 
@@ -435,6 +437,100 @@ function ActividadCellRenderer(
   );
 }
 
+/** Implicancia cell selector */
+function ImplicanciaCellRenderer(
+  props: ICellRendererParams<InformeRowData> & {
+    onUpdateRowData: (id: number, fields: Partial<InformeRowData>) => void;
+  },
+) {
+  const { data, onUpdateRowData } = props;
+  if (!data) return null;
+
+  const [selected, setSelected] = useState(data.implicancia ?? "ninguno");
+
+  useEffect(() => {
+    setSelected(data.implicancia ?? "ninguno");
+  }, [data.implicancia]);
+
+  const isEditable = data.isNew || data.isEditing;
+
+  if (!isEditable) {
+    const labels: Record<string, string> = {
+      ninguno: "Ninguno",
+      colateral: "Colateral",
+      principal: "Principal",
+    };
+    return <span>{labels[selected] ?? "Ninguno"}</span>;
+  }
+
+  return (
+    <select
+      className="w-full h-full bg-transparent border-none outline-none text-sm px-1 cursor-pointer"
+      value={selected}
+      onChange={(e) => {
+        const val = e.target.value as "ninguno" | "colateral" | "principal";
+        setSelected(val);
+        const updatedFields: Partial<InformeRowData> = { implicancia: val };
+        if (val === "ninguno") {
+          updatedFields.tiempo_perdido = 0;
+        }
+        onUpdateRowData(data.id, updatedFields);
+      }}
+    >
+      <option value="ninguno">Ninguno</option>
+      <option value="colateral">Colateral</option>
+      <option value="principal">Principal</option>
+    </select>
+  );
+}
+
+/** Tiempo Perdido cell input/display */
+function TiempoPerdidoCellRenderer(
+  props: ICellRendererParams<InformeRowData> & {
+    onUpdateRowData: (id: number, fields: Partial<InformeRowData>) => void;
+  },
+) {
+  const { data, onUpdateRowData } = props;
+  if (!data) return null;
+
+  const [val, setVal] = useState<number | "">(data.tiempo_perdido ?? 0);
+
+  useEffect(() => {
+    setVal(data.tiempo_perdido ?? 0);
+  }, [data.tiempo_perdido]);
+
+  const isEditable = data.isNew || data.isEditing;
+  const isDisabled = (data.implicancia ?? "ninguno") === "ninguno";
+
+  if (!isEditable) {
+    const value = data.tiempo_perdido ?? 0;
+    return <span>{value > 0 ? `${value} hrs` : "—"}</span>;
+  }
+
+  return (
+    <input
+      type="number"
+      step="0.1"
+      min="0"
+      disabled={isDisabled}
+      className="w-full h-full bg-transparent border-none outline-none text-sm px-1 disabled:opacity-50"
+      value={val === 0 && isDisabled ? "0" : val}
+      onChange={(e) => {
+        const raw = e.target.value;
+        const num = raw === "" ? 0 : Number(raw);
+        setVal(raw === "" ? "" : num);
+        onUpdateRowData(data.id, { tiempo_perdido: num });
+      }}
+      onBlur={() => {
+        if (val === "") {
+          setVal(0);
+          onUpdateRowData(data.id, { tiempo_perdido: 0 });
+        }
+      }}
+    />
+  );
+}
+
 /** Actions cell — uses useState so must be a real component */
 function ActionsCellRenderer(
   props: ICellRendererParams<InformeRowData> & {
@@ -469,6 +565,8 @@ function ActionsCellRenderer(
         relacion: latestData.id_incidencia ? String(latestData.id_incidencia) : "ninguna",
         id_proyecto_etapa: latestData.id_proyecto_etapa,
         id_proyecto_actividad: latestData.id_proyecto_actividad,
+        implicancia: latestData.implicancia,
+        tiempo_perdido: latestData.tiempo_perdido,
       };
 
       if (latestData.isNew) {
@@ -620,6 +718,8 @@ export function InformeGrid({
       evidenciaUrl: null,
       isNew: true,
       isSaving: false,
+      implicancia: "ninguno",
+      tiempo_perdido: 0,
     };
     setRowData((prev) => [...prev, newRow]);
   }, [fecha]);
@@ -692,6 +792,24 @@ export function InformeGrid({
         cellRendererSelector: () => ({
           component: IncidenciaCellRenderer,
           params: { incidencias, onUpdateRowData: handleUpdateRowData },
+        }),
+      },
+      {
+        headerName: "Implicancia",
+        field: "implicancia",
+        width: 140,
+        cellRendererSelector: () => ({
+          component: ImplicanciaCellRenderer,
+          params: { onUpdateRowData: handleUpdateRowData },
+        }),
+      },
+      {
+        headerName: "Tiempo Perdido (hrs)",
+        field: "tiempo_perdido",
+        width: 130,
+        cellRendererSelector: () => ({
+          component: TiempoPerdidoCellRenderer,
+          params: { onUpdateRowData: handleUpdateRowData },
         }),
       },
       {

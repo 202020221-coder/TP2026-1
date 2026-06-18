@@ -19,6 +19,8 @@ export interface Informe {
   actividad: InformeActividad | null;
   Incidencia_Nombre?: string | null;
   Incidencia_Estado?: string | null;
+  implicancia?: "ninguno" | "colateral" | "principal";
+  tiempo_perdido?: number | null;
 }
 
 export interface InformeEtapa {
@@ -79,4 +81,6 @@ export interface InformeRowData {
   isNew: boolean;
   isSaving: boolean;
   isEditing?: boolean;
+  implicancia?: "ninguno" | "colateral" | "principal";
+  tiempo_perdido?: number | null;
 }
