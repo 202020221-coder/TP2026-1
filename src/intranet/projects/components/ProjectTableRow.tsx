@@ -6,7 +6,7 @@ import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Pencil, Eye, ChevronDown, BarChart3 } from "lucide-react";
+import { Pencil, Eye, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
