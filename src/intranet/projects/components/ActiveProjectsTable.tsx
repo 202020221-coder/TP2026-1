@@ -1,6 +1,5 @@
 import { useState, type FC } from "react";
-import { useNavigate } from "react-router";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,6 +10,7 @@ import {
   Filter,
   FileText,
   AlertTriangle,
+  BarChart3,
 } from "lucide-react";
 import {
   Table,
@@ -39,23 +39,18 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { getActiveCompletedProjects } from "../api/active-projects.api";
-import { getInformes } from "@/intranet/informes/api/informe.api";
-import type { Informe } from "@/intranet/informes/interfaces/informe";
-import { type ProjectState, ProjectStatesRecord } from "../enum/project-state.record";
+import {
+  type ProjectState,
+  ProjectStatesRecord,
+} from "../enum/project-state.record";
 import type { Project } from "../interfaces/project";
 import { useDebounced } from "@/shared/hooks/useDebounced";
 import { ProjectDetailModal } from "./ProjectDetailModal";
+import { ProjectAnalyticsModal } from "./ProjectAnalyticsModal";
+import { useNavigate } from "react-router";
 
 interface ActiveProjectsTableProps {
   onVerTodos: () => void;
-}
-
-function normalizeInformesList(data: unknown): Informe[] {
-  if (Array.isArray(data)) return data as Informe[];
-  if (data && typeof data === "object" && Array.isArray((data as { data?: unknown }).data)) {
-    return (data as { data: Informe[] }).data;
-  }
-  return [];
 }
 
 export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
@@ -70,8 +65,8 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
+  const [analyticsProject, setAnalyticsProject] = useState<{ id: number; name: string; client: string } | null>(null);
   const navigate = useNavigate();
-
   const { data, isPending, isFetching, isError, error } = useQuery({
     queryKey: ["active-projects"],
     queryFn: getActiveCompletedProjects,
@@ -99,11 +94,26 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   };
 
   const statusStyles = new Map<ProjectState, string>([
-    [ProjectStatesRecord.pending, "bg-yellow-100 text-yellow-700 border-yellow-300"],
-    [ProjectStatesRecord.inExecution, "bg-blue-100 text-blue-700 border-blue-300"],
-    [ProjectStatesRecord.completed, "bg-green-100 text-green-700 border-green-300"],
-    [ProjectStatesRecord.legalProcess, "bg-red-100 text-red-700 border-red-300"],
-    [ProjectStatesRecord.cancelled, "bg-gray-100 text-gray-600 border-gray-300"],
+    [
+      ProjectStatesRecord.pending,
+      "bg-yellow-100 text-yellow-700 border-yellow-300",
+    ],
+    [
+      ProjectStatesRecord.inExecution,
+      "bg-blue-100 text-blue-700 border-blue-300",
+    ],
+    [
+      ProjectStatesRecord.completed,
+      "bg-green-100 text-green-700 border-green-300",
+    ],
+    [
+      ProjectStatesRecord.legalProcess,
+      "bg-red-100 text-red-700 border-red-300",
+    ],
+    [
+      ProjectStatesRecord.cancelled,
+      "bg-gray-100 text-gray-600 border-gray-300",
+    ],
   ]);
 
   const formatDate = (dateStr: string) => {
@@ -131,47 +141,7 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const paginated = filtered.slice((page - 1) * limit, page * limit);
 
-  const informesQueries = useQueries({
-    queries: paginated.map((project) => ({
-      queryKey: ["project-informes", project.id_Proyecto],
-      queryFn: () => getInformes(project.id_Proyecto),
-      staleTime: 5 * 60 * 1000,
-    })),
-  });
-
-  const handleGestionarInformes = (project: Project) => {
-    navigate(`/intranet/informes?id_proyecto=${project.id_Proyecto}`, {
-      state: {
-        projectId: project.id_Proyecto,
-        projectName: project.Cotizacion_Nombre ?? project.descripcion_servicio,
-        clientName: project.Cliente_Nombre,
-      },
-    });
-  };
-
-  const getInformeStatus = (projectId: number) => {
-    const index = paginated.findIndex((project) => project.id_Proyecto === projectId);
-    if (index < 0) {
-      return { hasInformes: false, isLoading: false };
-    }
-
-    const query = informesQueries[index];
-    if (query.isPending || query.isFetching) {
-      return { hasInformes: false, isLoading: true };
-    }
-
-    return {
-      hasInformes: normalizeInformesList(query.data).length > 0,
-      isLoading: false,
-    };
-  };
-
-  const renderRow = (project: Project) => {
-    const { hasInformes, isLoading: loadingInformes } = getInformeStatus(
-      project.id_Proyecto,
-    );
-
-    return (
+  const renderRow = (project: Project) => (
     <TableRow
       key={project.id_Proyecto}
       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
@@ -187,44 +157,46 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
       </TableCell>
       <TableCell className="text-gray-700">{project.Cliente_Nombre}</TableCell>
       <TableCell>
-        <span className={`block mx-auto w-fit rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(project.estado) ?? ""}`}>
+        <span
+          className={`block mx-auto w-fit rounded-full px-3 py-1 text-[13px] font-medium border ${statusStyles.get(project.estado) ?? ""}`}
+        >
           {project.estado}
         </span>
       </TableCell>
       <TableCell className="text-center">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={
-                hasInformes && !loadingInformes
-                  ? "h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                  : "h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
-              }
-              onClick={() => handleGestionarInformes(project)}
-              disabled={loadingInformes}
-            >
-              <FileText
-                className={`w-3.5 h-3.5 mr-1 ${
-                  hasInformes && !loadingInformes ? "text-green-600" : "text-orange-500"
-                }`}
-              />
-              {loadingInformes ? "..." : hasInformes ? "Ver" : "Agregar"}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent
-            className={
-              hasInformes && !loadingInformes
-                ? "bg-white border border-green-400 text-green-600"
-                : "bg-white border border-orange-400 text-orange-500"
-            }
-          >
-            {hasInformes && !loadingInformes
-              ? "Gestionar informes"
-              : "Agregar informe"}
-          </TooltipContent>
-        </Tooltip>
+        {project.informe_final ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-green-600 border-green-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5 mr-1 text-green-600" />
+                Ver
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white border border-green-400 text-green-600">
+              Ver informe
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-orange-500 border-orange-300 bg-white hover:bg-orange-50 hover:text-orange-500 hover:border-orange-500 transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5 mr-1 text-orange-500" />
+                Agregar
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white border border-orange-400 text-orange-500">
+              Agregar / Editar informe
+            </TooltipContent>
+          </Tooltip>
+        )}
       </TableCell>
       <TableCell className="text-center">
         <Tooltip>
@@ -239,7 +211,9 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
                   {
                     state: {
                       projectId: project.id_Proyecto,
-                      projectName: project.Cotizacion_Nombre ?? project.descripcion_servicio,
+                      projectName:
+                        project.Cotizacion_Nombre ??
+                        project.descripcion_servicio,
                       clientName: project.Cliente_Nombre,
                       clientId: project.Id_Cliente,
                     },
@@ -250,7 +224,9 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
               <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />-
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="bg-white border border-amber-400 text-amber-600">Ver incidencias</TooltipContent>
+          <TooltipContent className="bg-white border border-amber-400 text-amber-600">
+            Ver incidencias
+          </TooltipContent>
         </Tooltip>
       </TableCell>
       <TableCell className="text-center">
@@ -262,18 +238,51 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
               className="h-8 px-3 text-purple-600 border-purple-300 bg-white hover:bg-purple-50 hover:text-purple-600 hover:border-purple-500 transition-colors"
               onClick={() => setDetailProjectId(project.id_Proyecto)}
             >
-              <Eye className="w-3.5 h-3.5 mr-1 text-purple-600" />Ver
+              <Eye className="w-3.5 h-3.5 mr-1 text-purple-600" />
+              Ver
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="bg-white border border-purple-400 text-purple-600">Ver detalle del proyecto</TooltipContent>
+          <TooltipContent className="bg-white border border-purple-400 text-purple-600">
+            Ver detalle del proyecto
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+      <TableCell className="text-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-indigo-600 border-indigo-300 bg-white hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-500 transition-colors"
+              onClick={() =>
+                setAnalyticsProject({
+                  id: project.id_Proyecto,
+                  name: project.Cotizacion_Nombre ?? project.descripcion_servicio,
+                  client: project.Cliente_Nombre ?? "",
+                })
+              }
+            >
+              <BarChart3 className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+              Analytics
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="bg-white border border-indigo-400 text-indigo-600">
+            Ver analíticas del proyecto
+          </TooltipContent>
         </Tooltip>
       </TableCell>
     </TableRow>
-    );
-  };
+  );
 
   return (
     <>
+      <ProjectAnalyticsModal
+        projectId={analyticsProject?.id ?? 0}
+        projectName={analyticsProject?.name ?? ""}
+        clientName={analyticsProject?.client ?? ""}
+        open={analyticsProject !== null}
+        onClose={() => setAnalyticsProject(null)}
+      />
       <ProjectDetailModal
         projectId={detailProjectId ?? 0}
         open={detailProjectId !== null}
@@ -290,7 +299,10 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
               className="pl-8"
               onChange={(e) => debouncedSearch(e.target.value)}
             />
-            <Search className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400" size={16} />
+            <Search
+              className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400"
+              size={16}
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -324,7 +336,10 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
           <div className="flex gap-x-2">
             <Select
               value={estado}
-              onValueChange={(val) => { setEstado(val as ProjectState); setPage(1); }}
+              onValueChange={(val) => {
+                setEstado(val as ProjectState);
+                setPage(1);
+              }}
             >
               <SelectTrigger className="w-52">
                 <SelectValue placeholder="Seleccione un estado" />
@@ -333,7 +348,9 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
                 <SelectGroup>
                   <SelectLabel>Estados</SelectLabel>
                   {Object.values(ProjectStatesRecord).map((s, i) => (
-                    <SelectItem key={i} value={s}>{s}</SelectItem>
+                    <SelectItem key={i} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
@@ -342,7 +359,14 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
               size="icon"
               variant="outline"
               title="Limpiar filtros"
-              disabled={!estado && !buscar && !fechaInicio && !fechaFin && !localFechaInicio && !localFechaFin}
+              disabled={
+                !estado &&
+                !buscar &&
+                !fechaInicio &&
+                !fechaFin &&
+                !localFechaInicio &&
+                !localFechaFin
+              }
               onClick={handleLimpiar}
             >
               <Eraser size={16} />
@@ -354,32 +378,63 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
         <Table containerClassname="flex-1 overflow-auto flex-col">
           <TableHeader className="[&_tr]:border-b border-gray-200">
             <TableRow className="hover:bg-white">
-              <TableHead className="text-gray-500 font-medium">Nombre</TableHead>
-              <TableHead className="text-gray-500 font-medium">Fecha de inicio</TableHead>
-              <TableHead className="text-gray-500 font-medium">Fecha de finalización</TableHead>
-              <TableHead className="text-gray-500 font-medium">Cliente</TableHead>
-              <TableHead className="text-center text-gray-500 font-medium">Estado</TableHead>
-              <TableHead className="text-center text-gray-500 font-medium">Informe</TableHead>
-              <TableHead className="text-center text-gray-500 font-medium">Incidencias</TableHead>
-              <TableHead className="text-center text-gray-500 font-medium">Detalles</TableHead>
+              <TableHead className="text-gray-500 font-medium">
+                Nombre
+              </TableHead>
+              <TableHead className="text-gray-500 font-medium">
+                Fecha de inicio
+              </TableHead>
+              <TableHead className="text-gray-500 font-medium">
+                Fecha de finalización
+              </TableHead>
+              <TableHead className="text-gray-500 font-medium">
+                Cliente
+              </TableHead>
+              <TableHead className="text-center text-gray-500 font-medium">
+                Estado
+              </TableHead>
+              <TableHead className="text-center text-gray-500 font-medium">
+                Informe
+              </TableHead>
+              <TableHead className="text-center text-gray-500 font-medium">
+                Incidencias
+              </TableHead>
+              <TableHead className="text-center text-gray-500 font-medium">
+                Detalles
+              </TableHead>
+              <TableHead className="text-center text-gray-500 font-medium">
+                Analytics
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isPending || isFetching ? (
               Array.from({ length: limit }).map((_, idx) => (
                 <TableRow key={idx}>
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <TableCell key={i}><Skeleton className="h-4 w-full bg-gray-100" /></TableCell>
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <TableCell key={i}>
+                      <Skeleton className="h-4 w-full bg-gray-100" />
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-red-500 py-6">{error.message}</TableCell>
+                <TableCell
+                  colSpan={9}
+                  className="text-center text-red-500 py-6"
+                >
+                  {error.message}
+                </TableCell>
               </TableRow>
             ) : paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-400 py-10">No se encontraron proyectos.</TableCell>
+                <TableCell
+                  colSpan={9}
+                  className="text-center text-gray-400 py-10"
+                >
+                  No se encontraron proyectos.
+                </TableCell>
               </TableRow>
             ) : (
               paginated.map(renderRow)
@@ -393,22 +448,40 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
             <Label>Tamaño de Página:</Label>
             <Select
               value={limit.toString()}
-              onValueChange={(val) => { setLimit(Number(val)); setPage(1); }}
+              onValueChange={(val) => {
+                setLimit(Number(val));
+                setPage(1);
+              }}
             >
-              <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>
-                <SelectItem value="15" disabled={total <= 10}>15</SelectItem>
-                <SelectItem value="20" disabled={total <= 15}>20</SelectItem>
+                <SelectItem value="15" disabled={total <= 10}>
+                  15
+                </SelectItem>
+                <SelectItem value="20" disabled={total <= 15}>
+                  20
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex justify-center gap-x-2 sm:col-span-2">
-            <Button className="w-40" variant="secondary" disabled={page === 1} onClick={() => setPage(page - 1)}>
+            <Button
+              className="w-40"
+              variant="secondary"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
               <ArrowLeft /> Anterior
             </Button>
-            <Button className="w-40" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+            <Button
+              className="w-40"
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
               Siguiente <ArrowRight />
             </Button>
           </div>
