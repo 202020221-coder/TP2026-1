@@ -52,9 +52,7 @@ export function IncidentObjectEditorDialog({
     queryFn: async () => {
       const { default: axiosInstance } = await import("@/shared/api/axios.config");
       const res = await axiosInstance.get<{ id: number; nombre: string; cantidad: number }[]>("/inventario", { params: { limit: 200 } });
-      if (Array.isArray(res.data)) return res.data;
-      if (res.data && typeof res.data === "object" && "data" in res.data) return (res.data as any).data ?? [];
-      return [];
+      return res.data
     },
     enabled: open && showCatalog,
     staleTime: 60000,
