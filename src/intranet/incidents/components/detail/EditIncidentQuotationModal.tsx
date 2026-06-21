@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { updateQuotation } from "@/intranet/quotation/api/quotation.api";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
+import { DEFAULT_PLAZOS_PAGO } from "@/intranet/quotation/lib/quotation-plazos-pago";
 
 interface EditIncidentQuotationModalProps {
   quotation: IncidentQuotation;
@@ -59,9 +60,11 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
     }
     setSaving(true);
     try {
+      //TODO - MERGE: Debe haber un projectStartDate definido correctamente 
+      //TODO - MERGE: Verificar que se hace uso correcto del valor por defecto de plazosPago
       await updateQuotation(quotation.id, {
         name: form.nombre.trim(),
-        inventory: {},
+        inventory: [],
         services: [],
         trucks: [],
         pickupService: { pickupCost: 0, pickupDate: "", pickupAddress: "" },
@@ -70,9 +73,11 @@ export const EditIncidentQuotationModal: FC<EditIncidentQuotationModalProps> = (
           expirationDate: "",
           conditions: "",
           observations: "",
+          plazosPago: DEFAULT_PLAZOS_PAGO
         },
         quotationRate: { sellingRate: 0, buyingRate: 0 },
         phases: { items: [] },
+        projectStartDate: ""
       });
       await queryClient.invalidateQueries({ queryKey: ["incident", quotation.id_incidencia] });
       toast.success("Cotización actualizada correctamente.");
