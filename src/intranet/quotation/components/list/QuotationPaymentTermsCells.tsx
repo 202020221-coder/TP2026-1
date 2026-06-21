@@ -15,7 +15,9 @@ const isUpfrontPayment = (installment: QuotationPaymentInstallment) =>
   installment.plazo_de_pago === 0;
 
 const formatPlazo = (installment: QuotationPaymentInstallment) =>
-  `${installment.plazo_de_pago} días`;
+  isUpfrontPayment(installment)
+    ? "Antes del proyecto"
+    : `${installment.plazo_de_pago} días`;
 
 export const QuotationPaymentTermsCells: FC<{
   quotationId: Quotation["ID"];

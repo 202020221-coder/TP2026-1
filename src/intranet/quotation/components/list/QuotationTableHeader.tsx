@@ -16,9 +16,7 @@ export const QuotationTableHeader: FC = () => {
         <TableHead className="text-gray-500 font-medium">
           Precio SubTotal
         </TableHead>
-        <TableHead className="text-gray-500 font-medium">
-          Plazo (días)
-        </TableHead>
+        <TableHead className="text-gray-500 font-medium">Plazo</TableHead>
         <TableHead className="text-gray-500 font-medium">
           Porcentaje (%)
         </TableHead>

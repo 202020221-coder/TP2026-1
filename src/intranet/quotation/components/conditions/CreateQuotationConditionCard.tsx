@@ -3,13 +3,16 @@ import { format, parseISO, subDays } from "date-fns";
 import { useQuotationConditionStore } from "../../hooks/stores/quotation.conditions.store.provider";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import { ConditionCard } from "./ConditionCard";
+import { QuotationPaymentTermsCard } from "./QuotationPaymentTermsCard";
 
 export const CreateQuotationConditionCard = () => {
   const update = useQuotationConditionStore((s) => s.update);
+  const updatePlazoPago = useQuotationConditionStore((s) => s.updatePlazoPago);
   const conditions = useQuotationConditionStore((s) => s.conditions);
   const observaciones = useQuotationConditionStore((s) => s.observations);
   const emissionDate = useQuotationConditionStore((s) => s.emissionDate);
   const expirationDate = useQuotationConditionStore((s) => s.expirationDate);
+  const plazosPago = useQuotationConditionStore((s) => s.plazosPago);
   const projectStartDate = useQuotationReferenceStore(
     (s) => s.projectStartDate,
   );
@@ -27,17 +30,23 @@ export const CreateQuotationConditionCard = () => {
   }, [projectStartDate, expirationDate, update]);
 
   return (
-    <ConditionCard
-      conditions={conditions}
-      observaciones={observaciones}
-      emissionDate={emissionDate}
-      expirationDate={expirationDate}
-      expirationDisabled
-      expirationHint="Se calcula automáticamente: un día antes del inicio del proyecto."
-      onConditionsChange={(val) => update("conditions", val)}
-      onObservacionesChange={(val) => update("observations", val)}
-      onEmissionChange={(val) => update("emissionDate", val)}
-      onExpirationChange={(val) => update("expirationDate", val)}
-    />
+    <div className="space-y-6">
+      <ConditionCard
+        conditions={conditions}
+        observaciones={observaciones}
+        emissionDate={emissionDate}
+        expirationDate={expirationDate}
+        expirationDisabled
+        expirationHint="Se calcula automáticamente: un día antes del inicio del proyecto."
+        onConditionsChange={(val) => update("conditions", val)}
+        onObservacionesChange={(val) => update("observations", val)}
+        onEmissionChange={(val) => update("emissionDate", val)}
+        onExpirationChange={(val) => update("expirationDate", val)}
+      />
+      <QuotationPaymentTermsCard
+        plazosPago={plazosPago}
+        onUpdatePlazoPago={updatePlazoPago}
+      />
+    </div>
   );
 };

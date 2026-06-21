@@ -126,6 +126,13 @@ export const getQuotationPaymentTerms = async (
   };
 };
 
+export const updateQuotationPaymentTerms = async (
+  id: Quotation["ID"],
+  plazos_pago: QuotationPaymentInstallment[],
+): Promise<void> => {
+  await axiosInstance.put(`/cotizaciones/${id}`, { plazos_pago });
+};
+
 type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">
 
 type CreateQuotationDTO = UpsertQuotationDTO & {
