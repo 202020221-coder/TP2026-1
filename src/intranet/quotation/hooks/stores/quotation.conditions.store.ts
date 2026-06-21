@@ -5,12 +5,10 @@ import {
   DEFAULT_PLAZOS_PAGO,
   updatePlazoPagoAtOrden,
   type QuotationPlazoPagoForm,
-  type QuotationPlazosPagoPair,
 } from "../../lib/quotation-plazos-pago";
 
 type ICondition = DesiredQuotationData["quotationConditions"];
 interface State extends ICondition {
-  plazosPago: QuotationPlazosPagoPair;
   initialized: boolean;
 }
 
@@ -35,14 +33,13 @@ const defaultState = (): ConditionState => ({
   expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
   conditions: "",
   observations: "",
-  plazosPago: [...DEFAULT_PLAZOS_PAGO],
+  plazosPago: DEFAULT_PLAZOS_PAGO,
 });
 
 export const createConditionsStore = (initialData?: ConditionState) =>
   createStore<ConditionsStore>((set) => ({
     ...defaultState(),
     ...initialData,
-    plazosPago: initialData?.plazosPago ?? [...DEFAULT_PLAZOS_PAGO],
     initialized: false,
     update: (field, value) =>
       set(() => ({

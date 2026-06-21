@@ -35,7 +35,7 @@ export const PdfPreview = ({ client }: PdfPreviewProps) => {
     (state) => state.observations,
   );
   const phases = useQuotationReferenceStore((state) => state.phases);
-
+  const plazosPago = useQuotationConditionStore(state=>state.plazosPago)
   // Construimos el objeto data
   const data: PDFQuotationDocumentProps["data"] = {
     phases,
@@ -53,6 +53,7 @@ export const PdfPreview = ({ client }: PdfPreviewProps) => {
       expirationDate,
       conditions,
       observations,
+      plazosPago
     },
   };
 

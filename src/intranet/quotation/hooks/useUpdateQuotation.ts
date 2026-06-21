@@ -41,6 +41,7 @@ export const useUpdateQuotation = ({
   const expirationDate = useQuotationConditionStore((s) => s.expirationDate);
   const conditions = useQuotationConditionStore((s) => s.conditions);
   const observations = useQuotationConditionStore((s) => s.observations);
+  const plazosPago = useQuotationConditionStore((s) => s.plazosPago);
   const servicios = useQuotationServiceStore((s) => s.items);
   const rate = useQuotationExchangeRate((s) => s.rate);
   const isIncidentQuotation = useIncidentQuotationMode();
@@ -83,6 +84,7 @@ export const useUpdateQuotation = ({
               expirationDate,
               conditions,
               observations,
+              plazosPago,
             },
             quotationRate: {
               sellingRate: rate?.sellingRate ?? 0,
