@@ -1,4 +1,5 @@
 import { ProjectDetailModal } from "./ProjectDetailModal";
+import { ProjectAnalyticsModal } from "./ProjectAnalyticsModal";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { EditProjectModal } from "./EditProjectModal";
@@ -17,14 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { toast } from "sonner";
-import { EditProyectoModal } from "@/intranet/organizar-recursos";
-import { GastoRealModal } from "@/intranet/presupuestos/components/GastoRealModal";
-import type { Cotizacion } from "@/intranet/presupuestos/interfaces/presupuesto";
-import { useSession } from "@/security/session/hooks/stores/useSession.store";
-import { canEditResources } from "@/intranet/layout/sidebar-links";
 import type { Project } from "../interfaces/project";
-import { projectToCotizacion } from "../lib/project-to-cotizacion";
 import {
   type ProjectState,
   ProjectStatesRecord,
@@ -37,13 +31,8 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
-  const [gastoRealCotizacion, setGastoRealCotizacion] =
-    useState<Cotizacion | null>(null);
-  const [isGastoRealOpen, setIsGastoRealOpen] = useState(false);
-  const [isRecursosOpen, setIsRecursosOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const navigate = useNavigate();
-  const role = useSession((state) => state.loggedUser?.rol);
-  const canEditProjectResources = canEditResources(role);
 
   const statusStyles = new Map<ProjectState, string>([
     [
@@ -86,20 +75,15 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
 
     window.open(fileUrl, "_blank");
   };
-
-  const handleGestionarGastos = () => {
-    const cotizacion = projectToCotizacion(project);
-    if (!cotizacion) {
-      toast.error("Este proyecto no tiene una cotización asociada.");
-      return;
-    }
-
-    setGastoRealCotizacion(cotizacion);
-    setIsGastoRealOpen(true);
-  };
-
   return (
     <>
+      <ProjectAnalyticsModal
+        projectId={project.id_Proyecto}
+        projectName={project.Cotizacion_Nombre ?? project.descripcion_servicio}
+        clientName={project.Cliente_Nombre ?? ""}
+        open={analyticsOpen}
+        onClose={() => setAnalyticsOpen(false)}
+      />
       <EditProjectModal
         project={project}
         open={modalOpen}
@@ -110,22 +94,6 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
         projectId={detailProjectId ?? 0}
         open={detailProjectId !== null}
         onClose={() => setDetailProjectId(null)}
-      />
-
-      <GastoRealModal
-        cotizacion={gastoRealCotizacion}
-        isOpen={isGastoRealOpen}
-        onClose={() => {
-          setIsGastoRealOpen(false);
-          setGastoRealCotizacion(null);
-        }}
-      />
-
-      <EditProyectoModal
-        projectId={project.id_Proyecto}
-        isOpen={isRecursosOpen}
-        canEdit={canEditProjectResources}
-        onClose={() => setIsRecursosOpen(false)}
       />
 
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -179,19 +147,19 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                 Ver detalle-proyecto
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
-                  navigate(
-                    `/intranet/organizar-personal/${project.id_Proyecto}`,
-                  )
-                }
+                onClick={() => navigate("/intranet/organizar-personal")}
               >
                 Organizar personal
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsRecursosOpen(true)}>
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/organizar-recursos")}
+              >
                 Organizar recursos
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleGestionarGastos}>
-                Gestionar gastos
+              <DropdownMenuItem
+                onClick={() => navigate("/intranet/presupuestos")}
+              >
+                Gestionar Presupuesto
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
@@ -225,6 +193,9 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                 }
               >
                 Gestionar Informe
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAnalyticsOpen(true)}>
+                Ver analíticas del proyecto
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
