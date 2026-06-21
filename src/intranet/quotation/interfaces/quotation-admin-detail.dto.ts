@@ -1,4 +1,5 @@
 import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/service";
+import type { QuotationPlazosPagoPair } from "../lib/quotation-plazos-pago";
 
 export type QuotationAdminDetailData = {
   id: number;
@@ -11,6 +12,7 @@ export type QuotationAdminDetailData = {
     nombreComercial: string;
     razonSocial: string;
   };
+  plazos_pago: QuotationPlazosPagoPair;
   productos: ({
     id: string;
     nombre: string;
