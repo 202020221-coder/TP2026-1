@@ -362,6 +362,7 @@ export const adaptQuotationAdminDetail = (
       observations: dto.condiciones.observaciones ?? "",
       emissionDate: dto.condiciones.fechaEmision,
       expirationDate: dto.condiciones.fechaVigencia,
+      plazosPago: dto.plazos_pago
     },
     status: dto.estado as DesiredQuotationData["status"],
     inventory: dto.productos.map((p) =>

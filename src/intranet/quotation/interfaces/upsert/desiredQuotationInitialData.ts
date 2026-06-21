@@ -1,5 +1,6 @@
 import type { QuotationProductIntention } from "../../enum/order-inventory-intention";
 import type { QuotationState } from "../../enum/quotation-state.record";
+import type { QuotationPlazosPagoPair } from "../../lib/quotation-plazos-pago";
 import type { QuotationPhases } from "../phases.types";
 export interface DesiredQuotationData {
   name: string;
@@ -20,7 +21,7 @@ export interface DesiredQuotationData {
   quotationRate: {
     sellingRate: number;
     buyingRate: number;
-  },
+  };
   phases: QuotationPhases;
   /** FK a INCIDENCIA cuando es cotización derivada de una incidencia. */
   incidentQuotationId?: number | null;
@@ -84,10 +85,11 @@ type QuotationProduct = {
 );
 
 interface QuotationCondition {
-    emissionDate:string;
-    expirationDate:string;
-    conditions: string;
-    observations: string;
+  emissionDate: string;
+  expirationDate: string;
+  conditions: string;
+  observations: string;
+  plazosPago: QuotationPlazosPagoPair;
 }
 
 // interface CreateQuotationBodyDTO {}
