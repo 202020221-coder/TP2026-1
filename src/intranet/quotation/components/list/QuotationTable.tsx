@@ -17,6 +17,7 @@ import { QuotationPlaceHolder } from "./QuotationTablePlaceHolder";
 import { QuotationTableRow } from "./QuotationTableRow";
 import { QuotationApproveOrderDialog } from "./QuotationApproveOrderDialog";
 import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
+import { QuotationEditPaymentTermsDialog } from "./QuotationEditPaymentTermsDialog";
 
 export const QuotationTable: FC = () => {
   const { result, queryParams } = useQuotation();
@@ -31,6 +32,8 @@ export const QuotationTable: FC = () => {
   const [uploadQuotationId, setUploadQuotationId] = useState<number | null>(
     null,
   );
+  const [editPaymentTermsQuotation, setEditPaymentTermsQuotation] =
+    useState<Quotation | null>(null);
 
   const isInitialLoading = isPending && !data;
 
@@ -54,7 +57,7 @@ export const QuotationTable: FC = () => {
               <QuotationPlaceHolder rows={queryParams.per_page ?? 5} />
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={7}>{error.message}</TableCell>
+                <TableCell colSpan={11}>{error.message}</TableCell>
               </TableRow>
             ) : (
               <>
@@ -66,12 +69,13 @@ export const QuotationTable: FC = () => {
                       onOpenPresupuesto={handleOpenPresupuesto}
                       onReviewPurchaseOrder={setApproveQuotation}
                       onUploadPurchaseOrder={setUploadQuotationId}
+                      onEditPaymentTerms={setEditPaymentTermsQuotation}
                     />
                   ))
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={11}
                       className="text-center py-8 text-gray-500"
                     >
                       No hay cotizaciones para mostrar.
@@ -109,6 +113,17 @@ export const QuotationTable: FC = () => {
           onOpenChange={(open) => {
             if (!open) {
               setUploadQuotationId(null);
+            }
+          }}
+        />
+      )}
+      {editPaymentTermsQuotation && (
+        <QuotationEditPaymentTermsDialog
+          quotation={editPaymentTermsQuotation}
+          open={editPaymentTermsQuotation !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditPaymentTermsQuotation(null);
             }
           }}
         />

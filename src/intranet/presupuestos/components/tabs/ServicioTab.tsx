@@ -63,7 +63,7 @@ function ItemForm({
           {errors.costo_unitario && <p className="text-sm text-destructive mt-1">{errors.costo_unitario.message}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium">Cantidad *</label>
+          <label className="text-sm font-medium">Días *</label>
           <Input type="number" min="1" placeholder="Ej: 1"
             {...register("cantidad", { required: "Requerido" })} className="mt-1" />
           {errors.cantidad && <p className="text-sm text-destructive mt-1">{errors.cantidad.message}</p>}
@@ -178,7 +178,7 @@ export function ServicioTab({ cotizacionId }: Props) {
               <TableHead className="font-semibold w-14">ID</TableHead>
               <TableHead className="font-semibold">Servicio</TableHead>
               <TableHead className="font-semibold text-right">Costo Unit.</TableHead>
-              <TableHead className="font-semibold text-right">Cant.</TableHead>
+              <TableHead className="font-semibold text-right">Días</TableHead>
               <TableHead className="font-semibold text-right">Total (S/.)</TableHead>
               <TableHead className="font-semibold">Moneda</TableHead>
               <TableHead className="font-semibold">Realización</TableHead>
@@ -202,7 +202,11 @@ export function ServicioTab({ cotizacionId }: Props) {
                   <TableCell className="text-muted-foreground">{item.ID}</TableCell>
                   <TableCell className="font-medium">{item.nombre_gasto}</TableCell>
                   <TableCell className="text-right">{item.costo_unitario ? parseFloat(item.costo_unitario).toFixed(2) : "—"}</TableCell>
-                  <TableCell className="text-right">{item.cantidad ?? "—"}</TableCell>
+                  <TableCell className="text-right">
+                    {item.cantidad != null && item.cantidad !== ""
+                      ? Math.round(parseFloat(item.cantidad)).toString()
+                      : "—"}
+                  </TableCell>
                   <TableCell className="text-right">{parseFloat(item.costo_total).toFixed(2)}</TableCell>
                   <TableCell className="capitalize">{item.moneda ?? "—"}</TableCell>
                   <TableCell className="text-sm">{item.realizacion_gastos ?? "—"}</TableCell>

@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, Pencil, Trash2, Send, Calculator, FileCheck2 } from "lucide-react";
+import { Eye, Mail, Pencil, Trash2, Send, Calculator, FileCheck2, CalendarClock } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,7 @@ import {
 } from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import { QuotationChatStatusCell } from "./QuotationChatStatusCell";
+import { QuotationPaymentTermsCells } from "./QuotationPaymentTermsCells";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { formatPEDate } from "@/shared/lib/format-date";
 import { formatCurrency } from "@/shared/lib/format-currency";
@@ -31,11 +32,13 @@ export const QuotationTableRow: FC<{
   onOpenPresupuesto: (quotation: Quotation) => void;
   onReviewPurchaseOrder: (quotation: Quotation) => void;
   onUploadPurchaseOrder: (quotationId: number) => void;
+  onEditPaymentTerms: (quotation: Quotation) => void;
 }> = ({
   quotation,
   onOpenPresupuesto,
   onReviewPurchaseOrder,
   onUploadPurchaseOrder,
+  onEditPaymentTerms,
 }) => {
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
@@ -94,6 +97,7 @@ export const QuotationTableRow: FC<{
         <TableCell className="font-medium py-3">
           {formatCurrency(quotation.precioTotal, "PEN", 2)}
         </TableCell>
+        <QuotationPaymentTermsCells quotationId={quotation.ID} />
         <TableCell className="">
           <Badge
             className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
@@ -108,25 +112,46 @@ export const QuotationTableRow: FC<{
           <div className="flex justify-center items-center gap-2">
             {(user?.rol === RolesRecord.projectAdmin ||
               user?.rol === RolesRecord.manager) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-full aspect-square text-green-600 hover:border hover:border-green-600 hover:text-green-700 transition-colors hover:bg-green-50"
-                    onClick={() => onOpenPresupuesto(quotation)}
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-teal-600 hover:border hover:border-teal-600 hover:text-teal-700 transition-colors hover:bg-teal-50"
+                      onClick={() => onEditPaymentTerms(quotation)}
+                    >
+                      <CalendarClock className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-teal-600 text-teal-600 font-normal text-center"
+                    align="center"
                   >
-                    <Calculator className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="bg-white border-[1.5px] border-green-600 text-green-600 font-normal text-center"
-                  align="center"
-                >
-                  Presupuesto
-                </TooltipContent>
-              </Tooltip>
+                    Editar plazos
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-green-600 hover:border hover:border-green-600 hover:text-green-700 transition-colors hover:bg-green-50"
+                      onClick={() => onOpenPresupuesto(quotation)}
+                    >
+                      <Calculator className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-green-600 text-green-600 font-normal text-center"
+                    align="center"
+                  >
+                    Presupuesto
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
 
             <Tooltip>
