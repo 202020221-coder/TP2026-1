@@ -6,6 +6,7 @@ import { enrichOrderQuotationData } from "../lib/adaptOrderToQuotation";
 import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 import { addDays, format } from "date-fns";
+import { DEFAULT_PLAZOS_PAGO } from "../lib/quotation-plazos-pago";
 const STALE_TIME = 0;
 
 export const useCreateQuotationPage = () => {
@@ -60,6 +61,7 @@ const adaptDTO = async (
       observations: getOrderResponseDTO.ObsGenerales ?? "",
       emissionDate: format(new Date(), "yyyy-MM-dd"),
       expirationDate: format(addDays(new Date(), 7), "yyyy-MM-dd"),
+      plazosPago: DEFAULT_PLAZOS_PAGO
     },
     status: "pendiente",
     trucks: [],
