@@ -151,7 +151,7 @@ export const sidebarLinks: IMenu[] = [
   {
     title: "Presupuesto Interno",
     roles: [RolesRecord.manager],
-    // aun no hay
+    url: "/intranet/presupuestos/",
     icon: "FileText",
   },
 ];
