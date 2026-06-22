@@ -35,6 +35,8 @@ export interface Servicio {
   condicional_precio: string;
   observaciones: string;
   activo: boolean;
+  /** Si true, el servicio solo aplica en cotizaciones de incidencia. */
+  servicio_de_incidencia: boolean;
   /** Si true, el pago es precio × días en que ocurre el servicio. */
   pago_por_dia: boolean;
   /** Fases predeterminadas del servicio (mismo esquema que cotizaciones). */

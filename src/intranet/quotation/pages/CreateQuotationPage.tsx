@@ -31,6 +31,7 @@ import { VisualizeTrigger } from "../components/visualize/VisualizeTrigger";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCreateQuotationPage } from "../hooks/useCreateQuotationPage";
+import { toStoreExchangeRate } from "../api/exchange-rate.api";
 import { type FC } from "react";
 import { useNavigate } from "react-router";
 import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
@@ -81,7 +82,9 @@ export function CreateQuotationPage() {
           initialData={initialData.quotationConditions}
         >
           <QuotationExchangeRateProvider
-            initialData={{ rate: initialData.quotationRate }}
+            initialData={{
+              rate: toStoreExchangeRate(initialData.quotationRate),
+            }}
           >
             <QuotationReferenceStoreProvider
               name={initialData.name}

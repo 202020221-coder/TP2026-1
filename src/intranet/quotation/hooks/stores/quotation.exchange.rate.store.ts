@@ -10,6 +10,7 @@ type State = {
 
 type Actions = {
   initialize: (data: ExchangeRate) => void;
+  setRate: (data: ExchangeRate) => void;
 };
 
 export type ExchangeRateState = Omit<State, "initialized">;
@@ -20,6 +21,7 @@ export const createExchangeRateStore = (initialData?: ExchangeRateState) =>
     rate: initialData?.rate,
     initialized: false,
     initialize: (data) => {
-      set({ rate:data, initialized: true });
+      set({ rate: data, initialized: true });
     },
+    setRate: (data) => set({ rate: data }),
   }));

@@ -1,6 +1,3 @@
-import axiosInstance from "@/shared/api/axios.config";
-import type { GetServiciosQP } from "../interfaces/query-params.dto";
-import type { GetServiciosResponse } from "../interfaces/responses.dto";
 import type {
   Servicio,
   CreateServicioDTO,
@@ -14,6 +11,10 @@ import type {
   ServicioEtapaActividadPayload,
   ServicioSubservicioPayload,
 } from "../interfaces/service";
+import { pickServicioDeIncidenciaFromRaw } from "../lib/servicio-incidencia";
+import axiosInstance from "@/shared/api/axios.config";
+import type { GetServiciosQP } from "../interfaces/query-params.dto";
+import type { GetServiciosResponse } from "../interfaces/responses.dto";
 
 // Ruta del endpoint PÚBLICO de servicios para la landing (sin autenticación).
 // Cámbiala por la que definas en el backend (p. ej. "/servicios/publicos").
@@ -41,6 +42,8 @@ interface ServicioRaw {
   faces?: unknown;                    // tolerar typo común del backend
   subservicios?: unknown;             // subservicios embebidos (si el backend los incluye)
   sub_servicios?: unknown;            // tolerar snake_case alternativo
+  servicio_de_incidencia?: string | boolean | number | null;
+  Servicio_de_incidencia?: string | boolean | number | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,6 +184,9 @@ const toServicio = (raw: ServicioRaw): Servicio => ({
   foto: pickFotoFromRaw(raw),
   activo: raw.Estado ? raw.Estado === "Activo" : (raw.activo ?? true),
   pago_por_dia: raw.pago_por_dia === true,
+  servicio_de_incidencia: pickServicioDeIncidenciaFromRaw(
+    raw as unknown as Record<string, unknown>,
+  ),
   fases: pickFasesFromRaw(raw),
   subservicios: pickSubserviciosFromRaw(raw),
 });
@@ -218,7 +224,38 @@ export const getServiciosPublicos = async (): Promise<Servicio[]> => {
     : Array.isArray(raw?.data)
       ? raw.data
       : [];
-  return arr.map(toServicio);
+  return arr
+    .filter(
+      (item) =>
+        !pickServicioDeIncidenciaFromRaw(
+          item as unknown as Record<string, unknown>,
+        ),
+    )
+    .map(toServicio);
+};
+
+/**
+ * Catálogo para crear solicitudes (intranet). Usa `/servicios` autenticado para
+ * recibir `servicio_de_incidencia`; el endpoint público no siempre lo incluye.
+ */
+export const getServiciosParaSolicitud = async (): Promise<Servicio[]> => {
+  const limit = 200;
+  const firstPage = await getServicios({ page: 1, limit });
+  let servicios = [...firstPage.data];
+
+  if (firstPage.pagination.totalPages > 1) {
+    const remainingPages = await Promise.all(
+      Array.from(
+        { length: firstPage.pagination.totalPages - 1 },
+        (_, index) => getServicios({ page: index + 2, limit }),
+      ),
+    );
+    servicios = servicios.concat(...remainingPages.map((page) => page.data));
+  }
+
+  return servicios.filter(
+    (servicio) => servicio.activo && !servicio.servicio_de_incidencia,
+  );
 };
 
 /** Catálogo de servicios permitidos en cotizaciones de incidencia. */
@@ -260,7 +297,8 @@ export const updateServicio = async (
       activo: dto.activo ?? true,
       fases: [],
       subservicios: [],
-      pago_por_dia: raw.pago_por_dia ?? true
+      pago_por_dia: raw.pago_por_dia ?? true,
+      servicio_de_incidencia: false,
     };
   }
   return toServicio(raw);
@@ -282,7 +320,7 @@ export const uploadServicioFoto = async (
   });
   const raw = extractRaw(response.data);
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true, pago_por_dia: false, fases: [], subservicios: [] };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: true, pago_por_dia: false, servicio_de_incidencia: false, fases: [], subservicios: [] };
   }
   return toServicio(raw);
 };
@@ -293,7 +331,7 @@ export const toggleServicioActivo = async (id: number, currentActivo: boolean): 
   const raw = extractRaw(response.data);
   // Si el backend no devuelve el objeto actualizado, construirlo manualmente
   if (!raw.ID_Servicio && !raw.id) {
-    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo, pago_por_dia: false, fases: [], subservicios: [] };
+    return { id, nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", foto: null, activo: !currentActivo, pago_por_dia: false, servicio_de_incidencia: false, fases: [], subservicios: [] };
   }
   return toServicio(raw);
 };

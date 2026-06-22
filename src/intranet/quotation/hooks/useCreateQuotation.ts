@@ -11,6 +11,7 @@ import { useQuotationServiceStore } from "./stores/quotation.services.store.prov
 import { useQuotationExchangeRate } from "./stores/quotation.exchange.rate.store.provider";
 import { computeServiceDates } from "../lib/quotationSchedule";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
+import { EMPTY_EXCHANGE_RATE } from "../api/exchange-rate.api";
 
 interface UseCreateQuotationOptions {
   referenceData: DesiredQuotationData["client"];
@@ -82,8 +83,8 @@ export const useCreateQuotation = ({
               plazosPago,
             },
             quotationRate: {
-              sellingRate: rate?.sellingRate ?? 0,
-              buyingRate: rate?.buyingRate ?? 0,
+              sellingRate: rate?.sellingRate ?? EMPTY_EXCHANGE_RATE.sellingRate,
+              buyingRate: rate?.buyingRate ?? EMPTY_EXCHANGE_RATE.buyingRate,
             },
             phases,
           });

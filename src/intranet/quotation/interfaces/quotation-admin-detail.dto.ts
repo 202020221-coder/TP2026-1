@@ -1,5 +1,5 @@
 import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/service";
-import type { QuotationPlazosPagoPair } from "../lib/quotation-plazos-pago";
+import type { QuotationPaymentInstallment } from "./quotation-payment-terms";
 
 export type QuotationAdminDetailData = {
   id: number;
@@ -12,7 +12,7 @@ export type QuotationAdminDetailData = {
     nombreComercial: string;
     razonSocial: string;
   };
-  plazos_pago: QuotationPlazosPagoPair;
+  plazos_pago?: QuotationPaymentInstallment[] | null;
   productos: ({
     id: string;
     nombre: string;
@@ -71,10 +71,10 @@ export type QuotationAdminDetailData = {
     condiciones: string;
     observaciones: string;
   };
-  tipoCambio: {
-    tasaCompra: number;
-    tasaVenta: number;
-  };
+  tipoCambio?: {
+    tasaCompra?: number | null;
+    tasaVenta?: number | null;
+  } | null;
   /** Etapas guardadas de la cotización (mismo esquema que servicios). */
   etapas?: ServicioEtapaPayload[] | null;
   duracion_etapas?: number | null;

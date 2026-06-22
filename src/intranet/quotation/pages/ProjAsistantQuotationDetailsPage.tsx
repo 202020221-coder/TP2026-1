@@ -26,6 +26,7 @@ import { TruckInfoCard } from "../components/prices/truck/TruckInfoCard";
 import { PickupCardView } from "../components/prices/delivery/PickupCardView";
 import { SummaryCard } from "../components/prices/summary/SummaryCard";
 import { ConditionCard } from "../components/conditions/ConditionCard";
+import { QuotationPaymentTermsCard } from "../components/conditions/QuotationPaymentTermsCard";
 import {
   Card,
   CardContent,
@@ -37,6 +38,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
+import { toStoreExchangeRate } from "../api/exchange-rate.api";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.services.store.provider";
@@ -92,7 +94,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                 <QuotationPickupStoreProvider initialData={data.pickupService}>
                   <QuotationExchangeRateProvider
                     initialData={{
-                      rate: data.quotationRate,
+                      rate: toStoreExchangeRate(data.quotationRate),
                     }}
                   >
                     <TabsList className="grid grid-cols-3 border bg-card rounded-lg overflow-hidden min-h-12 gap-x-2 mx-3">
@@ -195,6 +197,10 @@ export function ProjectAssistantQuotationDetailsPage() {
                             onExpirationChange={undefined}
                             onConditionsChange={undefined}
                             onObservacionesChange={undefined}
+                          />
+                          <QuotationPaymentTermsCard
+                            plazosPago={data.quotationConditions.plazosPago}
+                            readOnly
                           />
                         </TabsContent>
                       </div>

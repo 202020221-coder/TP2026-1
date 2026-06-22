@@ -19,8 +19,8 @@ export interface DesiredQuotationData {
   pickupService: QuotationPickupService;
   quotationConditions: QuotationCondition;
   quotationRate: {
-    sellingRate: number;
-    buyingRate: number;
+    sellingRate: number | null;
+    buyingRate: number | null;
   };
   phases: QuotationPhases;
   /** FK a INCIDENCIA cuando es cotización derivada de una incidencia. */

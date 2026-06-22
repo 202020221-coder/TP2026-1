@@ -24,6 +24,13 @@ import {
   ProjectStatesRecord,
 } from "../enum/project-state.record";
 import axiosInstance from "@/shared/api/axios.config";
+import { PresupuestoEditModal } from "@/intranet/presupuestos/components/PresupuestoEditModal";
+import { EditProyectoModal } from "@/intranet/organizar-recursos/components/EditProyectoModal";
+import { projectToCotizacion } from "../lib/project-to-cotizacion";
+import type { Cotizacion } from "@/intranet/presupuestos/interfaces/presupuesto";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canEditResources as userCanEditResources } from "@/intranet/layout/sidebar-links";
+import { toast } from "sonner";
 
 export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
   project,
@@ -32,7 +39,28 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [detailProjectId, setDetailProjectId] = useState<number | null>(null);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [presupuestoOpen, setPresupuestoOpen] = useState(false);
+  const [recursosOpen, setRecursosOpen] = useState(false);
+  const [selectedCotizacion, setSelectedCotizacion] =
+    useState<Cotizacion | null>(null);
   const navigate = useNavigate();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canEditRecursos = userCanEditResources(role);
+
+  const handleOpenPresupuesto = () => {
+    const cotizacion = projectToCotizacion(project);
+    if (!cotizacion) {
+      toast.error("Este proyecto no tiene una cotización asociada.");
+      return;
+    }
+    setSelectedCotizacion(cotizacion);
+    setPresupuestoOpen(true);
+  };
+
+  const handleClosePresupuesto = () => {
+    setPresupuestoOpen(false);
+    setSelectedCotizacion(null);
+  };
 
   const statusStyles = new Map<ProjectState, string>([
     [
@@ -83,6 +111,17 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
         clientName={project.Cliente_Nombre ?? ""}
         open={analyticsOpen}
         onClose={() => setAnalyticsOpen(false)}
+      />
+      <PresupuestoEditModal
+        cotizacion={selectedCotizacion}
+        isOpen={presupuestoOpen}
+        onClose={handleClosePresupuesto}
+      />
+      <EditProyectoModal
+        projectId={project.id_Proyecto}
+        isOpen={recursosOpen}
+        canEdit={canEditRecursos}
+        onClose={() => setRecursosOpen(false)}
       />
       <EditProjectModal
         project={project}
@@ -147,18 +186,16 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
                 Ver detalle-proyecto
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => navigate("/intranet/organizar-personal")}
+                onClick={() =>
+                  navigate(`/intranet/organizar-personal/${project.id_Proyecto}`)
+                }
               >
                 Organizar personal
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate("/intranet/organizar-recursos")}
-              >
+              <DropdownMenuItem onClick={() => setRecursosOpen(true)}>
                 Organizar recursos
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate("/intranet/presupuestos")}
-              >
+              <DropdownMenuItem onClick={handleOpenPresupuesto}>
                 Gestionar Presupuesto
               </DropdownMenuItem>
               <DropdownMenuItem

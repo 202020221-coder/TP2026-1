@@ -61,7 +61,8 @@ export const QuotationEditPaymentTermsDialog: FC<
   };
 
   const handleSave = async () => {
-    const missingIds = plazosPago.some((plazo) => plazo.id == null);
+    const installmentsToSave = plazosPagoToApiBody(plazosPago);
+    const missingIds = installmentsToSave.some((plazo) => plazo.id == null);
     if (missingIds) {
       toast.error(
         "Esta cotización no tiene plazos registrados para editar.",
@@ -72,7 +73,7 @@ export const QuotationEditPaymentTermsDialog: FC<
     try {
       await updateMutation.mutateAsync({
         quotationId: quotation.ID,
-        plazos_pago: plazosPagoToApiBody(plazosPago),
+        plazos_pago: installmentsToSave,
       });
       handleOpenChange(false);
     } catch {
@@ -80,9 +81,12 @@ export const QuotationEditPaymentTermsDialog: FC<
     }
   };
 
+  const installmentsToSave = plazosPagoToApiBody(plazosPago);
   const isLoading = termsQuery.isLoading;
   const isError = termsQuery.isError;
-  const canSave = plazosPago.every((plazo) => plazo.id != null);
+  const canSave =
+    installmentsToSave.length > 0 &&
+    installmentsToSave.every((plazo) => plazo.id != null);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

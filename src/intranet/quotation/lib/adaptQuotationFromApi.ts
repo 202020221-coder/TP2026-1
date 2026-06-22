@@ -6,6 +6,10 @@ import type { QuotationPhase } from "../interfaces/phases.types";
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
 import { normalizeTime, parseJornada } from "./quotationSchedule";
+import {
+  DEFAULT_PLAZOS_PAGO,
+  plazosPagoFromInstallments,
+} from "./quotation-plazos-pago";
 import { format } from "date-fns";
 
 const EMPTY_TEMPLATE: ServicioPrincipalTemplate = {
@@ -362,15 +366,17 @@ export const adaptQuotationAdminDetail = (
       observations: dto.condiciones.observaciones ?? "",
       emissionDate: dto.condiciones.fechaEmision,
       expirationDate: dto.condiciones.fechaVigencia,
-      plazosPago: dto.plazos_pago
+      plazosPago: Array.isArray(dto.plazos_pago)
+        ? plazosPagoFromInstallments(dto.plazos_pago)
+        : DEFAULT_PLAZOS_PAGO,
     },
     status: dto.estado as DesiredQuotationData["status"],
     inventory: dto.productos.map((p) =>
       normalizeProductoFromApi(p, validServiceIds),
     ),
     quotationRate: {
-      buyingRate: dto.tipoCambio.tasaCompra,
-      sellingRate: dto.tipoCambio.tasaVenta,
+      buyingRate: dto.tipoCambio?.tasaCompra ?? null,
+      sellingRate: dto.tipoCambio?.tasaVenta ?? null,
     },
     services: dto.servicios.map((s) => {
       const fallback = parseJornada(s.jornada);

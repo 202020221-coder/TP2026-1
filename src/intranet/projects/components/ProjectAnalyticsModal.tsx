@@ -325,6 +325,7 @@ interface IncidenciaConImplicancia {
   etapa: string;
   actividad: string;
   cantidad_objetos: number;
+  tiemposPerdidos: number[];
 }
 
 const IncidenciasBreakdownSection: FC<{
@@ -342,6 +343,22 @@ const IncidenciasBreakdownSection: FC<{
 
   const rows: IncidenciaConImplicancia[] = [];
   const incidenciaEtapas = new Map<number, Set<number>>();
+
+  const collectTiemposPerdidos = (
+    incidenciaId: number,
+    etapaId?: number | null,
+    actividadId?: number | null,
+  ): number[] =>
+    informes
+      .filter((informe) => {
+        if (informe.id_incidencia !== incidenciaId) return false;
+        if (etapaId != null && informe.id_proyecto_etapa !== etapaId) return false;
+        if (actividadId != null && informe.id_proyecto_actividad !== actividadId) {
+          return false;
+        }
+        return true;
+      })
+      .map((informe) => informe.tiempo_perdido ?? 0);
 
   for (const inf of informes) {
     if (!inf.id_incidencia) continue;
@@ -363,6 +380,7 @@ const IncidenciasBreakdownSection: FC<{
         etapa: "Sin etapa asignada",
         actividad: "—",
         cantidad_objetos: 0,
+        tiemposPerdidos: collectTiemposPerdidos(inc.id_incidencia),
       });
       continue;
     }
@@ -384,6 +402,7 @@ const IncidenciasBreakdownSection: FC<{
           etapa: etapaName,
           actividad: "—",
           cantidad_objetos: 0,
+          tiemposPerdidos: collectTiemposPerdidos(inc.id_incidencia, etapaId),
         });
         isFirst = false;
         continue;
@@ -398,6 +417,11 @@ const IncidenciasBreakdownSection: FC<{
           etapa: etapaName,
           actividad: actividad?.nombre ?? `Actividad #${actId}`,
           cantidad_objetos: 0,
+          tiemposPerdidos: collectTiemposPerdidos(
+            inc.id_incidencia,
+            etapaId,
+            actId as number,
+          ),
         });
         isFirst = false;
       }
@@ -421,7 +445,9 @@ const IncidenciasBreakdownSection: FC<{
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Implicancia</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Etapa</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Actividad</TableHead>
-            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Implicancia</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+              Tiempo perdido (hrs)
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -438,12 +464,10 @@ const IncidenciasBreakdownSection: FC<{
               </TableCell>
               <TableCell className="text-sm">{row.etapa}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{row.actividad}</TableCell>
-              <TableCell className="text-center">
-                {row.implicancia === "Principal" ? (
-                  <span className="inline-block w-2 h-2 rounded-full bg-red-500" title="Principal" />
-                ) : (
-                  <span className="inline-block w-2 h-2 rounded-full bg-gray-300" title="Secundaria" />
-                )}
+              <TableCell className="text-center text-sm text-muted-foreground">
+                {row.tiemposPerdidos.length > 0
+                  ? row.tiemposPerdidos.join(", ")
+                  : "—"}
               </TableCell>
             </TableRow>
           ))}

@@ -15,9 +15,11 @@ import { QuotationExchangeRateProvider } from "../../hooks/stores/quotation.exch
 import { TruckInfoCard } from "../prices/truck/TruckInfoCard";
 import { PickupCardView } from "../prices/delivery/PickupCardView";
 import { SummaryCard } from "../prices/summary/SummaryCard";
+import { QuotationPaymentTermsCard } from "../conditions/QuotationPaymentTermsCard";
 import { format } from "date-fns";
 import { QuotationServiceStoreProvider } from "../../hooks/stores/quotation.services.store.provider";
 import { QuotationReferenceStoreProvider } from "../../hooks/stores/quotation.reference.store.provider";
+import { toStoreExchangeRate } from "../../api/exchange-rate.api";
 import type { DesiredQuotationData } from "../../interfaces/upsert/desiredQuotationInitialData";
 
 type QuotationDetailFormCardProps = {
@@ -84,7 +86,7 @@ export function QuotationDetailFormCard({
           <QuotationPickupStoreProvider initialData={quotation.pickupService}>
             <QuotationExchangeRateProvider
               initialData={{
-                rate: quotation.quotationRate,
+                rate: toStoreExchangeRate(quotation.quotationRate),
               }}
             >
             <div className="space-y-6">
@@ -224,6 +226,10 @@ export function QuotationDetailFormCard({
               <ConditionsDatesCard
                 fechaEmision={quotation.quotationConditions.emissionDate}
                 fechaVigencia={quotation.quotationConditions.expirationDate}
+              />
+              <QuotationPaymentTermsCard
+                plazosPago={quotation.quotationConditions.plazosPago}
+                readOnly
               />
               {/* Summary */}
               <SummaryCard />

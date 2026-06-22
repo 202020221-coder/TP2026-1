@@ -76,8 +76,8 @@ export type QuotationApiBody = {
     observations: string;
   };
   quotationRate: {
-    buyingRate: number;
-    sellingRate: number;
+    buyingRate: number | null;
+    sellingRate: number | null;
   };
   inventory: QuotationInventoryBody[];
   services: QuotationServiceBody[];
@@ -87,6 +87,12 @@ export type QuotationApiBody = {
     pickupDate: string;
     pickupAddress: string;
   };
+  plazos_pago: {
+    id?: number;
+    porcentaje: number;
+    plazo_de_pago: number;
+    orden: number;
+  }[];
   phases: QuotationPhases;
 };
 

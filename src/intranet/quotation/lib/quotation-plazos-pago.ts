@@ -24,6 +24,9 @@ const clampPercentage = (value: number) =>
 
 const clampDays = (value: number) => Math.max(0, Math.round(value));
 
+export const hasSecondInstallment = (plazos: QuotationPlazosPagoPair): boolean =>
+  plazos[0].porcentaje < 100;
+
 export const syncSecondInstallmentPercentage = (
   plazos: QuotationPlazosPagoPair,
   firstPercentage: number,
@@ -68,11 +71,15 @@ export const updatePlazoPagoAtOrden = (
 };
 
 export const plazosPagoFromInstallments = (
-  installments: QuotationPaymentInstallment[],
+  installments: QuotationPaymentInstallment[] | null | undefined,
 ): QuotationPlazosPagoPair => {
-  const sorted = [...installments].sort((a, b) => a.orden - b.orden);
+  const sorted = [...(installments ?? [])].sort((a, b) => a.orden - b.orden);
+  if (sorted.length === 0) {
+    return DEFAULT_PLAZOS_PAGO;
+  }
+
   const first = sorted.find((item) => item.orden === 1) ?? sorted[0];
-  const second = sorted.find((item) => item.orden === 2) ?? sorted[1];
+  const second = sorted.find((item) => item.orden === 2);
 
   const firstPercentage = first?.porcentaje ?? DEFAULT_PLAZOS_PAGO[0].porcentaje;
 
@@ -96,10 +103,13 @@ export const plazosPagoFromInstallments = (
 
 export const plazosPagoToApiBody = (
   plazos: QuotationPlazosPagoPair,
-): QuotationPaymentInstallment[] =>
-  plazos.map((plazo) => ({
+): QuotationPaymentInstallment[] => {
+  const activePlazos = hasSecondInstallment(plazos) ? plazos : [plazos[0]];
+
+  return activePlazos.map((plazo) => ({
     ...(plazo.id != null ? { id: plazo.id } : {}),
     porcentaje: plazo.porcentaje,
     plazo_de_pago: plazo.plazo_de_pago,
     orden: plazo.orden,
   }));
+};

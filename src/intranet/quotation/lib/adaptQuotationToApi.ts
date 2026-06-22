@@ -5,6 +5,8 @@ import type {
   QuotationTruckBody,
 } from "../interfaces/responses.dto";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
+import { plazosPagoToApiBody } from "./quotation-plazos-pago";
+import { EMPTY_EXCHANGE_RATE } from "../api/exchange-rate.api";
 
 type UpsertQuotationData = Omit<DesiredQuotationData, "status" | "client">;
 
@@ -125,8 +127,10 @@ export const toQuotationApiBody = (
       observations: data.quotationConditions.observations,
     },
     quotationRate: {
-      buyingRate: data.quotationRate.buyingRate,
-      sellingRate: data.quotationRate.sellingRate,
+      buyingRate:
+        data.quotationRate?.buyingRate ?? EMPTY_EXCHANGE_RATE.buyingRate,
+      sellingRate:
+        data.quotationRate?.sellingRate ?? EMPTY_EXCHANGE_RATE.sellingRate,
     },
     inventory,
     services,
@@ -136,6 +140,7 @@ export const toQuotationApiBody = (
       pickupDate: data.pickupService.pickupDate,
       pickupAddress: data.pickupService.pickupAddress,
     },
+    plazos_pago: plazosPagoToApiBody(data.quotationConditions.plazosPago),
     phases: data.phases,
   };
 };

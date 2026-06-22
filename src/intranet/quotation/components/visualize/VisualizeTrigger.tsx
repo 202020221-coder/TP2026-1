@@ -9,7 +9,6 @@ import { cn } from "@/shared/lib/utils";
 import { useQuotationTruckStore } from "../../hooks/stores/quotation.truck.store.provider";
 import { useQuotationReferenceStore } from "../../hooks/stores/quotation.reference.store.provider";
 import { useQuotationPickupStore } from "../../hooks/stores/quotation.pickup.store.provider";
-import { useQuotationExchangeRate } from "../../hooks/stores/quotation.exchange.rate.store.provider";
 
 interface VisualizeTriggerProps {
   baseTriggerClass: string;
@@ -22,26 +21,20 @@ export const VisualizeTrigger: FC<
   const quotationName = useQuotationReferenceStore((s) => s.name);
   const phases = useQuotationReferenceStore((s) => s.phases);
   const pickupAddress = useQuotationPickupStore((s) => s.pickupAddress);
-  const rate = useQuotationExchangeRate((s) => s.rate);
 
   const hasName = quotationName.trim().length > 0;
   const hasPhases = phases.items.length > 0;
   const hasAddress = pickupAddress.trim().length > 0;
-  const hasRate = !!rate && rate.buyingRate > 0 && rate.sellingRate > 0;
   const hasTruck = trucks.length > 0;
-  const isDisabled = !hasTruck || !hasPhases || !hasName || !hasAddress || !hasRate;
+  const isDisabled = !hasTruck || !hasPhases || !hasName || !hasAddress;
 
   const getDisabledReasons = () => {
     const reasons: string[] = [];
 
     if (!hasTruck) reasons.push("Debe seleccionar al menos un camión");
-    if (!hasPhases)
-      reasons.push("Debe definir al menos una fase");
+    if (!hasPhases) reasons.push("Debe definir al menos una fase");
     if (!hasName) reasons.push("Debe definir un nombre para la cotización");
-    if (!hasAddress)
-      reasons.push("Debe definir una dirección de envio");
-    if (!hasRate)
-      reasons.push("Debe esperar a que se cargue la tasa de cambio");
+    if (!hasAddress) reasons.push("Debe definir una dirección de envio");
 
     return reasons;
   };

@@ -1,28 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  getServiciosPublicos,
+  getServiciosParaSolicitud,
   getServicioPrincipal,
 } from "@/intranet/services/api/service.api";
+import { isServicioDisponibleParaSolicitud } from "@/intranet/services/lib/servicio-incidencia";
 import { resolveServicioFotoUrl } from "@/intranet/services/lib/servicio-foto";
 import { pickServicioIcon } from "@/intranet/services/lib/pick-servicio-icon";
 import type { ServiceOption } from "../components/create/types";
 
 export const PUBLIC_SERVICES_SELECTION_KEY = [
   "create-request",
-  "servicios-publicos",
+  "servicios-solicitud",
 ] as const;
 
 export function usePublicServicesSelection() {
   const query = useQuery({
     queryKey: PUBLIC_SERVICES_SELECTION_KEY,
     queryFn: async () => {
-      const servicios = (await getServiciosPublicos()).filter((s) => s.activo);
-      // Trae las fases reales (etapas) de cada servicio en paralelo.
+      const servicios = (await getServiciosParaSolicitud()).filter(
+        isServicioDisponibleParaSolicitud,
+      );
       const plantillas = await Promise.all(
         servicios.map((s) =>
           getServicioPrincipal(s.id).catch(() => ({
             fases: [],
             subservicios: [],
+            principalPagoPorDia: false,
           })),
         ),
       );

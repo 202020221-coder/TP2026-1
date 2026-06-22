@@ -34,6 +34,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useLocation, useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
+import { toStoreExchangeRate } from "../api/exchange-rate.api";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { CreateQuotationServicesSection } from "../components/prices/services/CreateQuotationServicesSection";
@@ -107,7 +108,9 @@ export function EditQuotationPage() {
             initialData={data.quotationConditions}
           >
             <QuotationExchangeRateProvider
-              initialData={{ rate: data.quotationRate }}
+              initialData={{
+                rate: toStoreExchangeRate(data.quotationRate),
+              }}
             >
               <QuotationReferenceStoreProvider
                 name={data.name}
@@ -174,7 +177,7 @@ export function EditQuotationPage() {
                               )}
                               <CreateQuotationServicesSection />
                               <CreateQuotationTruckSelector />
-                              <CreateQuotationSummaryCard />
+                              <CreateQuotationSummaryCard showUpdateRatesButton />
                             </TabsContent>
                             <TabsContent value="conditions">
                               <CreateQuotationConditionCard />

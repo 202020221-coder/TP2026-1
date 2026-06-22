@@ -5,13 +5,6 @@ import { Input } from '@/shared/components/ui/input';
 import { Textarea } from "@/shared/components/ui/textarea";
 import type { SelectedTruck, ServiceOption } from './types';
 
-function formatServicePrice(price: number | string | undefined): string | null {
-    if (price === undefined || price === null || price === '') return null;
-    const num = typeof price === 'number' ? price : Number(price);
-    if (!Number.isNaN(num) && num <= 0) return null;
-    return String(price);
-}
-
 interface StepServicesSelectionProps {
     serviceOptions: ServiceOption[];
     selectedServices: SelectedTruck[];
@@ -81,7 +74,6 @@ export function StepServicesSelection({
                         <div className="custom-scrollbar grid max-h-[500px] grid-cols-1 gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
                             {serviceOptions.map((service) => {
                                 const Icon = service.Icon;
-                                const priceLabel = formatServicePrice(service.price);
                                 return (
                                     <div
                                         key={service.id}
@@ -96,14 +88,9 @@ export function StepServicesSelection({
                                         <h4 className="mb-2 min-h-12 text-center text-sm leading-snug font-bold text-gray-900">
                                             {service.name}
                                         </h4>
-                                        <p className="mb-3 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
+                                        <p className="mb-5 min-h-[60px] text-center text-xs leading-relaxed text-gray-500">
                                             {service.description || 'Descripción no disponible por ahora.'}
                                         </p>
-                                        {priceLabel ? (
-                                            <div className="mb-5 inline-flex items-center rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-gray-800">
-                                                {priceLabel}
-                                            </div>
-                                        ) : null}
                                         <div className="mt-auto flex w-full gap-2">
                                             <Button
                                                 variant="outline"

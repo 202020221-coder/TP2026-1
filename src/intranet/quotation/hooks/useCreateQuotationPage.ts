@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getOrder } from "@/intranet/orders/api/order.api";
-import { getExchangeRate } from "@/intranet/quotation/api/exchange-rate.api";
+import { fetchExchangeRateOptional } from "@/intranet/quotation/api/exchange-rate.api";
 import { enrichOrderQuotationData } from "../lib/adaptOrderToQuotation";
 import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
@@ -39,7 +39,7 @@ const adaptDTO = async (
   getOrderResponseDTO: GetOrderResponseDTO,
 ): Promise<DesiredQuotationData> => {
   const [quotationRate, enriched] = await Promise.all([
-    getExchangeRate(),
+    fetchExchangeRateOptional(),
     enrichOrderQuotationData(getOrderResponseDTO),
   ]);
 
