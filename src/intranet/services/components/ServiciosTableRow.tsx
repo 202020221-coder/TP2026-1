@@ -6,12 +6,16 @@ import { Pencil, Trash2, UserCheck, Loader2, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import type { Servicio } from "../interfaces/service";
 import { useServicios } from "../hooks/useServicios";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { canDeactivateServices } from "@/intranet/layout/sidebar-links";
 import { ServicioFormModal } from "./ServicioFormModal";
 import { PersonalRequeridoModal } from "./PersonalRequeridoModal";
 import { InventarioServicioModal } from "./InventarioServicioModal";
 
 export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
   const { toggleActivoLocal } = useServicios();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canDeactivate = canDeactivateServices(role);
   const [editOpen, setEditOpen]           = useState(false);
   const [personalOpen, setPersonalOpen]   = useState(false);
   const [inventarioOpen, setInventarioOpen] = useState(false);
@@ -106,6 +110,7 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
             </Tooltip>
 
             {/* ── Desactivar / Activar ── */}
+            {canDeactivate ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -136,6 +141,7 @@ export const ServicioTableRow: FC<{ servicio: Servicio }> = ({ servicio }) => {
                 {servicio.activo ? "Desactivar Servicio" : "Activar Servicio"}
               </TooltipContent>
             </Tooltip>
+            ) : null}
 
           </div>
         </TableCell>

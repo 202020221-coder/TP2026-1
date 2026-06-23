@@ -18,7 +18,7 @@ export const ProjectsTable: FC<{ canEdit: boolean }> = ({ canEdit }) => {
   return (
     <ProjectsTableControls>
       <Table containerClassname="flex-1 overflow-auto flex-col">
-        <ProjectsTableHeader />
+        <ProjectsTableHeader canEdit={canEdit} />
         <TableBody>
           {isPending || isFetching ? (
             <ProjectsTablePlaceholder rows={queryParams.limit ?? 10} />

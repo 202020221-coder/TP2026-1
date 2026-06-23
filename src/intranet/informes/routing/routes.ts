@@ -10,8 +10,10 @@ export const routes: IRoute[] = [
     roles: [
       RolesRecord.manager,
       RolesRecord.projectAdmin,
+      RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
       RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
     ],
   },
 ];

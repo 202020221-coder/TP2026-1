@@ -13,6 +13,8 @@ export const routes: IRoute[] = [
       RolesRecord.projectAdmin,
       RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
     ],
   },
   {
@@ -24,6 +26,8 @@ export const routes: IRoute[] = [
       RolesRecord.projectAdmin,
       RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
     ],
   },
 ];

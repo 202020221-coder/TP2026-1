@@ -84,7 +84,7 @@ const TopControls: FC<TopProps> = ({
   onUpdateFilter,
   onResetFilters,
 }) => {
-  const { search, setSearch, result } = useServicios();
+  const { search, setSearch, result, hideIncidenciaServicios, setHideIncidenciaServicios } = useServicios();
   const [searchValue, setSearchValue] = useState(search ?? "");
 
   const debouncedSearch = useDebounced((value: string) => {
@@ -127,7 +127,16 @@ const TopControls: FC<TopProps> = ({
       </div>
 
       {/* Botones de acción */}
-      <div className="col-span-1 md:col-span-4 flex justify-end gap-2">
+      <div className="col-span-1 md:col-span-4 flex flex-wrap justify-end items-center gap-3">
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-gray-300 accent-red-500"
+            checked={hideIncidenciaServicios}
+            onChange={(e) => setHideIncidenciaServicios(e.target.checked)}
+          />
+          Ocultar servicios de incidencia
+        </label>
         <Button
           onClick={onEliminadosClick}
           variant="outline"

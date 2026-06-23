@@ -24,6 +24,8 @@ import type { ProyectoEtapa, ProyectoActividad, Informe, IncidenciaResumen } fro
 import type { Incident } from "@/intranet/incidents/interfaces/incident";
 import type { InvolvedObject } from "@/intranet/incidents/interfaces/incident-quotation";
 import type { PresupuestoRealItem, TipoPresupuesto } from "@/intranet/presupuestos/interfaces/presupuesto";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { hideFinancialsInAnalytics } from "@/intranet/layout/sidebar-links";
 
 interface ProjectAnalyticsModalProps {
   projectId: number;
@@ -47,6 +49,8 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
   open,
   onClose,
 }) => {
+  const role = useSession((state) => state.loggedUser?.rol);
+  const hideFinancials = hideFinancialsInAnalytics(role);
   const [loading, setLoading] = useState(true);
   const [proyecto, setProyecto] = useState<ProyectoData | null>(null);
   const [etapas, setEtapas] = useState<ProyectoEtapa[]>([]);
@@ -102,7 +106,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
         }
         setIncidentObjects(objs);
 
-        if (cotId) {
+        if (cotId && !hideFinancials) {
           const realResults: Record<string, PresupuestoRealItem[]> = {};
           const tipoResults = await Promise.allSettled(
             TIPOS.map((t) =>
@@ -124,7 +128,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
     };
 
     fetchAll();
-  }, [open, projectId, projectName]);
+  }, [open, projectId, projectName, hideFinancials]);
 
   if (!open) return null;
 
@@ -194,32 +198,35 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
                   incidents={incidents}
                   incidentObjects={incidentObjects}
                   presupuestoReal={presupuestoReal}
+                  hideFinancials={hideFinancials}
                 />
               </SectionCard>
 
-              {/* Section 5: Suma de Gastos */}
-              <SectionCard
-                icon={<DollarSign size={16} />}
-                title="Suma de Gastos"
-              >
-                <SumaGastosSection
-                  presupuestoReal={presupuestoReal}
-                  cotizacionId={cotizacionId}
-                />
-              </SectionCard>
+              {!hideFinancials ? (
+                <>
+                  <SectionCard
+                    icon={<DollarSign size={16} />}
+                    title="Suma de Gastos"
+                  >
+                    <SumaGastosSection
+                      presupuestoReal={presupuestoReal}
+                      cotizacionId={cotizacionId}
+                    />
+                  </SectionCard>
 
-              {/* Section 6: Proyección de Pagos */}
-              <SectionCard
-                icon={<Calendar size={16} />}
-                title="Proyección de Pagos"
-              >
-                <ProyeccionPagosSection
-                  incidents={incidents}
-                  projectId={projectId}
-                  fechaFin={proyecto?.fecha_fin ?? null}
-                  projectName={proyectoNombre}
-                />
-              </SectionCard>
+                  <SectionCard
+                    icon={<Calendar size={16} />}
+                    title="Proyección de Pagos"
+                  >
+                    <ProyeccionPagosSection
+                      incidents={incidents}
+                      projectId={projectId}
+                      fechaFin={proyecto?.fecha_fin ?? null}
+                      projectName={proyectoNombre}
+                    />
+                  </SectionCard>
+                </>
+              ) : null}
             </>
           )}
         </div>
@@ -492,7 +499,8 @@ const HorasPerdidasSection: FC<{
   incidents: Incident[];
   incidentObjects: Record<number, InvolvedObject[]>;
   presupuestoReal: Record<string, PresupuestoRealItem[]>;
-}> = ({ incidents, incidentObjects, presupuestoReal }) => {
+  hideFinancials?: boolean;
+}> = ({ incidents, incidentObjects, presupuestoReal, hideFinancials = false }) => {
   const rows: HoraPerdidaRow[] = incidents.map((inc) => {
     const itemsManoObra = (presupuestoReal["Mano de Obra"] ?? []).filter(
       (item) => item.ID_Incidencia === inc.id_incidencia,
@@ -536,8 +544,12 @@ const HorasPerdidasSection: FC<{
           <TableRow className="hover:bg-transparent bg-muted/20">
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Incidencia</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Horas Perdidas</TableHead>
-            <TableHead className="text-gray-500 font-medium text-xs uppercase text-right">Costo x Hora</TableHead>
-            <TableHead className="text-gray-500 font-medium text-xs uppercase text-right">Costo Total</TableHead>
+            {!hideFinancials ? (
+              <>
+                <TableHead className="text-gray-500 font-medium text-xs uppercase text-right">Costo x Hora</TableHead>
+                <TableHead className="text-gray-500 font-medium text-xs uppercase text-right">Costo Total</TableHead>
+              </>
+            ) : null}
             <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Objetos Involucrados</TableHead>
           </TableRow>
         </TableHeader>
@@ -551,12 +563,16 @@ const HorasPerdidasSection: FC<{
               <TableCell className="text-center font-mono text-sm">
                 {row.horas > 0 ? `${row.horas.toFixed(1)} h` : "—"}
               </TableCell>
-              <TableCell className="text-right font-mono text-sm">
-                {row.costo_x_hora > 0 ? `S/ ${row.costo_x_hora.toFixed(2)}` : "—"}
-              </TableCell>
-              <TableCell className="text-right font-mono text-sm font-semibold">
-                {row.total > 0 ? `S/ ${row.total.toFixed(2)}` : "—"}
-              </TableCell>
+              {!hideFinancials ? (
+                <>
+                  <TableCell className="text-right font-mono text-sm">
+                    {row.costo_x_hora > 0 ? `S/ ${row.costo_x_hora.toFixed(2)}` : "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-sm font-semibold">
+                    {row.total > 0 ? `S/ ${row.total.toFixed(2)}` : "—"}
+                  </TableCell>
+                </>
+              ) : null}
               <TableCell className="text-center font-mono text-sm">{row.objetos}</TableCell>
             </TableRow>
           ))}

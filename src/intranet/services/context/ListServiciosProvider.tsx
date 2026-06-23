@@ -17,6 +17,7 @@ import { ListServiciosContext } from "./ListServiciosContext";
 import type { CreateServicioDTO, UpdateServicioDTO, Servicio } from "../interfaces/service";
 import type { GetServiciosResponse } from "../interfaces/responses.dto";
 import { useServicioFilters } from "../hooks/useServicioFilters";
+import { isServicioDeIncidencia } from "../lib/servicio-incidencia";
 import { toast } from "sonner";
 
 // Clave base estable — no depende del objeto queryParams completo
@@ -31,6 +32,7 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
   const [search, setSearchState] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSizeState] = useState(10);
+  const [hideIncidenciaServicios, setHideIncidenciaServicios] = useState(true);
 
   const queryKey = [SERVICIOS_BASE_KEY, { search }] as const;
 
@@ -63,8 +65,13 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
     setOpen: setFilterOpen,
   } = useServicioFilters(serviciosActivos);
 
+  const visibleServicios = useMemo(() => {
+    if (!hideIncidenciaServicios) return filteredServicios;
+    return filteredServicios.filter((s) => !isServicioDeIncidencia(s.servicio_de_incidencia));
+  }, [filteredServicios, hideIncidenciaServicios]);
+
   // ── Paginación client-side sobre la lista activa ya filtrada ──────────────
-  const totalItems = filteredServicios.length;
+  const totalItems = visibleServicios.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   // Si la página actual queda fuera de rango (al filtrar/cambiar tamaño), corrige
@@ -76,8 +83,8 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
 
   const servicios = useMemo(() => {
     const start = (safePage - 1) * pageSize;
-    return filteredServicios.slice(start, start + pageSize);
-  }, [filteredServicios, safePage, pageSize]);
+    return visibleServicios.slice(start, start + pageSize);
+  }, [visibleServicios, safePage, pageSize]);
 
   const setSearch = useCallback((value: string | undefined) => {
     setSearchState(value);
@@ -206,6 +213,8 @@ export const ListServiciosProvider: FC<{ children: ReactNode }> = ({ children })
         updateMutation,
         toggleActivoMutation,
         toggleActivoLocal,
+        hideIncidenciaServicios,
+        setHideIncidenciaServicios,
       }}
     >
       {children}

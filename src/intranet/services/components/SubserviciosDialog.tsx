@@ -12,7 +12,8 @@ import { Input } from "@/shared/components/ui/input";
 import { Card } from "@/shared/components/ui/card";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { CheckCircle2, PackageSearch, Search, Wrench } from "lucide-react";
-import { getServiciosPublicos } from "../api/service.api";
+import { getServicios } from "../api/service.api";
+import { isServicioDeIncidencia } from "../lib/servicio-incidencia";
 import { resolveServicioFotoUrl } from "../lib/servicio-foto";
 import { pickServicioIcon } from "../lib/pick-servicio-icon";
 
@@ -49,8 +50,8 @@ export const SubserviciosDialog: FC<SubserviciosDialogProps> = ({
   const [picked, setPicked] = useState<Map<number, string>>(new Map());
 
   const { data, isPending, isError } = useQuery({
-    queryKey: ["servicios-publicos", "subservicios"],
-    queryFn: getServiciosPublicos,
+    queryKey: ["servicios", "subservicios"],
+    queryFn: () => getServicios({ page: 1, limit: 1000 }),
     enabled: open,
     staleTime: 60_000,
   });
@@ -64,8 +65,11 @@ export const SubserviciosDialog: FC<SubserviciosDialogProps> = ({
   }, [open, selectedIds]);
 
   const catalog = useMemo(() => {
-    const list = (data ?? []).filter(
-      (s) => s.activo && s.id !== currentServicioId,
+    const list = (data?.data ?? []).filter(
+      (s) =>
+        s.activo &&
+        s.id !== currentServicioId &&
+        !isServicioDeIncidencia(s.servicio_de_incidencia),
     );
     const term = normalize(search);
     if (!term) return list;
@@ -84,7 +88,7 @@ export const SubserviciosDialog: FC<SubserviciosDialogProps> = ({
   const handleConfirm = () => {
     const selected: SubservicioSeleccionado[] = [];
     // Mantener el nombre real desde el catálogo cuando esté disponible.
-    const byId = new Map((data ?? []).map((s) => [s.id, s.nombre]));
+    const byId = new Map((data?.data ?? []).map((s) => [s.id, s.nombre]));
     picked.forEach((nombre, id) => {
       selected.push({ id, nombre: byId.get(id) ?? nombre });
     });
