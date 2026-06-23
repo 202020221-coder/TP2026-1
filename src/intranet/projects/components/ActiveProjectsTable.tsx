@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useState, useMemo, type FC } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -39,6 +39,7 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { getActiveCompletedProjects } from "../api/active-projects.api";
+import { getIncidenciasDelProyecto } from "../api/project-analytics.api";
 import {
   type ProjectState,
   ProjectStatesRecord,
@@ -70,6 +71,36 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
   const { data, isPending, isFetching, isError, error } = useQuery({
     queryKey: ["active-projects"],
     queryFn: getActiveCompletedProjects,
+  });
+
+  const projectIds = useMemo(
+    () => (data ?? []).map((p) => p.id_Proyecto).sort((a, b) => a - b),
+    [data],
+  );
+
+  const { data: incidentCounts = {} } = useQuery({
+    queryKey: ["active-projects-incident-counts", projectIds],
+    queryFn: async () => {
+      if (!data?.length) return {} as Record<number, number>;
+      const entries = await Promise.all(
+        data.map(async (project) => {
+          try {
+            const incidencias = await getIncidenciasDelProyecto(project.id_Proyecto);
+            const list = Array.isArray(incidencias)
+              ? incidencias
+              : Array.isArray((incidencias as { data?: unknown[] })?.data)
+                ? ((incidencias as { data: unknown[] }).data ?? [])
+                : [];
+            return [project.id_Proyecto, list.length] as const;
+          } catch {
+            return [project.id_Proyecto, 0] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries) as Record<number, number>;
+    },
+    enabled: projectIds.length > 0,
+    staleTime: 60_000,
   });
 
   const debouncedSearch = useDebounced((val: string) => {
@@ -221,7 +252,8 @@ export const ActiveProjectsTable: FC<ActiveProjectsTableProps> = ({
                 )
               }
             >
-              <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />-
+              <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" />
+              {incidentCounts[project.id_Proyecto] ?? 0}
             </Button>
           </TooltipTrigger>
           <TooltipContent className="bg-white border border-amber-400 text-amber-600">

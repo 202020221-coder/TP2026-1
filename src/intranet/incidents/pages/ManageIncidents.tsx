@@ -20,6 +20,7 @@ import { SumaGastosModal } from "../components/detail/SumaGastosModal";
 import { IncidentQuotationsTable } from "../components/detail/IncidentQuotationsTable";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { canCreateIncidentQuotation } from "../lib/can-create-incident-quotation";
+import { canViewIncidentQuotations } from "@/intranet/layout/sidebar-links";
 
 type IncidentsNavigationState = {
   projectId?: number;
@@ -190,6 +191,7 @@ function IncidentActionsPanel({
 }) {
   const role = useSession((state) => state.loggedUser?.rol);
   const canCreateQuotation = canCreateIncidentQuotation(role);
+  const canViewQuotations = canViewIncidentQuotations(role);
   const [createQuotationOpen, setCreateQuotationOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -272,7 +274,7 @@ function IncidentActionsPanel({
         </Button>
       </div>
 
-      {selectedIncidentId ? (
+      {selectedIncidentId && canViewQuotations ? (
         <div className="w-full min-w-0 space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Cotizaciones de esta incidencia

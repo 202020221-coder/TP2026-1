@@ -5,7 +5,6 @@ const CREATOR_ROLES: UserRole[] = [
   RolesRecord.lawyer,
   RolesRecord.manager,
   RolesRecord.projectAdmin,
-  RolesRecord.fieldSupervisor,
 ];
 
 export const canCreateIncidentQuotation = (

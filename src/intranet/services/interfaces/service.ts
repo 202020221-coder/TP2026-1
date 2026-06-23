@@ -82,6 +82,8 @@ export interface CreateServicioDTO {
   observaciones: string;
   /** Si true, en la cotización el pago es precio × días del servicio. */
   pago_por_dia?: boolean;
+  /** YES = solo incidencias; NO = servicio normal. */
+  servicio_de_incidencia?: "YES" | "NO";
   etapas?: ServicioEtapaPayload[];
   subservicios?: ServicioSubservicioPayload[];
 }

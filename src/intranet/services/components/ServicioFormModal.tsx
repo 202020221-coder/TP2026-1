@@ -33,7 +33,13 @@ interface Props {
 }
 
 const EMPTY: CreateServicioDTO = {
-  nombre: "", descripcion: "", precio_regular: 0, condicional_precio: "", observaciones: "", pago_por_dia: false,
+  nombre: "",
+  descripcion: "",
+  precio_regular: 0,
+  condicional_precio: "",
+  observaciones: "",
+  pago_por_dia: false,
+  servicio_de_incidencia: "NO",
 };
 
 interface FieldProps {
@@ -103,6 +109,7 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
         condicional_precio: servicio.condicional_precio,
         observaciones: servicio.observaciones,
         pago_por_dia: servicio.pago_por_dia,
+        servicio_de_incidencia: servicio.servicio_de_incidencia ? "YES" : "NO",
       });
       // Cargar fases y subservicios reales desde la plantilla del servicio
       // principal (GET /servicios/:id/principal) en una sola petición.
@@ -309,6 +316,31 @@ export const ServicioFormModal: FC<Props> = ({ mode, servicio, onClose }) => {
               />
               <div className="h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-red-500 peer-checked:after:translate-x-5" />
             </label>
+          </div>
+
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+            <div>
+              <Label htmlFor="servicio_de_incidencia" className="text-sm font-medium text-gray-700">
+                Servicio de incidencia
+              </Label>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Si es YES, el servicio solo aplica en cotizaciones de incidencia.
+              </p>
+            </div>
+            <select
+              id="servicio_de_incidencia"
+              className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+              value={form.servicio_de_incidencia ?? "NO"}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  servicio_de_incidencia: e.target.value as "YES" | "NO",
+                }))
+              }
+            >
+              <option value="NO">NO</option>
+              <option value="YES">YES</option>
+            </select>
           </div>
 
           <FormField id="observaciones"     label="Observaciones"         placeholder="Notas adicionales..."            value={form.observaciones}     error={errors.observaciones}     onChange={handleChange} textarea />

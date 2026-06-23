@@ -21,7 +21,7 @@ import {
 import { sidebarLinks, type IMenu, type ISubMenu } from "../sidebar-links";
 
 import {
-  AlertTriangle,
+  Boxes,
   BriefcaseBusiness,
   CalendarDays,
   ChevronRight,
@@ -32,11 +32,11 @@ import {
   Receipt,
   Truck,
   Users,
+  Wrench,
 } from "lucide-react";
 import type { UserRole } from "@/security/session/interfaces/roles";
 
 const lucideIconMap: Record<string, LucideIcon> = {
-  AlertTriangle,
   LayoutDashboard,
   ClipboardList,
   Receipt,
@@ -45,6 +45,8 @@ const lucideIconMap: Record<string, LucideIcon> = {
   FileArchive,
   Truck,
   Users,
+  Wrench,
+  Boxes,
 };
 
 export function NavMain({ userRole }: { userRole: UserRole }) {

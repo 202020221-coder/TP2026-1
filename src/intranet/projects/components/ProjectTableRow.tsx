@@ -6,7 +6,7 @@ import { EditProjectModal } from "./EditProjectModal";
 import type { FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Pencil, Eye, ChevronDown } from "lucide-react";
+import { Pencil, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -265,29 +265,27 @@ export const ProjectTableRow: FC<{ project: Project; canEdit: boolean }> = ({
             <span className="text-gray-400 text-sm italic">—</span>
           )}
         </TableCell>
-        {/* Editar proyecto */}
-        <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-gray-600 border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-600 hover:border-gray-500 transition-colors"
-                onClick={() => setModalOpen(true)}
-              >
-                {canEdit ? (
+        {/* Edición del proyecto (solo roles con permiso de edición) */}
+        {canEdit ? (
+          <TableCell className="text-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-gray-600 border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-600 hover:border-gray-500 transition-colors"
+                  onClick={() => setModalOpen(true)}
+                >
                   <Pencil className="w-3.5 h-3.5 mr-1 text-gray-600" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5 mr-1 text-gray-600" />
-                )}
-                {canEdit ? "Editar" : "Ver"}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-white border border-gray-400 text-gray-600">
-              {canEdit ? "Editar proyecto" : "Ver proyecto"}
-            </TooltipContent>
-          </Tooltip>
-        </TableCell>
+                  Editar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border border-gray-400 text-gray-600">
+                Editar proyecto
+              </TooltipContent>
+            </Tooltip>
+          </TableCell>
+        ) : null}
       </TableRow>
     </>
   );
