@@ -169,6 +169,12 @@ export const sidebarLinks: IMenu[] = [
     title: "Gestionar Recursos",
     roles: [RolesRecord.lawyer, RolesRecord.fieldSupervisor],
     url: "/intranet/organizar-recursos/",
-    icon: "Boxes",
+    icon: "FileText",
+  },
+  {
+    title: "Presupuesto Interno",
+    roles: [RolesRecord.manager],
+    url: "/intranet/presupuestos/",
+    icon: "FileText",
   },
 ];
