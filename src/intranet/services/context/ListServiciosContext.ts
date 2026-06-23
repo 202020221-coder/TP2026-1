@@ -40,6 +40,8 @@ interface ListServiciosContextValue {
   updateMutation: UseMutationResult<Servicio, Error, { id: number; dto: UpdateServicioDTO }>;
   toggleActivoMutation: UseMutationResult<Servicio, Error, { id: number; currentActivo: boolean }>;
   toggleActivoLocal: (id: number, currentActivo: boolean) => void;
+  hideIncidenciaServicios: boolean;
+  setHideIncidenciaServicios: (value: boolean) => void;
 }
 
 export const ListServiciosContext = createContext<ListServiciosContextValue | null>(null);

@@ -18,7 +18,8 @@ interface Props {
   onRefresh: () => void;
   fechaInicio: string | null;
   fechaFin: string | null;
-  canEdit: boolean;
+  canAssign: boolean;
+  canCommentOnly: boolean;
 }
 
 const ASISTENCIAS: Asistencia[] = ['Programada', 'Cancelada', 'Realizada'];
@@ -81,7 +82,8 @@ export function DailyStaffPanel({
   onRefresh,
   fechaInicio,
   fechaFin,
-  canEdit,
+  canAssign,
+  canCommentOnly,
 }: Props) {
   const [disponiblesByProfesion, setDisponiblesByProfesion] = useState<
     Record<string, PerfilDisponible[]>
@@ -202,13 +204,19 @@ export function DailyStaffPanel({
         )}
       </div>
 
-      {!canEdit && (
+      {!canAssign && !canCommentOnly && (
         <div className="mx-4 my-3 p-3 border border-slate-200 rounded-xl bg-slate-50 text-xs text-slate-700 shrink-0">
           Vista de solo lectura. No puedes asignar trabajadores.
         </div>
       )}
 
-      {canEdit && !isWithinProject && (
+      {canCommentOnly && (
+        <div className="mx-4 my-3 p-3 border border-blue-200 rounded-xl bg-blue-50 text-xs text-blue-800 shrink-0">
+          Solo puedes agregar comentarios. No puedes asignar trabajadores.
+        </div>
+      )}
+
+      {canAssign && !isWithinProject && (
         <div className="mx-4 my-3 p-3 border border-amber-300 rounded-xl bg-amber-50 text-xs text-amber-800 shrink-0">
           Este día está fuera del rango del proyecto.
         </div>
@@ -247,7 +255,8 @@ export function DailyStaffPanel({
               disponibles={disponiblesByProfesion[slot.profesion] ?? []}
               loadingDisponibles={loadingDisponibles}
               busyDnis={busyDnis}
-              canEdit={canEdit && isWithinProject}
+              canAssign={canAssign && isWithinProject}
+              canCommentOnly={canCommentOnly && isWithinProject}
               pending={pendingId === slot.Id_trabajo}
               onAssign={(dni) =>
                 runMutation(
@@ -283,7 +292,8 @@ interface SlotCardProps {
   disponibles: PerfilDisponible[];
   loadingDisponibles: boolean;
   busyDnis: Set<string>;
-  canEdit: boolean;
+  canAssign: boolean;
+  canCommentOnly: boolean;
   pending: boolean;
   onAssign: (dni: string) => void;
   onUnassign: () => void;
@@ -295,7 +305,8 @@ function SlotCard({
   disponibles,
   loadingDisponibles,
   busyDnis,
-  canEdit,
+  canAssign,
+  canCommentOnly,
   pending,
   onAssign,
   onUnassign,
@@ -344,7 +355,7 @@ function SlotCard({
             <p className="text-xs text-gray-400">DNI: {slot.DNI_Trabajador}</p>
           </div>
 
-          {canEdit ? (
+          {canAssign ? (
             <>
               <div className="flex gap-2">
                 <select
@@ -393,6 +404,27 @@ function SlotCard({
                 </Button>
               </div>
             </>
+          ) : canCommentOnly ? (
+            <>
+              <Input
+                value={comentario}
+                placeholder="Comentario"
+                onChange={(e) => setComentario(e.target.value)}
+                disabled={pending}
+                className="text-xs h-8"
+              />
+              <div className="flex gap-2 justify-end">
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => onSaveDetails(slot.asistencia ?? 'Programada', comentario)}
+                  disabled={pending || comentario === (slot.comentario ?? '')}
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  Guardar comentario
+                </Button>
+              </div>
+            </>
           ) : (
             <span
               className={`inline-block text-[11px] px-2 py-0.5 rounded-full border ${asistenciaClass(
@@ -403,7 +435,7 @@ function SlotCard({
             </span>
           )}
         </>
-      ) : canEdit ? (
+      ) : canAssign ? (
         <div className="space-y-2">
           <select
             className="w-full border rounded-md text-xs px-2 py-1.5 bg-white"
@@ -440,6 +472,25 @@ function SlotCard({
               <UserPlus className="w-3 h-3 mr-1" />
             )}
             Asignar
+          </Button>
+        </div>
+      ) : canCommentOnly ? (
+        <div className="space-y-2">
+          <Input
+            value={comentario}
+            placeholder="Comentario"
+            onChange={(e) => setComentario(e.target.value)}
+            disabled={pending}
+            className="text-xs h-8"
+          />
+          <Button
+            size="sm"
+            className="h-7 text-xs w-full"
+            onClick={() => onSaveDetails('Programada', comentario)}
+            disabled={pending || comentario === (slot.comentario ?? '')}
+          >
+            <Save className="w-3 h-3 mr-1" />
+            Guardar comentario
           </Button>
         </div>
       ) : (

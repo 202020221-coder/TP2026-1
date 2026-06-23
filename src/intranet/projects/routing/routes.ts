@@ -12,6 +12,7 @@ export const routes: IRoute[] = [
       RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
       RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
       RolesRecord.client,
     ],
   },

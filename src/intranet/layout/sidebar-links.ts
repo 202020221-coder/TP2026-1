@@ -1,5 +1,3 @@
-// import { ValidRoles } from '../interfaces'
-
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import type { UserRole } from "@/security/session/interfaces/roles";
 
@@ -16,18 +14,38 @@ export const projectEditableRoles = [
 export const personnelEditableRoles = [
   RolesRecord.projectAdmin,
   RolesRecord.manager,
+  RolesRecord.fieldSupervisor,
+] as const;
+
+export const personnelViewRoles = [
+  RolesRecord.projectAdmin,
+  RolesRecord.manager,
   RolesRecord.lawyer,
+  RolesRecord.workshopWorker,
 ] as const;
 
 export const resourceEditableRoles = [
-  RolesRecord.lawyer,
   RolesRecord.manager,
   RolesRecord.projectAdmin,
   RolesRecord.fieldSupervisor,
 ] as const;
 
+export const incidentQuotationViewRoles = [
+  RolesRecord.manager,
+  RolesRecord.projectAdmin,
+  RolesRecord.lawyer,
+] as const;
 
+export const financialAnalyticsHiddenRoles = [
+  RolesRecord.fieldWorker,
+  RolesRecord.workshopWorker,
+  RolesRecord.fieldSupervisor,
+] as const;
 
+export const serviceDeactivateRoles = [
+  RolesRecord.projectAdmin,
+  RolesRecord.manager,
+] as const;
 
 export const canEditProjects = (role: UserRole | null | undefined) =>
   hasRole(role, projectEditableRoles);
@@ -35,8 +53,26 @@ export const canEditProjects = (role: UserRole | null | undefined) =>
 export const canEditPersonnel = (role: UserRole | null | undefined) =>
   hasRole(role, personnelEditableRoles);
 
+export const canViewPersonnel = (role: UserRole | null | undefined) =>
+  hasRole(role, personnelViewRoles);
+
 export const canEditResources = (role: UserRole | null | undefined) =>
   hasRole(role, resourceEditableRoles);
+
+export const canViewIncidentQuotations = (role: UserRole | null | undefined) =>
+  hasRole(role, incidentQuotationViewRoles);
+
+export const hideFinancialsInAnalytics = (role: UserRole | null | undefined) =>
+  hasRole(role, financialAnalyticsHiddenRoles);
+
+export const canAssignPersonnel = (role: UserRole | null | undefined) =>
+  canEditPersonnel(role);
+
+export const canCommentOnlyPersonnel = (role: UserRole | null | undefined) =>
+  role === RolesRecord.lawyer;
+
+export const canDeactivateServices = (role: UserRole | null | undefined) =>
+  hasRole(role, serviceDeactivateRoles);
 
 export interface IMenu {
   title: string;
@@ -65,7 +101,6 @@ export const sidebarLinks: IMenu[] = [
       RolesRecord.client,
       RolesRecord.projectAdmin,
       RolesRecord.manager,
-      RolesRecord.fieldWorker,
     ],
     url: "/intranet/solicitudes/",
     icon: "ClipboardList",
@@ -86,7 +121,7 @@ export const sidebarLinks: IMenu[] = [
     title: "Servicios",
     roles: [RolesRecord.projectAdmin, RolesRecord.manager],
     url: "/intranet/servicios/",
-    icon: "BriefcaseBusiness",
+    icon: "Wrench",
   },
   {
     title: "Gestionar Trabajadores",
@@ -94,8 +129,7 @@ export const sidebarLinks: IMenu[] = [
       RolesRecord.projectAdmin,
       RolesRecord.manager,
       RolesRecord.lawyer,
-      RolesRecord.fieldSupervisor,
-      RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
     ],
     url: "/intranet/personal/",
     icon: "Users",
@@ -108,7 +142,12 @@ export const sidebarLinks: IMenu[] = [
   },
   {
     title: "Organizar Personal",
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
+    roles: [
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.fieldWorker,
+    ],
     url: "/intranet/organizar-personal/",
     icon: "CalendarDays",
   },
@@ -120,38 +159,16 @@ export const sidebarLinks: IMenu[] = [
       RolesRecord.lawyer,
       RolesRecord.fieldSupervisor,
       RolesRecord.fieldWorker,
+      RolesRecord.workshopWorker,
       RolesRecord.client,
     ],
     url: "/intranet/proyectos/",
     icon: "BriefcaseBusiness",
   },
   {
-    title: "Informes",
-    roles: [RolesRecord.lawyer, RolesRecord.fieldSupervisor],
-    // aun no hay
-    icon: "FileText",
-  },
-  {
-    title: "Gestionar Incidencia",
-    roles: [
-      RolesRecord.projectAdmin,
-      RolesRecord.manager,
-      RolesRecord.fieldSupervisor,
-      RolesRecord.fieldWorker,
-    ],
-    url: "/intranet/incidencias/",
-    icon: "ClipboardList",
-  },
-  {
     title: "Gestionar Recursos",
     roles: [RolesRecord.lawyer, RolesRecord.fieldSupervisor],
     url: "/intranet/organizar-recursos/",
-    icon: "FileText",
-  },
-  {
-    title: "Presupuesto Interno",
-    roles: [RolesRecord.manager],
-    // aun no hay
-    icon: "FileText",
+    icon: "Boxes",
   },
 ];

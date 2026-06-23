@@ -142,18 +142,17 @@ function NuevoObjetoRow({
   item, onSave, onCancel, isSaving,
 }: {
   item: CatalogoInventarioItem;
-  onSave: (cantidad: number, estancia: string, metodoTraslado: string, razon: string) => Promise<void>;
+  onSave: (cantidad: number, estancia: string) => Promise<void>;
   onCancel: () => void;
   isSaving: boolean;
 }) {
   const [cantidad, setCantidad] = useState("1");
   const [metodoTraslado, setMetodoTraslado] = useState(item.lugar_almacenaje || "");
-  const [razon, setRazon] = useState("");
 
   const handleSave = () => {
     const cant = parseInt(cantidad, 10);
     if (!cant || cant <= 0) { toast.error("La cantidad debe ser mayor a 0"); return; }
-    onSave(cant, item.lugar_almacenaje, metodoTraslado, razon);
+    onSave(cant, metodoTraslado);
   };
 
   return (
@@ -168,12 +167,6 @@ function NuevoObjetoRow({
         <Input className={inputEditable} value={metodoTraslado} placeholder="Método traslado..."
           onChange={(e) => setMetodoTraslado(e.target.value)} />
       </div>
-      <div className={col}>
-        <Input className={inputEditable} value={razon} placeholder="Razón..."
-          onChange={(e) => setRazon(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} />
-      </div>
-      <div className={col}><Input className={inputReadonly} value={item.estado || "—"} readOnly tabIndex={-1} /></div>
       <div className="flex gap-1 w-[76px]">
         <Button size="sm" onClick={handleSave}
           disabled={isSaving || !cantidad || parseInt(cantidad) <= 0}
@@ -221,10 +214,6 @@ function EditObjetoRow({
           onChange={(e) => setEstancia(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} />
       </div>
-      <div className={col}>
-        <Input className={inputReadonly} value="—" readOnly tabIndex={-1} />
-      </div>
-      <div className={col}><Input className={inputReadonly} value="—" readOnly tabIndex={-1} /></div>
       <div className="flex gap-1 w-[76px]">
         <Button size="sm" onClick={handleSave} disabled={isSaving}
           className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white flex-1">
@@ -374,7 +363,7 @@ function ObjetosSeccion({ servicio, items }: { servicio: Servicio; items: Invent
   const [selected, setSelected] = useState<CatalogoInventarioItem | null>(null);
   const [editingIdObjeto, setEditingIdObjeto] = useState<number | null>(null);
 
-  const handleSaveNuevo = async (cantidad: number, estancia: string, _metodoTraslado: string, _razon: string) => {
+  const handleSaveNuevo = async (cantidad: number, estancia: string) => {
     if (!selected) return;
     if (!selected.Id_Objeto || selected.Id_Objeto === 0) {
       toast.error("El objeto seleccionado no tiene un ID válido");
@@ -407,7 +396,7 @@ function ObjetosSeccion({ servicio, items }: { servicio: Servicio; items: Invent
 
       {/* Headers */}
       <div className="flex gap-2 mb-1 px-1 mt-2">
-        {["Objetos", "Cantidad", "Método traslado", "Razón", "Estado"].map((h) => (
+        {["Objetos", "Cantidad", "Método traslado"].map((h) => (
           <p key={h} className="flex-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{h}</p>
         ))}
         <div className="w-[76px]" />
@@ -430,8 +419,6 @@ function ObjetosSeccion({ servicio, items }: { servicio: Servicio; items: Invent
             <p className="flex-1 text-sm text-gray-800">{obj.nombre_objeto}</p>
             <p className="flex-1 text-sm text-gray-600">{obj.cantidad}</p>
             <p className="flex-1 text-sm text-gray-600">{obj.estancia || "—"}</p>
-            <p className="flex-1 text-sm text-gray-600">—</p>
-            <p className="flex-1 text-sm text-gray-600">—</p>
             <div className="flex gap-1 w-[76px]">
               <Button size="sm" variant="outline"
                 onClick={() => setEditingIdObjeto(obj.Id_Objeto)}
