@@ -21,7 +21,6 @@ import {
   Package,
   Scale,
   ShieldAlert,
-  Sparkles,
   TrendingUp,
   Truck,
   Wrench,
@@ -48,6 +47,8 @@ import {
   MarginBar,
   MermaBarChart,
 } from "./DashboardCharts";
+import { DashboardCardInfo } from "./DashboardCardInfo";
+import { DASHBOARD_METRIC_HELP } from "../lib/dashboard-metric-help";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("es-PE", {
@@ -147,6 +148,7 @@ function CriticalKpiCard({
   icon: Icon,
   theme,
   alert,
+  info,
 }: {
   title: string;
   value: string;
@@ -154,11 +156,13 @@ function CriticalKpiCard({
   icon: ComponentType<{ className?: string }>;
   theme: ColorTheme;
   alert?: boolean;
+  info: string;
 }) {
   return (
     <Card
       className={`group relative overflow-hidden border-0 bg-gradient-to-br ${theme.softBg} shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${alert ? "ring-2 ring-red-400 ring-offset-2 animate-pulse" : ""}`}
     >
+      <DashboardCardInfo content={info} />
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${theme.bar}`} />
       <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${theme.glow}`} />
       <CardHeader className="relative pb-2">
@@ -226,27 +230,32 @@ export default function ManagerDashboardView() {
         <div className="absolute top-1/3 -left-16 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       </div>
 
-      <section className="relative mb-5 overflow-hidden rounded-2xl bg-gradient-primary p-5 shadow-xl shadow-primary/25 md:p-8">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-white/10" />
+      <section
+        className="relative mb-5 overflow-hidden rounded-2xl p-5 shadow-lg shadow-slate-900/20 md:p-8"
+        style={{ backgroundColor: "#1E293B" }}
+      >
+        <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/[0.03]" />
+        <div className="pointer-events-none absolute -bottom-8 left-1/4 h-32 w-32 rounded-full bg-white/[0.02]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
-            <Badge className="w-fit border-white/30 bg-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.1em] text-white backdrop-blur-sm">
-              <Sparkles className="mr-1.5 h-3 w-3" />
+            <Badge className="w-fit border-slate-600/60 bg-slate-700/40 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-slate-300 hover:bg-slate-700/40">
               Panel Gerencial
             </Badge>
-            <h1 className="text-2xl font-bold text-white md:text-3xl">
-              Dashboard del Gerente General
+            <h1 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">
+              Panel de Control Ejecutivo — SWEFIRE
             </h1>
-            <p className="max-w-xl text-sm text-white/85">
+            <p className="max-w-xl text-sm text-[#94A3B8]">
               {userName ? `Bienvenido/a, ${userName}. ` : ""}
               Salud financiera, logística, operaciones y riesgos en una sola vista.
             </p>
           </div>
-          <div className="rounded-xl border border-white/20 bg-white/15 p-4 backdrop-blur-md">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/70">Hoy</p>
+          <div className="rounded-xl border border-slate-600/50 bg-[#0F172A]/60 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+              Hoy
+            </p>
             <p className="mt-1 text-sm font-semibold capitalize text-white">{today}</p>
-            <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-white/20 px-3 py-1 text-xs text-white">
-              <Zap className="h-3.5 w-3.5 text-amber-200" />
+            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-slate-600/40 bg-slate-800/80 px-3 py-1 text-xs text-slate-200">
+              <Zap className="h-3.5 w-3.5 text-amber-400/90" />
               {data ? `${data.criticalIncidentsToday} incidencias críticas` : "Cargando..."}
             </div>
           </div>
@@ -285,6 +294,7 @@ export default function ManagerDashboardView() {
                   icon={TrendingUp}
                   theme={KPI_THEMES[0]}
                   alert={conversionLow}
+                  info={DASHBOARD_METRIC_HELP.conversionRate}
                 />
                 <CriticalKpiCard
                   title="Monto en Negociación"
@@ -293,6 +303,7 @@ export default function ManagerDashboardView() {
                   icon={ClipboardCheck}
                   theme={KPI_THEMES[1]}
                   alert={data.negotiationCount > 0}
+                  info={DASHBOARD_METRIC_HELP.negotiationAmount}
                 />
                 <CriticalKpiCard
                   title="Margen Neto Realizado"
@@ -301,6 +312,7 @@ export default function ManagerDashboardView() {
                   icon={Scale}
                   theme={KPI_THEMES[2]}
                   alert={marginLow}
+                  info={DASHBOARD_METRIC_HELP.netMargin}
                 />
                 <CriticalKpiCard
                   title="Disponibilidad de Flota"
@@ -309,6 +321,7 @@ export default function ManagerDashboardView() {
                   icon={Truck}
                   theme={KPI_THEMES[3]}
                   alert={fleetLow}
+                  info={DASHBOARD_METRIC_HELP.fleetAvailability}
                 />
               </>
             )}
@@ -317,7 +330,8 @@ export default function ManagerDashboardView() {
       {/* Bloque 1: Salud Financiera */}
       <BlockTitle>1 · Salud Financiera y Preventa</BlockTitle>
       <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="overflow-hidden border-0 shadow-md lg:col-span-2">
+        <Card className="relative overflow-hidden border-0 shadow-md lg:col-span-2">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.commercialFunnel} />
           <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-600" />
           <CardHeader className="bg-gradient-to-br from-emerald-50/40 to-transparent">
             <SectionHeader
@@ -336,7 +350,8 @@ export default function ManagerDashboardView() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 shadow-md">
+        <Card className="relative overflow-hidden border-0 shadow-md">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.budgetVsReal} />
           <div className="h-1 bg-gradient-to-r from-violet-500 to-purple-600" />
           <CardHeader className="bg-gradient-to-br from-violet-50/40 to-transparent">
             <SectionHeader
@@ -368,7 +383,8 @@ export default function ManagerDashboardView() {
       {/* Bloque 2: Logística y Mermas */}
       <BlockTitle>2 · Control Logístico y Mermas</BlockTitle>
       <section className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className={`overflow-hidden border-0 shadow-md ${mermaCritical ? "ring-2 ring-red-400" : ""}`}>
+        <Card className={`relative overflow-hidden border-0 shadow-md ${mermaCritical ? "ring-2 ring-red-400" : ""}`}>
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.globalMerma} />
           <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500" />
           <CardHeader className="bg-gradient-to-br from-red-50/30 to-transparent">
             <SectionHeader
@@ -391,7 +407,8 @@ export default function ManagerDashboardView() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 shadow-md lg:col-span-2">
+        <Card className="relative overflow-hidden border-0 shadow-md lg:col-span-2">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.mermaByProject} />
           <div className="h-1 bg-gradient-to-r from-amber-500 to-red-500" />
           <CardHeader className="bg-gradient-to-br from-amber-50/30 to-transparent">
             <SectionHeader
@@ -414,7 +431,8 @@ export default function ManagerDashboardView() {
       {/* Bloque 3: Operaciones */}
       <BlockTitle>3 · Operaciones y Capacidad Técnica</BlockTitle>
       <section className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="overflow-hidden border-0 shadow-md">
+        <Card className="relative overflow-hidden border-0 shadow-md">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.projectTraceability} />
           <div className="h-1 bg-gradient-to-r from-sky-500 to-blue-600" />
           <CardHeader className="bg-gradient-to-br from-sky-50/40 to-transparent">
             <SectionHeader
@@ -451,8 +469,9 @@ export default function ManagerDashboardView() {
         </Card>
 
         <Card
-          className={`overflow-hidden border-0 shadow-md ${(data?.maintenanceDelayDays ?? 0) > 0 ? "ring-2 ring-amber-400 animate-pulse" : ""}`}
+          className={`relative overflow-hidden border-0 shadow-md ${(data?.maintenanceDelayDays ?? 0) > 0 ? "ring-2 ring-amber-400 animate-pulse" : ""}`}
         >
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.maintenanceDelay} />
           <div className="h-1 bg-gradient-to-r from-amber-500 to-yellow-500" />
           <CardHeader className="bg-gradient-to-br from-amber-50/40 to-transparent">
             <SectionHeader
@@ -486,7 +505,8 @@ export default function ManagerDashboardView() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 shadow-md xl:col-span-1">
+        <Card className="relative overflow-hidden border-0 shadow-md xl:col-span-1">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.activeProjects} />
           <div className="h-1 bg-gradient-to-r from-cyan-500 to-sky-600" />
           <CardHeader className="flex flex-row items-start justify-between bg-gradient-to-br from-cyan-50/40 to-transparent">
             <SectionHeader
@@ -544,7 +564,8 @@ export default function ManagerDashboardView() {
       {/* Bloque 4: Riesgos y Cierre Legal */}
       <BlockTitle>4 · Control de Riesgos y Cierre Legal</BlockTitle>
       <section className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="overflow-hidden border-0 shadow-md">
+        <Card className="relative overflow-hidden border-0 shadow-md">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.legalBottleneck} />
           <div className="h-1 bg-gradient-to-r from-violet-500 to-indigo-600" />
           <CardHeader className="bg-gradient-to-br from-violet-50/30 to-transparent">
             <SectionHeader
@@ -600,7 +621,8 @@ export default function ManagerDashboardView() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 shadow-md">
+        <Card className="relative overflow-hidden border-0 shadow-md">
+          <DashboardCardInfo content={DASHBOARD_METRIC_HELP.criticalIncidents} />
           <div className="h-1 bg-gradient-to-r from-rose-500 to-pink-600" />
           <CardHeader className="bg-gradient-to-br from-rose-50/30 to-transparent">
             <SectionHeader
