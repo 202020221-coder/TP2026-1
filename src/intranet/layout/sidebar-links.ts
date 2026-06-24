@@ -94,7 +94,12 @@ export interface ISubMenu {
 export const sidebarLinks: IMenu[] = [
   {
     title: "Dashboard",
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
+    roles: [
+      RolesRecord.client,
+      RolesRecord.fieldSupervisor,
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+    ],
     url: "/intranet/dashboard",
     icon: "LayoutDashboard",
   },
