@@ -14,11 +14,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { cn } from "@/shared/lib/utils";
 
 import { ChevronsUpDown, LogOut, UserCog } from "lucide-react";
 import { clearSession } from "@/security/session/hooks/stores/useSession.store";
 import type { UserRole } from "@/security/session/interfaces/roles";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
+
 interface Props {
   names: string;
   lastnames: string;
@@ -26,7 +28,7 @@ interface Props {
   email: string;
 }
 
-const RoletoLabelMap = new Map<UserRole, String>([
+const RoletoLabelMap = new Map<UserRole, string>([
   [RolesRecord.client, "Cliente"],
   [RolesRecord.fieldSupervisor, "Supervisor de Campo"],
   [RolesRecord.fieldWorker, "Trabajador de Campo"],
@@ -36,10 +38,17 @@ const RoletoLabelMap = new Map<UserRole, String>([
   [RolesRecord.workshopWorker, "Trabajador de Taller"],
 ]);
 
-export function NavUser({ names, lastnames, email, role }: Props) {
-  let navigate = useNavigate();
+function getInitials(names: string, lastnames: string) {
+  const first = names.trim().charAt(0) || "";
+  const last = lastnames.trim().charAt(0) || "";
+  return (first + last).toUpperCase() || "U";
+}
 
-  const { isMobile } = useSidebar();
+export function NavUser({ names, lastnames, email, role }: Props) {
+  const navigate = useNavigate();
+  const { isMobile, state } = useSidebar();
+  const collapsed = state === "collapsed";
+  const initials = getInitials(names, lastnames);
 
   function logout() {
     clearSession();
@@ -53,15 +62,34 @@ export function NavUser({ names, lastnames, email, role }: Props) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              tooltip={`${names} ${lastnames}`}
+              className={cn(
+                "hover:bg-slate-100 data-[state=open]:bg-slate-100",
+                collapsed && "justify-center px-0",
+              )}
             >
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">
-                  {names} {lastnames}
-                </span>
-                <span className="truncate text-xs">{email}</span>
+              <div
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary",
+                  !collapsed && "mr-0.5",
+                )}
+                aria-hidden
+              >
+                {initials}
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              {!collapsed ? (
+                <>
+                  <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium text-slate-800">
+                      {names} {lastnames}
+                    </span>
+                    <span className="truncate text-xs text-slate-500">
+                      {email}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4 shrink-0 text-slate-400" />
+                </>
+              ) : null}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -76,7 +104,7 @@ export function NavUser({ names, lastnames, email, role }: Props) {
                   <span className="truncate font-medium">
                     {names} {lastnames}
                   </span>
-                  <span className="truncate text-xs">
+                  <span className="truncate text-xs text-muted-foreground">
                     {RoletoLabelMap.get(role)}
                   </span>
                 </div>
@@ -94,7 +122,7 @@ export function NavUser({ names, lastnames, email, role }: Props) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               <LogOut />
-              Log out
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

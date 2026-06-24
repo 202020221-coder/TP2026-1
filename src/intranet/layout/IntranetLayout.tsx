@@ -10,20 +10,21 @@ import { Separator } from "@/shared/components/ui/separator";
 export const IntranetLayout: FC<{ className: string }> = ({ className }) => {
   return (
     <SidebarProvider>
-      <div className="max-h-screen flex flex-row w-full overflow-hidden">
+      <div className="flex h-screen w-full overflow-hidden bg-slate-50/40">
         <AppSidebar />
-        <SidebarInset className="flex flex-col flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <SidebarInset className="flex min-h-0 flex-1 flex-col">
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
             <div className="flex items-center gap-2 px-4">
               <SidebarTrigger className="-ml-1" />
               <Separator
                 orientation="vertical"
                 className="mr-2 data-[orientation=vertical]:h-4"
               />
-              {/* <CustomBreadcrumb links={breadcrumbs} title={title} /> */}
             </div>
           </header>
-          <main className={`${className} flex-1 flex flex-col min-h-0 overflow-y-auto py-4 bg-[#fefefe]`}>
+          <main
+            className={`${className} flex min-h-0 flex-1 flex-col overflow-y-auto bg-[#f8fafc] py-4`}
+          >
             <Outlet />
           </main>
         </SidebarInset>

@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -16,7 +16,9 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/shared/components/ui/sidebar";
+import { cn } from "@/shared/lib/utils";
 
 import { sidebarLinks, type IMenu, type ISubMenu } from "../sidebar-links";
 
@@ -50,26 +52,22 @@ const lucideIconMap: Record<string, LucideIcon> = {
 };
 
 export function NavMain({ userRole }: { userRole: UserRole }) {
-  const location = useLocation();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
   const menu: IMenu[] = sidebarLinks;
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Menú</SidebarGroupLabel>
+      {!collapsed ? <SidebarGroupLabel>Menú</SidebarGroupLabel> : null}
       <SidebarMenu>
         {menu.map(({ title, url, items, icon }) => {
-          const isAuthorizated = (sidebarLinks.find((m) => m.title === title)
-            ?.roles ?? []).includes(userRole);
+          const isAuthorizated = (
+            sidebarLinks.find((m) => m.title === title)?.roles ?? []
+          ).includes(userRole);
 
           if (!isAuthorizated) return null;
+          if (!url) return null;
 
-          const isParentActive: boolean =
-            url === location.pathname ||
-            items?.some((sub) => sub.url === location.pathname) ||
-            false;
-          const className: string = isParentActive
-            ? "text-primary font-semibold"
-            : "";
           const Icon = icon ? (lucideIconMap[icon] ?? FileText) : FileText;
 
           return (
@@ -77,20 +75,24 @@ export function NavMain({ userRole }: { userRole: UserRole }) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={title}>
                   <NavLink
-                    to={url ?? "#"}
-                    className={`flex items-center gap-2 text-right ${className}`}
+                    to={url}
+                    end={url === "/intranet/dashboard"}
+                    className={({ isActive }) =>
+                      cn(
+                        isActive &&
+                          "bg-primary/10 font-semibold text-primary shadow-sm",
+                      )
+                    }
                   >
-                    <Icon className="size-5" />
-                    <span className="text-right">{title}</span>
+                    <Icon className="size-[1.125rem] shrink-0" />
+                    {!collapsed ? (
+                      <span className="min-w-0 flex-1 truncate">{title}</span>
+                    ) : null}
                   </NavLink>
                 </SidebarMenuButton>
 
-                {items?.length ? (
-                  <SubMenu
-                    items={items}
-                    userRole={userRole}
-                    currentPath={location.pathname}
-                  />
+                {items?.length && !collapsed ? (
+                  <SubMenu items={items} userRole={userRole} />
                 ) : null}
               </SidebarMenuItem>
             </Collapsible>
@@ -104,25 +106,21 @@ export function NavMain({ userRole }: { userRole: UserRole }) {
 const SubMenu = ({
   items,
   userRole,
-  currentPath,
 }: {
   items: ISubMenu[];
   userRole: UserRole;
-  currentPath: string;
 }) => {
   return (
     <>
       <CollapsibleTrigger asChild>
         <SidebarMenuAction className="data-[state=open]:rotate-90">
-          <ChevronRight />
+          <ChevronRight className="size-4" />
         </SidebarMenuAction>
       </CollapsibleTrigger>
 
       <CollapsibleContent>
         <SidebarMenuSub>
           {items?.map(({ title, url, roles }) => {
-            const className: string =
-              url === currentPath ? "text-primary font-semibold" : "";
             const isAuthorizated = (roles ?? []).includes(userRole);
             if (!isAuthorizated) return null;
 
@@ -131,9 +129,13 @@ const SubMenu = ({
                 <SidebarMenuSubButton asChild>
                   <NavLink
                     to={url}
-                    className={`flex items-center gap-2 ${className}`}
+                    className={({ isActive }) =>
+                      cn(
+                        isActive && "bg-primary/10 font-medium text-primary",
+                      )
+                    }
                   >
-                    <span>{title}</span>
+                    <span className="truncate">{title}</span>
                   </NavLink>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
