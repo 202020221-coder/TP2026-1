@@ -10,6 +10,7 @@ export function getDefaultRouteByRole(rol: string, nuevo?: string): string {
     case RolesRecord.projectAdmin:
       return "/intranet/dashboard";
     case RolesRecord.fieldSupervisor:
+      return "/intranet/dashboard";
     case RolesRecord.fieldWorker:
     case RolesRecord.lawyer:
     case RolesRecord.workshopWorker:

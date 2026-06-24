@@ -9,6 +9,7 @@ export const routes: IRoute[] = [
     isPrivate: true,
     roles: [
       RolesRecord.client,
+      RolesRecord.fieldSupervisor,
       RolesRecord.projectAdmin,
       RolesRecord.manager,
     ],
