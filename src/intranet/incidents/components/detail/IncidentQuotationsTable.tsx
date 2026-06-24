@@ -1,5 +1,6 @@
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableHeader,
@@ -15,12 +16,27 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { Eye, MessageCircle, Pencil } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Eye,
+  MessageCircle,
+  Pencil,
+  CalendarClock,
+  FileCheck2,
+  Loader2,
+} from "lucide-react";
 import { getIncidentQuotations } from "../../api/incident.api";
 import type { IncidentQuotation } from "../../interfaces/incident-quotation";
 import type { QuotationState } from "../../enum/quotation-state.record";
 import { QuotationCommentsModal } from "./QuotationCommentsModal";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { RolesRecord } from "@/security/session/enum/roles.enum";
+import { canApprovePurchaseOrder } from "@/intranet/quotation/lib/can-approve-purchase-order";
+import { hasPendingPurchaseOrderApproval } from "@/intranet/quotation/lib/can-approve-purchase-order";
+import { QuotationEditPaymentTermsDialog } from "@/intranet/quotation/components/list/QuotationEditPaymentTermsDialog";
+import { QuotationApproveOrderDialog } from "@/intranet/quotation/components/list/QuotationApproveOrderDialog";
+import { useQuotationSummary } from "@/intranet/quotation/hooks/useQuotationSummary";
+import type { Quotation } from "@/intranet/quotation/interfaces/quotation";
+import { QuotationStatesRecord } from "@/intranet/quotation/enum/quotation-state.record";
 
 const quotationStatusStyles = new Map<QuotationState, string>([
   ["Pendiente", "bg-gray-100 text-gray-600 border-gray-300"],
@@ -47,6 +63,41 @@ const formatDate = (value: string | null | undefined) => {
   });
 };
 
+const mapIncidentEstado = (estado: string): Quotation["estado"] => {
+  const normalized = estado.toLowerCase();
+  if (normalized.includes("aprobado") && !normalized.includes("no")) {
+    return QuotationStatesRecord.approved;
+  }
+  if (normalized.includes("rechaz")) {
+    return QuotationStatesRecord.rejected;
+  }
+  if (normalized.includes("pagad")) {
+    return QuotationStatesRecord.incidentPaid;
+  }
+  if (normalized.includes("no aprob")) {
+    return QuotationStatesRecord.notApproved;
+  }
+  return QuotationStatesRecord.pending;
+};
+
+const incidentQuotationFallback = (q: IncidentQuotation): Quotation => ({
+  ID: q.id,
+  nombre: q.nombre,
+  precioTotal: String(q.precioTotal ?? q.precio_subtotal ?? 0),
+  version: q.version,
+  estado: mapIncidentEstado(String(q.estado)),
+  condiciones: {
+    fechaEmision: q.fecha_emision ?? "",
+    fechaVigencia: "",
+    condiciones: "",
+    observaciones: "",
+  },
+  tasaCambio: { tasaCompra: 0, tasaVenta: 0 },
+  esCotizacionIncidencia: true,
+  cotizacion_de_incidencia: "YES",
+  nombreCliente: q.nombreCliente ?? undefined,
+});
+
 interface IncidentQuotationsTableProps {
   incidentId: number;
   returnTo?: string;
@@ -56,6 +107,9 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
   incidentId,
   returnTo,
 }) => {
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canManagePayments = canApprovePurchaseOrder(role);
+
   const { data: quotations = [], isFetching } = useQuery({
     queryKey: ["incident-quotations", incidentId],
     queryFn: () => getIncidentQuotations(incidentId),
@@ -63,6 +117,31 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
   });
 
   const [commentsOpen, setCommentsOpen] = useState<number | null>(null);
+  const [paymentQuotationId, setPaymentQuotationId] = useState<number | null>(
+    null,
+  );
+  const [approveQuotationId, setApproveQuotationId] = useState<number | null>(
+    null,
+  );
+
+  const paymentSummary = useQuotationSummary(paymentQuotationId);
+  const approveSummary = useQuotationSummary(approveQuotationId);
+
+  const paymentQuotation =
+    paymentSummary.data ??
+    (paymentQuotationId != null
+      ? quotations
+          .filter((q) => q.id === paymentQuotationId)
+          .map(incidentQuotationFallback)[0]
+      : null);
+
+  const approveQuotation =
+    approveSummary.data ??
+    (approveQuotationId != null
+      ? quotations
+          .filter((q) => q.id === approveQuotationId)
+          .map(incidentQuotationFallback)[0]
+      : null);
 
   return (
     <>
@@ -71,6 +150,30 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
           quotationId={commentsOpen}
           open
           onClose={() => setCommentsOpen(null)}
+        />
+      )}
+
+      {paymentQuotation && (
+        <QuotationEditPaymentTermsDialog
+          quotation={paymentQuotation}
+          open={paymentQuotationId !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPaymentQuotationId(null);
+            }
+          }}
+        />
+      )}
+
+      {approveQuotation && (
+        <QuotationApproveOrderDialog
+          quotation={approveQuotation}
+          open={approveQuotationId !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setApproveQuotationId(null);
+            }
+          }}
         />
       )}
 
@@ -122,11 +225,14 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
               </TableRow>
             ) : (
               quotations.map((q) => (
-                <QuotationTableRow
+                <IncidentQuotationRow
                   key={q.id}
                   quotation={q}
                   returnTo={returnTo}
+                  canManagePayments={canManagePayments}
                   onOpenComments={() => setCommentsOpen(q.id)}
+                  onOpenPayments={() => setPaymentQuotationId(q.id)}
+                  onReviewPurchaseOrder={() => setApproveQuotationId(q.id)}
                 />
               ))
             )}
@@ -144,12 +250,26 @@ export const IncidentQuotationsTable: FC<IncidentQuotationsTableProps> = ({
   );
 };
 
-const QuotationTableRow: FC<{
+const IncidentQuotationRow: FC<{
   quotation: IncidentQuotation;
   returnTo?: string;
+  canManagePayments: boolean;
   onOpenComments: () => void;
-}> = ({ quotation, returnTo, onOpenComments }) => {
+  onOpenPayments: () => void;
+  onReviewPurchaseOrder: () => void;
+}> = ({
+  quotation,
+  returnTo,
+  canManagePayments,
+  onOpenComments,
+  onOpenPayments,
+  onReviewPurchaseOrder,
+}) => {
   const navigate = useNavigate();
+  const role = useSession((state) => state.loggedUser?.rol);
+  const summaryQuery = useQuotationSummary(quotation.id, canManagePayments);
+  const summary = summaryQuery.data ?? incidentQuotationFallback(quotation);
+
   const badgeClass =
     quotationStatusStyles.get(quotation.estado as QuotationState) ??
     "bg-gray-100 text-gray-600 border-gray-300";
@@ -161,8 +281,17 @@ const QuotationTableRow: FC<{
   const emissionDate = quotation.fecha_emision ?? quotation.fecha_envio;
   const price = quotation.precioTotal ?? quotation.precio_subtotal;
 
+  const showReviewPo =
+    canApprovePurchaseOrder(role) &&
+    hasPendingPurchaseOrderApproval(summary);
+
   const openEditor = () =>
     navigate(`/intranet/cotizaciones/editar/${quotation.id}`, {
+      state: returnTo ? { returnTo } : undefined,
+    });
+
+  const openViewer = () =>
+    navigate(`/intranet/cotizaciones/detalles/${quotation.id}`, {
       state: returnTo ? { returnTo } : undefined,
     });
 
@@ -206,6 +335,49 @@ const QuotationTableRow: FC<{
       </TableCell>
       <TableCell className="text-center">
         <div className="flex items-center justify-center gap-0.5">
+          {canManagePayments && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
+                    onClick={onOpenPayments}
+                    disabled={summaryQuery.isLoading}
+                  >
+                    {summaryQuery.isLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <CalendarClock className="w-3.5 h-3.5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Plazos y pagos
+                </TooltipContent>
+              </Tooltip>
+
+              {showReviewPo && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                      onClick={onReviewPurchaseOrder}
+                    >
+                      <FileCheck2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    Revisar orden de compra
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </>
+          )}
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -213,32 +385,36 @@ const QuotationTableRow: FC<{
                 size="icon"
                 className="h-7 w-7 text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                 aria-label="Ver cotización"
-                onClick={openEditor}
+                onClick={openViewer}
               >
                 <Eye className="w-3.5 h-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              Abrir editor de cotización
+              Ver cotización
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-                aria-label="Editar cotización"
-                onClick={openEditor}
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">
-              Editar cotización
-            </TooltipContent>
-          </Tooltip>
+          {(role === RolesRecord.projectAdmin ||
+            role === RolesRecord.manager ||
+            role === RolesRecord.lawyer) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                  aria-label="Editar cotización"
+                  onClick={openEditor}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                Editar cotización
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>

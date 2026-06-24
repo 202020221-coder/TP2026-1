@@ -65,6 +65,9 @@ export const canViewIncidentQuotations = (role: UserRole | null | undefined) =>
 export const hideFinancialsInAnalytics = (role: UserRole | null | undefined) =>
   hasRole(role, financialAnalyticsHiddenRoles);
 
+/** Roles que solo ven duración real (sin días cotizados/planificados). */
+export const hidePlannedDurationInAnalytics = hideFinancialsInAnalytics;
+
 export const canAssignPersonnel = (role: UserRole | null | undefined) =>
   canEditPersonnel(role);
 
@@ -112,7 +115,13 @@ export const sidebarLinks: IMenu[] = [
   },
   {
     title: "Cotizaciones",
-    roles: [RolesRecord.client, RolesRecord.projectAdmin, RolesRecord.manager],
+    roles: [
+      RolesRecord.client,
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.workshopWorker,
+    ],
     url: "/intranet/cotizaciones/",
     icon: "Receipt",
   },

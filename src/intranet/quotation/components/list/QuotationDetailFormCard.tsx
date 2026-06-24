@@ -30,6 +30,8 @@ const estadoVariant: Record<string, "secondary" | "default" | "destructive"> = {
   pendiente: "secondary",
   aprobado: "default",
   rechazado: "destructive",
+  no_aprobado: "secondary",
+  incidencia_pagada: "default",
 };
 
 const ConditionsDatesCard = ({

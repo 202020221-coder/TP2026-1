@@ -17,6 +17,7 @@ import { QuotationPlaceHolder } from "./QuotationTablePlaceHolder";
 import { QuotationTableRow } from "./QuotationTableRow";
 import { QuotationApproveOrderDialog } from "./QuotationApproveOrderDialog";
 import QuotationOrderPurchaseDialog from "./QuotationOrderPurchaseDialog";
+import { getPurchaseOrderRejectionMessage } from "../../lib/quotation-workflow";
 import { QuotationEditPaymentTermsDialog } from "./QuotationEditPaymentTermsDialog";
 
 export const QuotationTable: FC = () => {
@@ -34,6 +35,11 @@ export const QuotationTable: FC = () => {
   );
   const [editPaymentTermsQuotation, setEditPaymentTermsQuotation] =
     useState<Quotation | null>(null);
+
+  const uploadQuotation =
+    uploadQuotationId != null
+      ? (data?.data.find((q) => q.ID === uploadQuotationId) ?? null)
+      : null;
 
   const isInitialLoading = isPending && !data;
 
@@ -66,6 +72,7 @@ export const QuotationTable: FC = () => {
                     <QuotationTableRow
                       quotation={q}
                       key={q.ID}
+                      viewingUnapproved={queryParams.aprobado === "NO"}
                       onOpenPresupuesto={handleOpenPresupuesto}
                       onReviewPurchaseOrder={setApproveQuotation}
                       onUploadPurchaseOrder={setUploadQuotationId}
@@ -109,6 +116,11 @@ export const QuotationTable: FC = () => {
       {uploadQuotationId !== null && (
         <QuotationOrderPurchaseDialog
           quotationId={uploadQuotationId}
+          rejectionMessage={
+            uploadQuotation
+              ? getPurchaseOrderRejectionMessage(uploadQuotation)
+              : null
+          }
           open={uploadQuotationId !== null}
           onOpenChange={(open) => {
             if (!open) {

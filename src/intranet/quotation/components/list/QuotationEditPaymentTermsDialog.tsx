@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,16 @@ import {
   updatePlazoPagoAtOrden,
   type QuotationPlazosPagoPair,
 } from "../../lib/quotation-plazos-pago";
+import {
+  quotationStateLabels,
+  QuotationStatesRecord,
+} from "../../enum/quotation-state.record";
+import { isAwaitingProjectCreation } from "../../lib/quotation-workflow";
+import { canApprovePurchaseOrder } from "../../lib/can-approve-purchase-order";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { QuotationPaymentIncidentActions } from "./QuotationPaymentIncidentActions";
+import { QuotationPaymentCommercialActions } from "./QuotationPaymentCommercialActions";
+import { QuotationPurchaseOrderRejectionAlert } from "./QuotationPurchaseOrderRejectionAlert";
 
 type QuotationEditPaymentTermsDialogProps = {
   quotation: Quotation;
@@ -32,6 +43,8 @@ type QuotationEditPaymentTermsDialogProps = {
 export const QuotationEditPaymentTermsDialog: FC<
   QuotationEditPaymentTermsDialogProps
 > = ({ quotation, open, onOpenChange }) => {
+  const role = useSession((state) => state.loggedUser?.rol);
+  const canManage = canApprovePurchaseOrder(role);
   const updateMutation = useUpdateQuotationPaymentTerms();
   const [plazosPago, setPlazosPago] =
     useState<QuotationPlazosPagoPair>(DEFAULT_PLAZOS_PAGO);
@@ -88,17 +101,36 @@ export const QuotationEditPaymentTermsDialog: FC<
     installmentsToSave.length > 0 &&
     installmentsToSave.every((plazo) => plazo.id != null);
 
+  const estadoLabel =
+    quotationStateLabels[quotation.estado] ?? quotation.estado;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Editar plazos — Cotización #{quotation.ID}
-          </DialogTitle>
-          <DialogDescription>
-            {quotation.nombre}
+          <DialogTitle>Plazos y pagos — Cotización #{quotation.ID}</DialogTitle>
+          <DialogDescription asChild>
+            <div className="space-y-2 pt-1">
+              <span className="block">{quotation.nombre}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">{estadoLabel}</Badge>
+                {isAwaitingProjectCreation(quotation) && (
+                  <span className="text-xs text-muted-foreground">
+                    Aprobada internamente; falta crear el proyecto con la
+                    orden de compra.
+                  </span>
+                )}
+                {quotation.estado === QuotationStatesRecord.notApproved && (
+                  <span className="text-xs text-muted-foreground">
+                    Requiere aprobación interna antes de que el cliente la vea.
+                  </span>
+                )}
+              </div>
+            </div>
           </DialogDescription>
         </DialogHeader>
+
+        <QuotationPurchaseOrderRejectionAlert quotation={quotation} />
 
         {isLoading ? (
           <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-muted-foreground">
@@ -124,6 +156,16 @@ export const QuotationEditPaymentTermsDialog: FC<
                 )
               }
               embedded
+              readOnly={!canManage}
+            />
+
+            <QuotationPaymentIncidentActions
+              quotation={quotation}
+              canManage={canManage}
+            />
+            <QuotationPaymentCommercialActions
+              quotation={quotation}
+              canManage={canManage}
             />
           </>
         )}
@@ -135,17 +177,19 @@ export const QuotationEditPaymentTermsDialog: FC<
             onClick={() => handleOpenChange(false)}
             disabled={updateMutation.isPending}
           >
-            Cancelar
+            Cerrar
           </Button>
-          <Button
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={
-              updateMutation.isPending || isLoading || isError || !canSave
-            }
-          >
-            {updateMutation.isPending ? "Guardando..." : "Guardar plazos"}
-          </Button>
+          {canManage && (
+            <Button
+              type="button"
+              onClick={() => void handleSave()}
+              disabled={
+                updateMutation.isPending || isLoading || isError || !canSave
+              }
+            >
+              {updateMutation.isPending ? "Guardando..." : "Guardar plazos"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

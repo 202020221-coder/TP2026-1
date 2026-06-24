@@ -84,6 +84,62 @@ export const approveQuotation = async (
   return response.data;
 };
 
+export type ApproveInternallyResponse = {
+  message: string;
+  ID: number;
+  aprobado: "YES" | "NO";
+  aprobado_por_abogado?: "YES" | "NO";
+  aprobado_por_gerente?: "YES" | "NO";
+  estado: string;
+  esCotizacionIncidencia?: boolean;
+  aprobacion_completa: boolean;
+};
+
+export const approveQuotationInternally = async (
+  id: number,
+): Promise<ApproveInternallyResponse> => {
+  const response = await axiosInstance.put<ApproveInternallyResponse>(
+    `/cotizaciones/${id}/aprobar-interna`,
+    {},
+  );
+  return response.data;
+};
+
+export type PayIncidentQuotationResponse = {
+  message: string;
+  ID: number;
+  estado: string;
+  esCotizacionIncidencia: boolean;
+};
+
+export const payIncidentQuotation = async (
+  id: number,
+): Promise<PayIncidentQuotationResponse> => {
+  const response = await axiosInstance.put<PayIncidentQuotationResponse>(
+    `/cotizaciones/${id}/pagar-incidencia`,
+    {},
+  );
+  return response.data;
+};
+
+export type OriginalQuotationResponse = {
+  id_cotizacion_original: number;
+  id_proyecto: number;
+  proyecto_nombre: string;
+  id_incidencia: number;
+  solo_lectura: true;
+  cotizacion_original: QuotationAdminDetailData;
+};
+
+export const getOriginalQuotation = async (
+  id: number,
+): Promise<OriginalQuotationResponse> => {
+  const response = await axiosInstance.get<OriginalQuotationResponse>(
+    `/cotizaciones/${id}/cotizacion-original`,
+  );
+  return response.data;
+};
+
 export const getQuotationForClient = async (
   id: Quotation["ID"],
 ): Promise<QuotationAdminDetailData> => {
@@ -102,6 +158,13 @@ export const getQuotationForAdmin = async (
   return normalizeQuotationAdminDetail(response.data);
 };
 
+export const getQuotationById = async (
+  id: Quotation["ID"],
+): Promise<Quotation> => {
+  const response = await axiosInstance.get<Quotation>(`/cotizaciones/${id}`);
+  return response.data;
+};
+
 type QuotationPaymentTermsRaw = {
   plazos_pago?: QuotationPaymentInstallment[] | null;
   pago_inicial?: QuotationInitialPayment | null;
@@ -112,7 +175,7 @@ export const getQuotationPaymentTerms = async (
   id: Quotation["ID"],
 ): Promise<QuotationPaymentTerms> => {
   const response = await axiosInstance.get<QuotationPaymentTermsRaw>(
-    `/cotizaciones/${id}/detalles-franco`,
+    `/cotizaciones/${id}/plazos-pago`,
   );
   const { plazos_pago, pago_inicial, requiere_confirmacion_pago_inicial } =
     response.data;
@@ -130,7 +193,7 @@ export const updateQuotationPaymentTerms = async (
   id: Quotation["ID"],
   plazos_pago: QuotationPaymentInstallment[],
 ): Promise<void> => {
-  await axiosInstance.put(`/cotizaciones/${id}`, { plazos_pago });
+  await axiosInstance.put(`/cotizaciones/${id}/plazos-pago`, { plazos_pago });
 };
 
 type UpsertQuotationDTO = Omit<DesiredQuotationData, "status"|"client">

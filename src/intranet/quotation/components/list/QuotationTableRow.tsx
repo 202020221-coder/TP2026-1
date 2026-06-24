@@ -2,7 +2,7 @@ import { useState, type FC } from "react";
 import { TableRow, TableCell } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { Eye, Mail, Pencil, Trash2, Send, Calculator, FileCheck2, CalendarClock } from "lucide-react";
+import { Eye, Mail, Pencil, Trash2, Send, Calculator, FileCheck2, CalendarClock, ShieldCheck, FileStack } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +13,7 @@ import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
 import {
   QuotationStatesRecord,
+  quotationStateLabels,
   type QuotationState,
 } from "../../enum/quotation-state.record";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
@@ -26,15 +27,28 @@ import {
   canApprovePurchaseOrder,
   hasPendingPurchaseOrderApproval,
 } from "../../lib/can-approve-purchase-order";
+import { canApproveInternally } from "../../lib/can-approve-internally";
+import { useApproveQuotationInternally } from "../../hooks/useApproveQuotationInternally";
+import { canClientUploadPurchaseOrder } from "../../lib/quotation-workflow";
+import { getOriginalQuotation } from "../../api/quotation.api";
+import { toast } from "sonner";
+import { QuotationPurchaseOrderRejectionAlert } from "./QuotationPurchaseOrderRejectionAlert";
+import { QuotationInternalApprovalBadges } from "./QuotationInternalApprovalBadges";
+import {
+  canEditCommercialQuotation,
+  canEditIncidentQuotation,
+} from "../../lib/can-edit-quotation";
 
 export const QuotationTableRow: FC<{
   quotation: Quotation;
+  viewingUnapproved: boolean;
   onOpenPresupuesto: (quotation: Quotation) => void;
   onReviewPurchaseOrder: (quotation: Quotation) => void;
   onUploadPurchaseOrder: (quotationId: number) => void;
   onEditPaymentTerms: (quotation: Quotation) => void;
 }> = ({
   quotation,
+  viewingUnapproved,
   onOpenPresupuesto,
   onReviewPurchaseOrder,
   onUploadPurchaseOrder,
@@ -43,6 +57,8 @@ export const QuotationTableRow: FC<{
   const user = useSession((state) => state.loggedUser);
   const Navigate = useNavigate();
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
+  const [isLoadingOriginal, setIsLoadingOriginal] = useState(false);
+  const approveInternallyMutation = useApproveQuotationInternally();
 
   const statusStyles = new Map<QuotationState, string>([
     [
@@ -53,6 +69,14 @@ export const QuotationTableRow: FC<{
     [
       QuotationStatesRecord.pending,
       "bg-yellow-200 text-yellow-600 border-yellow-400",
+    ],
+    [
+      QuotationStatesRecord.notApproved,
+      "bg-orange-200 text-orange-700 border-orange-400",
+    ],
+    [
+      QuotationStatesRecord.incidentPaid,
+      "bg-violet-200 text-violet-700 border-violet-400",
     ],
   ]);
 
@@ -80,6 +104,45 @@ export const QuotationTableRow: FC<{
   const showApproveOrderAction =
     canApprovePurchaseOrder(user?.rol) &&
     hasPendingPurchaseOrderApproval(quotation);
+  const showApproveInternallyAction = canApproveInternally(
+    user?.rol,
+    quotation,
+    viewingUnapproved,
+  );
+
+  const handleApproveInternally = () => {
+    approveInternallyMutation.mutate(quotation.ID);
+  };
+
+  const handleViewOriginalQuotation = async () => {
+    setIsLoadingOriginal(true);
+    try {
+      const result = await getOriginalQuotation(quotation.ID);
+      Navigate(
+        `/intranet/cotizaciones/detalles/${result.id_cotizacion_original}`,
+        {
+          state: {
+            returnTo: "/intranet/cotizaciones",
+            proyectoNombre: result.proyecto_nombre,
+          },
+        },
+      );
+    } catch {
+      toast.error("No se pudo cargar la cotización original del proyecto.");
+    } finally {
+      setIsLoadingOriginal(false);
+    }
+  };
+
+  const showLawyerEdit = canEditIncidentQuotation(user?.rol, quotation);
+
+  const showCommercialEdit = canEditCommercialQuotation(user?.rol, quotation);
+
+  const showOriginalQuotationAction =
+    user?.rol === RolesRecord.lawyer &&
+    quotation.esCotizacionIncidencia === true;
+
+  const showClientUploadOc = canClientUploadPurchaseOrder(quotation);
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -99,13 +162,25 @@ export const QuotationTableRow: FC<{
         </TableCell>
         <QuotationPaymentTermsCells quotationId={quotation.ID} />
         <TableCell className="">
+          <div className="flex flex-col items-center gap-1">
           <Badge
             className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
               quotation.estado,
-            )}`}
+            ) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
           >
-            {quotation.estado}
+            {quotationStateLabels[quotation.estado] ?? quotation.estado}
           </Badge>
+          {user?.rol === RolesRecord.client && (
+            <QuotationPurchaseOrderRejectionAlert
+              quotation={quotation}
+              compact
+            />
+          )}
+          <QuotationInternalApprovalBadges
+            quotation={quotation}
+            viewingUnapproved={viewingUnapproved}
+          />
+          </div>
         </TableCell>
 
         <TableCell>
@@ -129,7 +204,7 @@ export const QuotationTableRow: FC<{
                     className="bg-white border-[1.5px] border-teal-600 text-teal-600 font-normal text-center"
                     align="center"
                   >
-                    Editar plazos
+                    Editar plazos y pagos
                   </TooltipContent>
                 </Tooltip>
                 <Tooltip>
@@ -173,6 +248,71 @@ export const QuotationTableRow: FC<{
               </TooltipContent>
             </Tooltip>
 
+            {showApproveInternallyAction && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-emerald-600 hover:border hover:border-emerald-600 hover:text-emerald-700 transition-colors hover:bg-emerald-50"
+                    onClick={handleApproveInternally}
+                    disabled={approveInternallyMutation.isPending}
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-emerald-600 text-emerald-600 font-normal text-center"
+                  align="center"
+                >
+                  Aprobar cotización
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {showOriginalQuotationAction && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-slate-600 hover:border hover:border-slate-600 hover:text-slate-700 transition-colors hover:bg-slate-50"
+                    onClick={() => void handleViewOriginalQuotation()}
+                    disabled={isLoadingOriginal}
+                  >
+                    <FileStack className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-slate-600 text-slate-600 font-normal text-center"
+                  align="center"
+                >
+                  Cotización original
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {showLawyerEdit && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                    onClick={handleNavigateEdit}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                  align="center"
+                >
+                  Editar cotización de incidencia
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {showApproveOrderAction && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -194,8 +334,7 @@ export const QuotationTableRow: FC<{
               </Tooltip>
             )}
 
-            {user?.rol === RolesRecord.client &&
-              quotation.estado !== QuotationStatesRecord.approved && (
+            {user?.rol === RolesRecord.client && showClientUploadOc && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -216,45 +355,47 @@ export const QuotationTableRow: FC<{
                 </Tooltip>
               )}
 
+            {showCommercialEdit && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
+                    onClick={handleNavigateEdit}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
+                  align="center"
+                >
+                  Editar cotización
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             {user?.rol === RolesRecord.projectAdmin &&
-              quotation.estado === QuotationStatesRecord.pending && (
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-full aspect-square text-amber-500 hover:border hover:border-amber-500 hover:text-amber-600 transition-colors hover:bg-amber-50"
-                        onClick={handleNavigateEdit}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      className="bg-white border-[1.5px] border-amber-500 text-amber-500 font-normal text-center"
-                      align="center"
+              quotation.estado === QuotationStatesRecord.pending &&
+              !quotation.esCotizacionIncidencia && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
                     >
-                      Editar Cotizacion
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-full aspect-square text-red-500 hover:border hover:border-red-500 hover:text-red-600 transition-colors hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
-                      align="center"
-                    >
-                      Rechazar Cotizacion
-                    </TooltipContent>
-                  </Tooltip>
-                </>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="bg-white border-[1.5px] border-red-500 text-red-500 font-normal text-center"
+                    align="center"
+                  >
+                    Rechazar Cotizacion
+                  </TooltipContent>
+                </Tooltip>
               )}
 
             {user?.rol === RolesRecord.client &&

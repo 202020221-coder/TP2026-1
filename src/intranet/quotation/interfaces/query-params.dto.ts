@@ -1,4 +1,5 @@
 import type { QuotationState } from "../enum/quotation-state.record";
+import type { YesNo } from "./quotation";
 
 export interface GetInventoryItemsQP {
   page?: number;
@@ -18,4 +19,6 @@ export interface GetQuotationQP {
   estado?: QuotationState;
   nombre?: string;
   pendiente_aprobacion?: boolean;
+  aprobado?: YesNo;
+  cotizacion_de_incidencia?: YesNo;
 }
