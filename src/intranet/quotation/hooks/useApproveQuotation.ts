@@ -40,6 +40,7 @@ export const useApproveQuotation = () => {
     mutationFn: (quotationId: number) => approveQuotation(quotationId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["quotations"] });
+      queryClient.invalidateQueries({ queryKey: ["project-assistant-dashboard"] });
       toast.success(
         `${data.message} (Proyecto #${data.id_proyecto}, ${data.trabajos_creados} trabajos creados)`,
       );

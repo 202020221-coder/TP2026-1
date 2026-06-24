@@ -69,8 +69,10 @@ export const DonutChart: FC<{
 
 export const FunnelChart: FC<{
   stages: { label: string; value: number; color: string }[];
-}> = ({ stages }) => {
+  formatValue?: (value: number) => string;
+}> = ({ stages, formatValue }) => {
   const max = Math.max(...stages.map((s) => s.value), 1);
+  const format = formatValue ?? ((value: number) => String(value));
 
   return (
     <div className="space-y-2">
@@ -78,7 +80,7 @@ export const FunnelChart: FC<{
         const widthPct = Math.max(20, (stage.value / max) * 100);
         return (
           <div key={stage.label} className="flex items-center gap-3">
-            <span className="w-24 shrink-0 text-xs font-semibold text-muted-foreground">
+            <span className="w-28 shrink-0 text-xs font-semibold text-muted-foreground">
               {stage.label}
             </span>
             <div className="flex-1">
@@ -90,7 +92,7 @@ export const FunnelChart: FC<{
                   marginLeft: `${i * 4}%`,
                 }}
               >
-                {stage.value}
+                {format(stage.value)}
               </div>
             </div>
           </div>

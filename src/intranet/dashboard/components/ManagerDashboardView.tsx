@@ -11,7 +11,6 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
-  AlertTriangle,
   ArrowRight,
   Banknote,
   BarChart3,
@@ -191,7 +190,7 @@ export default function ManagerDashboardView() {
   const { data: rawData, isPending, isError, refetch } = useManagerDashboard();
   const [filters, setFilters] = useState<DashboardFilters>(DEFAULT_DASHBOARD_FILTERS);
   const data = useFilteredDashboard(rawData, filters);
-  const userName = useSession((s) => s.loggedUser?.nombre);
+  const userName = useSession((s) => s.loggedUser?.nombres);
   const [analyticsProject, setAnalyticsProject] = useState<{
     id: number;
     name: string;

@@ -7,6 +7,10 @@ export const routes: IRoute[] = [
     path: "/",
     Component: DashboardClientPage,
     isPrivate: true,
-    roles: [RolesRecord.projectAdmin, RolesRecord.manager],
+    roles: [
+      RolesRecord.client,
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+    ],
   },
 ];
