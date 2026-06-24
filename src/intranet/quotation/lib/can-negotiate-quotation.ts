@@ -8,7 +8,11 @@ export function canNegotiateQuotation(
   quotation: Pick<Quotation, "estado">,
   userRole: UserRole | undefined,
 ): boolean {
-  if (!userRole || quotation.estado === QuotationStatesRecord.rejected) {
+  if (
+    !userRole ||
+    quotation.estado === QuotationStatesRecord.rejected ||
+    quotation.estado === QuotationStatesRecord.notApproved
+  ) {
     return false;
   }
 

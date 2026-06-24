@@ -19,12 +19,14 @@ type QuotationOrderPurchaseDialogProps = {
     quotationId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    rejectionMessage?: string | null;
 };
 
 export default function QuotationOrderPurchaseDialog({
     quotationId,
     open,
     onOpenChange,
+    rejectionMessage,
 }: QuotationOrderPurchaseDialogProps) {
     const queryClient = useQueryClient();
     const [orderPurchaseFile, setOrderPurchaseFile] = useState<File | null>(null);
@@ -105,6 +107,13 @@ export default function QuotationOrderPurchaseDialog({
                 <DialogHeader>
                     <DialogTitle>Enviar orden de compra — Cotización #{quotationId}</DialogTitle>
                 </DialogHeader>
+
+                {rejectionMessage?.trim() && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                        <p className="font-medium">Orden de compra rechazada</p>
+                        <p className="mt-1">{rejectionMessage}</p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div

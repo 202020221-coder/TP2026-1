@@ -36,7 +36,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useViewQuotationPage } from "../hooks/useViewQuotationPage";
 import { toStoreExchangeRate } from "../api/exchange-rate.api";
 import { NegotiationChatFloating } from "../components/negotiation/NegotiationChatFloating";
@@ -45,6 +45,13 @@ import { QuotationServiceStoreProvider } from "../hooks/stores/quotation.service
 
 export function ProjectAssistantQuotationDetailsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    (location.state as { returnTo?: string; proyectoNombre?: string } | null)
+      ?.returnTo ?? "/intranet/cotizaciones";
+  const proyectoNombre = (
+    location.state as { proyectoNombre?: string } | null
+  )?.proyectoNombre;
   const { quotationId, data, isPending, isError } = useViewQuotationPage();
 
   if (!quotationId) {
@@ -69,13 +76,12 @@ export function ProjectAssistantQuotationDetailsPage() {
           <div className="flex items-center gap-3">
             <div className="h-7 w-1 rounded-full bg-primary" />
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {data.name}
+              {proyectoNombre
+                ? `Cotización original — ${proyectoNombre}`
+                : data.name}
             </h1>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/intranet/cotizaciones")}
-          >
+          <Button variant="outline" onClick={() => navigate(returnTo)}>
             <ArrowLeft className="h-4 w-4" />
             Regresar
           </Button>

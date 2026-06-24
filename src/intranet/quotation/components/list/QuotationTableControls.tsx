@@ -21,6 +21,7 @@ import {
 import { useDebounced } from "@/shared/hooks/useDebounced";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { canApprovePurchaseOrder } from "../../lib/can-approve-purchase-order";
+import { canViewUnapprovedQuotationsToggle } from "../../lib/can-approve-internally";
 
 export const QuotationTableControls: FC<{ children: ReactNode }> = ({
   children,
@@ -38,6 +39,8 @@ const TopControls: FC = () => {
   const { query, queryParams, result } = useQuotation();
   const role = useSession((state) => state.loggedUser?.rol);
   const showPendingApprovalFilter = canApprovePurchaseOrder(role);
+  const showUnapprovedToggle = canViewUnapprovedQuotationsToggle(role);
+  const viewingUnapproved = queryParams.aprobado === "NO";
   const onNameChange = useDebounced((nameSearch: string) => {
     query({ ...queryParams, page: 1, nombre: nameSearch });
   }, 500);
@@ -103,6 +106,26 @@ const TopControls: FC = () => {
           />
           <Label htmlFor="pendiente-aprobacion" className="font-normal cursor-pointer">
             Solo pendientes de aprobación de orden de compra
+          </Label>
+        </div>
+      )}
+      {showUnapprovedToggle && (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="no-aprobadas"
+            checked={viewingUnapproved}
+            onCheckedChange={(checked) => {
+              query({
+                ...queryParams,
+                page: 1,
+                aprobado: checked === true ? "NO" : undefined,
+                pendiente_aprobacion:
+                  checked === true ? undefined : queryParams.pendiente_aprobacion,
+              });
+            }}
+          />
+          <Label htmlFor="no-aprobadas" className="font-normal cursor-pointer">
+            Ver cotizaciones no aprobadas
           </Label>
         </div>
       )}

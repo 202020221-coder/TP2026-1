@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FC } from "react";
-import { CircleDollarSign, ExternalLink, FileCheck2, Loader2 } from "lucide-react";
+import { CircleDollarSign, ExternalLink, FileCheck2, Loader2, XCircle } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -15,10 +15,15 @@ import {
   fetchPurchaseOrderBlobUrl,
   getPurchaseOrderJsonUrl,
   resolvePurchaseOrderPublicUrl,
+  checkPurchaseOrderExists,
 } from "../../api/purchase_order.api";
 import { useApproveQuotation } from "../../hooks/useApproveQuotation";
 import { useQuotationPaymentTerms } from "../../hooks/useQuotationPaymentTerms";
 import { getInitialPaymentAmount, getInitialPaymentPercentage } from "../../lib/quotation-initial-payment";
+import { canRejectPurchaseOrder } from "../../lib/can-reject-purchase-order";
+import { hasPurchaseOrderUploaded } from "../../lib/quotation-workflow";
+import { RejectPurchaseOrderDialog } from "./RejectPurchaseOrderDialog";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
 
 type QuotationApproveOrderDialogProps = {
   quotation: Quotation;
@@ -29,6 +34,7 @@ type QuotationApproveOrderDialogProps = {
 export const QuotationApproveOrderDialog: FC<
   QuotationApproveOrderDialogProps
 > = ({ quotation, open, onOpenChange }) => {
+  const role = useSession((state) => state.loggedUser?.rol);
   const approveMutation = useApproveQuotation();
   const { terms, isLoading: isLoadingPaymentTerms } = useQuotationPaymentTerms(
     quotation.ID,
@@ -39,7 +45,13 @@ export const QuotationApproveOrderDialog: FC<
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const blobUrlRef = useRef<string | null>(null);
+  const isCommercial = quotation.esCotizacionIncidencia !== true;
+  const metadataIndicatesOc = hasPurchaseOrderUploaded(quotation);
+  const showRejectAction =
+    canRejectPurchaseOrder(role, quotation) ||
+    Boolean(pdfError && metadataIndicatesOc && isCommercial);
 
   const revokeBlobUrl = () => {
     if (blobUrlRef.current) {
@@ -55,6 +67,7 @@ export const QuotationApproveOrderDialog: FC<
       setPublicPdfUrl(null);
       setPdfError(null);
       setConfirmOpen(false);
+      setRejectOpen(false);
       return;
     }
 
@@ -65,8 +78,24 @@ export const QuotationApproveOrderDialog: FC<
       setPdfError(null);
       revokeBlobUrl();
 
+      const ocCheck = await checkPurchaseOrderExists(quotation.ID, {
+        context: isCommercial ? "commercial" : "incident",
+        metadataIndicatesOc,
+      }).catch(() => null);
+
+      if (cancelled) {
+        return;
+      }
+
+      if (ocCheck && !ocCheck.exists) {
+        setPdfError(ocCheck.message);
+        setIsLoadingPdf(false);
+        return;
+      }
+
       const directUrl =
         resolvePurchaseOrderPublicUrl(quotation.ordenCompra) ||
+        ocCheck?.url ||
         (await getPurchaseOrderJsonUrl(quotation.ID));
 
       if (!cancelled && directUrl) {
@@ -85,6 +114,14 @@ export const QuotationApproveOrderDialog: FC<
         if (!cancelled) {
           if (directUrl) {
             setPdfPreviewUrl(directUrl);
+          } else if (isCommercial && metadataIndicatesOc) {
+            setPdfError(
+              "El archivo de la orden de compra no está disponible o está dañado. Puede rechazarla para que el cliente envíe una nueva.",
+            );
+          } else if (isCommercial) {
+            setPdfError(
+              "No se encontró la orden de compra registrada para esta cotización comercial.",
+            );
           } else {
             setPdfError("No se pudo cargar el PDF de la orden de compra.");
           }
@@ -101,7 +138,7 @@ export const QuotationApproveOrderDialog: FC<
     return () => {
       cancelled = true;
     };
-  }, [open, quotation.ID, quotation.ordenCompra]);
+  }, [open, quotation.ID, quotation.ordenCompra, isCommercial, metadataIndicatesOc]);
 
   useEffect(() => () => revokeBlobUrl(), []);
 
@@ -192,7 +229,18 @@ export const QuotationApproveOrderDialog: FC<
               <ExternalLink className="mr-2 h-4 w-4" />
               Abrir en nueva pestaña
             </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {showRejectAction && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setRejectOpen(true)}
+                  disabled={approveMutation.isPending || isLoadingPdf}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Rechazar orden de compra
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -204,7 +252,11 @@ export const QuotationApproveOrderDialog: FC<
               <Button
                 type="button"
                 onClick={() => setConfirmOpen(true)}
-                disabled={approveMutation.isPending || isLoadingPdf}
+                disabled={
+                  approveMutation.isPending ||
+                  isLoadingPdf ||
+                  (Boolean(pdfError) && !pdfPreviewUrl)
+                }
               >
                 Aceptar orden de servicio
               </Button>
@@ -212,6 +264,14 @@ export const QuotationApproveOrderDialog: FC<
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RejectPurchaseOrderDialog
+        quotationId={quotation.ID}
+        quotationName={quotation.nombre}
+        open={rejectOpen}
+        onOpenChange={setRejectOpen}
+        onRejected={() => handleOpenChange(false)}
+      />
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="sm:max-w-md">
@@ -247,8 +307,9 @@ export const QuotationApproveOrderDialog: FC<
                   </div>
                 )}
                 <p>
-                  Se aprobará la orden de compra y se creará el proyecto con sus
-                  trabajos asociados. Esta acción no se puede deshacer.
+                  La cotización está en estado pendiente (aprobada internamente).
+                  Se creará el proyecto con sus trabajos asociados. Esta acción no
+                  se puede deshacer.
                 </p>
               </div>
             </DialogDescription>

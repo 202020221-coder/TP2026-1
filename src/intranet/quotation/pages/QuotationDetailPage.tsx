@@ -7,9 +7,6 @@ export function QuotationDetailsPage() {
   const user = useSession((s) => s.loggedUser);
   if (user?.rol === RolesRecord.client) {
     return <ClientQuotationDetailsPage />;
-  } else if (user?.rol === RolesRecord.projectAdmin) {
-    return <ProjectAssistantQuotationDetailsPage/>;
-  } else {
-    throw new Error(`Content not defined for user:  ${user?.rol}`);
   }
+  return <ProjectAssistantQuotationDetailsPage />;
 }

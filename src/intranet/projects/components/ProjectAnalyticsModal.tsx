@@ -157,13 +157,15 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
 
   if (!open) return null;
 
+  const etapasCotizacion = etapas.filter((e) => e.tipo === "cotizacion");
+
   const activitySpans = computeActivitySpansFromInformes({
     informes,
-    etapas,
+    etapas: etapasCotizacion,
     serviciosCotizacion,
   });
   const etapaRealDurations = computeEtapaRealDurations(
-    etapas,
+    etapasCotizacion,
     activitySpans,
     serviciosCotizacion,
   );
@@ -211,7 +213,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
                 title="Etapas del Proyecto"
               >
                 <EtapaRecienteSection
-                  etapas={etapas}
+                  etapas={etapasCotizacion}
                   informes={informes}
                   hidePlanned={hidePlanned}
                   etapaRealDurations={etapaRealDurations}
@@ -232,7 +234,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
                 <JornadaComparativaSection
                   serviciosCotizacion={serviciosCotizacion}
                   activitySpans={activitySpans}
-                  etapas={etapas}
+                  etapas={etapasCotizacion}
                 />
               </SectionCard>
 
@@ -242,7 +244,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
                 title="Incidencias por Etapa y Actividad"
               >
                 <IncidenciasBreakdownSection
-                  etapas={etapas}
+                  etapas={etapasCotizacion}
                   informes={informes}
                   incidencias={incidencias}
                 />
@@ -447,7 +449,6 @@ const ActivityDurationSection: FC<{ spans: ActivityDurationSpan[] }> = ({ spans 
         <TableHeader className="[&_tr]:border-b border-gray-200">
           <TableRow className="hover:bg-transparent bg-muted/20">
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Fecha</TableHead>
-            <TableHead className="text-gray-500 font-medium text-xs uppercase">Servicio</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Etapa</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase">Actividad</TableHead>
             <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Inicio</TableHead>
@@ -459,7 +460,6 @@ const ActivityDurationSection: FC<{ spans: ActivityDurationSpan[] }> = ({ spans 
           {spans.map((span, i) => (
             <TableRow key={`${span.fecha}-${span.etapaId}-${span.actividadId}-${i}`} className="border-b border-gray-100 hover:bg-gray-50/70">
               <TableCell className="text-sm font-mono">{span.fecha}</TableCell>
-              <TableCell className="text-sm text-muted-foreground">{span.servicioNombre ?? "—"}</TableCell>
               <TableCell className="text-sm">{span.etapaNombre}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{span.actividadNombre}</TableCell>
               <TableCell className="text-center font-mono text-sm">{span.inicio}</TableCell>

@@ -110,7 +110,13 @@ export const sidebarLinks: IMenu[] = [
   },
   {
     title: "Cotizaciones",
-    roles: [RolesRecord.client, RolesRecord.projectAdmin, RolesRecord.manager],
+    roles: [
+      RolesRecord.client,
+      RolesRecord.projectAdmin,
+      RolesRecord.manager,
+      RolesRecord.lawyer,
+      RolesRecord.workshopWorker,
+    ],
     url: "/intranet/cotizaciones/",
     icon: "Receipt",
   },

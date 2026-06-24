@@ -1,5 +1,10 @@
 import axiosInstance from "@/shared/api/axios.config";
+import { isAxiosError } from "axios";
 import { resolveBackendFileUrl } from "@/intranet/trucks/lib/maintenance-pdf";
+import type {
+  PurchaseOrderCheckResult,
+  PurchaseOrderContext,
+} from "../lib/purchase-order-context";
 
 export type UploadPurchaseOrderResponse = {
   message: string;
@@ -75,6 +80,127 @@ export const downloadPurchaseOrder = async (
 
 export type PurchaseOrderJsonResponse = {
   url: string;
+  cotizacionId?: number;
+};
+
+export type PurchaseOrderNotFoundResponse = {
+  error?: string;
+  existe?: boolean;
+  archivo_disponible?: boolean;
+  mensaje_ui?: string;
+  url?: string;
+  orden_compra_rechazada?: "YES" | "NO";
+  motivo_rechazo_orden_compra?: string | null;
+  mensaje_rechazo_orden_compra?: string | null;
+};
+
+export type RejectPurchaseOrderResponse = {
+  message: string;
+  ID: number;
+  orden_compra_rechazada: "YES" | "NO";
+  motivo_rechazo_orden_compra?: string;
+  mensaje_rechazo_orden_compra?: string;
+  tieneOrdenCompra?: boolean;
+  pendienteAprobacionOrden?: boolean;
+};
+
+export type CheckPurchaseOrderOptions = {
+  context: PurchaseOrderContext;
+  /** Fallback si el 404 no trae `existe` (p. ej. listado con ruta en BD) */
+  metadataIndicatesOc?: boolean;
+};
+
+const parseOrdenCompra404 = (
+  data: PurchaseOrderNotFoundResponse,
+  options: CheckPurchaseOrderOptions,
+): PurchaseOrderCheckResult => {
+  const existeEnBd = data.existe === true;
+  const archivoDisponible = data.archivo_disponible === true;
+  const rejectionMessage = data.mensaje_rechazo_orden_compra ?? undefined;
+
+  if (options.context === "incident") {
+    if (existeEnBd && !archivoDisponible) {
+      return {
+        exists: false,
+        availability: "unavailable_or_corrupt",
+        url: data.url ?? null,
+        message:
+          data.mensaje_ui ??
+          "El archivo de orden de compra no está disponible",
+        orden_compra_rechazada: data.orden_compra_rechazada,
+        mensaje_rechazo_orden_compra: rejectionMessage,
+      };
+    }
+
+    return {
+      exists: false,
+      availability: "missing",
+      url: null,
+      message: data.mensaje_ui ?? "No existe orden de compra",
+      orden_compra_rechazada: data.orden_compra_rechazada,
+      mensaje_rechazo_orden_compra: rejectionMessage,
+    };
+  }
+
+  if (existeEnBd && data.archivo_disponible === false) {
+    return {
+      exists: false,
+      availability: "unavailable_or_corrupt",
+      url: data.url ?? null,
+      message:
+        data.mensaje_ui ??
+        "El archivo de orden de compra no está disponible o está dañado. Puede rechazarla para que el cliente envíe una nueva.",
+      orden_compra_rechazada: data.orden_compra_rechazada,
+      mensaje_rechazo_orden_compra: rejectionMessage,
+    };
+  }
+
+  return {
+    exists: false,
+    availability: "missing",
+    url: null,
+    message:
+      data.mensaje_ui ??
+      "No hay orden de compra registrada para esta cotización comercial.",
+    orden_compra_rechazada: data.orden_compra_rechazada,
+    mensaje_rechazo_orden_compra: rejectionMessage,
+  };
+};
+
+export const checkPurchaseOrderExists = async (
+  id: number | string,
+  options: CheckPurchaseOrderOptions,
+): Promise<PurchaseOrderCheckResult> => {
+  try {
+    const response = await axiosInstance.get<PurchaseOrderJsonResponse>(
+      `/cotizaciones/${id}/orden-compra`,
+      { params: { format: "json" } },
+    );
+    const url = response.data?.url?.trim() || null;
+    return {
+      exists: Boolean(url),
+      availability: url ? "available" : "missing",
+      url,
+      message: "",
+    };
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) {
+      const data = error.response.data as PurchaseOrderNotFoundResponse;
+      return parseOrdenCompra404(data, options);
+    }
+    throw error;
+  }
+};
+
+export const rejectPurchaseOrder = async (
+  id: number | string,
+  motivo: string,
+): Promise<RejectPurchaseOrderResponse> => {
+  const response = await axiosInstance.put<RejectPurchaseOrderResponse>(
+    `/cotizaciones/${id}/orden-compra/rechazar`,
+    { motivo },
+  );
+  return response.data;
 };
 
 export const resolvePurchaseOrderPublicUrl = (ordenCompra?: string | null) => {
