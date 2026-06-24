@@ -45,12 +45,16 @@ import { toast } from "sonner";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+import type { ServiceDayJornada } from "../lib/proyecto-jornada";
+import { formatJornadasCotizacion } from "../lib/proyecto-jornada";
+
 interface InformeGridProps {
   idProyecto: number;
   informes: Informe[];
   etapas: ProyectoEtapa[];
   incidencias: IncidenciaResumen[];
   fecha: string;
+  jornadasDelDia?: ServiceDayJornada[];
   onRefresh: () => void;
 }
 
@@ -690,6 +694,7 @@ export function InformeGrid({
   etapas,
   incidencias,
   fecha,
+  jornadasDelDia,
   onRefresh,
 }: InformeGridProps) {
   const gridRef = useRef<AgGridReact>(null);
@@ -871,6 +876,22 @@ export function InformeGrid({
 
   return (
     <div className="flex flex-col gap-3">
+      {jornadasDelDia && jornadasDelDia.length > 0 ? (
+        <p className="text-xs text-muted-foreground rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+          Jornada programada (cotización) para este día:{" "}
+          <span className="font-semibold text-blue-900">
+            {formatJornadasCotizacion(jornadasDelDia)}
+          </span>
+          . Registre la hora de cada suceso dentro del rango del servicio correspondiente
+          cuando sea posible.
+        </p>
+      ) : (
+        <p className="text-xs text-amber-700 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          No hay jornada de cotización para el día seleccionado. Verifique las fechas y horarios
+          de los servicios en la cotización del proyecto.
+        </p>
+      )}
+
       <div className="flex justify-end">
         <Button
           onClick={handleAddRow}

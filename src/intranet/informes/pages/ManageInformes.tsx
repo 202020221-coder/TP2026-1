@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router";
-import { Hash, FileText, Building2, Calendar, Search } from "lucide-react";
+import { Hash, FileText, Building2, Calendar, Search, Clock } from "lucide-react";
 import { InformeGrid } from "../components/InformeGrid";
 import {
   getInformes,
@@ -13,6 +13,19 @@ import type {
   IncidenciaResumen,
 } from "../interfaces/informe";
 import { toast } from "sonner";
+import {
+  computeActivitySpansFromInformes,
+  formatDurationHours,
+} from "../lib/informe-duration-analytics";
+import {
+  formatJornadasCotizacion,
+  getJornadasFromCotizacion,
+  totalHorasProgramadasCotizacion,
+} from "../lib/proyecto-jornada";
+import {
+  getCotizacionServiciosJornada,
+  type CotizacionServicioJornada,
+} from "../lib/cotizacion-jornada";
 
 type InformesNavState = {
   projectId?: number;
@@ -53,6 +66,7 @@ export function ManageInformesPage() {
   );
   const [clientName, setClientName] = useState(navState?.clientName ?? "—");
   const [loading, setLoading] = useState(true);
+  const [serviciosCotizacion, setServiciosCotizacion] = useState<CotizacionServicioJornada[]>([]);
 
   // Filters
   const today = (() => {
@@ -108,6 +122,20 @@ export function ManageInformesPage() {
         estado: inc.estado ?? null,
       }));
       setIncidencias(normalized);
+
+      const cotId = Number(
+        (proyectoData as { id_cotizacion?: number }).id_cotizacion ?? 0,
+      );
+      if (cotId > 0) {
+        try {
+          const servicios = await getCotizacionServiciosJornada(cotId);
+          setServiciosCotizacion(servicios);
+        } catch {
+          setServiciosCotizacion([]);
+        }
+      } else {
+        setServiciosCotizacion([]);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Error al cargar datos del proyecto");
@@ -180,6 +208,29 @@ export function ManageInformesPage() {
     return et?.actividades ?? [];
   }, [filterEtapa, etapas]);
 
+  const jornadasDelDia = useMemo(
+    () => getJornadasFromCotizacion(serviciosCotizacion, fechaTabla),
+    [serviciosCotizacion, fechaTabla],
+  );
+
+  const horasProgramadasDia = useMemo(
+    () => totalHorasProgramadasCotizacion(serviciosCotizacion, fechaTabla),
+    [serviciosCotizacion, fechaTabla],
+  );
+
+  const duracionesDelDia = useMemo(() => {
+    return computeActivitySpansFromInformes({
+      informes,
+      etapas,
+      serviciosCotizacion,
+    }).filter((s) => s.fecha === fechaTabla);
+  }, [informes, etapas, serviciosCotizacion, fechaTabla]);
+
+  const horasUtilizadasDia = useMemo(
+    () => duracionesDelDia.reduce((acc, s) => acc + s.duracionHoras, 0),
+    [duracionesDelDia],
+  );
+
   // Reset actividad filter when etapa filter changes
   useEffect(() => {
     setFilterActividad("TODO");
@@ -237,7 +288,58 @@ export function ManageInformesPage() {
             label="Fecha del informe"
             value={today}
           />
+          <InfoField
+            icon={<Clock size={10} />}
+            label="Jornada programada (cotización)"
+            value={formatJornadasCotizacion(jornadasDelDia)}
+          />
         </div>
+
+        {duracionesDelDia.length > 0 ? (
+          <div className="mt-4 rounded-xl border border-border/70 bg-muted/10 p-4">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Duración real por etapa/actividad — {fechaTabla}
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground uppercase">
+                    <th className="py-1 pr-3">Etapa</th>
+                    <th className="py-1 pr-3">Actividad</th>
+                    <th className="py-1 pr-3 text-center">Inicio</th>
+                    <th className="py-1 pr-3 text-center">Fin</th>
+                    <th className="py-1 text-center">Duración</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {duracionesDelDia.map((span, i) => (
+                    <tr key={`${span.etapaId}-${span.actividadId}-${i}`} className="border-t border-border/50">
+                      <td className="py-1.5 pr-3">{span.etapaNombre}</td>
+                      <td className="py-1.5 pr-3 text-muted-foreground">{span.actividadNombre}</td>
+                      <td className="py-1.5 pr-3 text-center font-mono">{span.inicio}</td>
+                      <td className="py-1.5 pr-3 text-center font-mono">{span.fin}</td>
+                      <td className="py-1.5 text-center font-mono">
+                        {formatDurationHours(span.duracionHoras)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Horas utilizadas en el día:{" "}
+              <span className="font-semibold text-foreground">
+                {horasUtilizadasDia > 0 ? formatDurationHours(horasUtilizadasDia) : "—"}
+              </span>
+              {horasProgramadasDia > 0 && horasUtilizadasDia > horasProgramadasDia ? (
+                <span className="text-amber-600 font-medium">
+                  {" "}
+                  (+{formatDurationHours(horasUtilizadasDia - horasProgramadasDia)} extra)
+                </span>
+              ) : null}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Filters + Controls Card */}
@@ -355,6 +457,7 @@ export function ManageInformesPage() {
             etapas={etapas}
             incidencias={incidencias}
             fecha={fechaTabla}
+            jornadasDelDia={jornadasDelDia}
             onRefresh={fetchData}
           />
         )}

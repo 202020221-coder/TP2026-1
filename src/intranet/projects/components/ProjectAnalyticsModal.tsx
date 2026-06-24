@@ -25,7 +25,19 @@ import type { Incident } from "@/intranet/incidents/interfaces/incident";
 import type { InvolvedObject } from "@/intranet/incidents/interfaces/incident-quotation";
 import type { PresupuestoRealItem, TipoPresupuesto } from "@/intranet/presupuestos/interfaces/presupuesto";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
-import { hideFinancialsInAnalytics } from "@/intranet/layout/sidebar-links";
+import { hideFinancialsInAnalytics, hidePlannedDurationInAnalytics } from "@/intranet/layout/sidebar-links";
+import {
+  computeActivitySpansFromInformes,
+  computeEtapaRealDurations,
+  formatDurationHours,
+  jornadaDurationHours,
+  type ActivityDurationSpan,
+} from "@/intranet/informes/lib/informe-duration-analytics";
+import {
+  getCotizacionServiciosJornada,
+  getServiciosActivosEnFecha,
+  type CotizacionServicioJornada,
+} from "@/intranet/informes/lib/cotizacion-jornada";
 
 interface ProjectAnalyticsModalProps {
   projectId: number;
@@ -51,6 +63,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
 }) => {
   const role = useSession((state) => state.loggedUser?.rol);
   const hideFinancials = hideFinancialsInAnalytics(role);
+  const hidePlanned = hidePlannedDurationInAnalytics(role);
   const [loading, setLoading] = useState(true);
   const [proyecto, setProyecto] = useState<ProyectoData | null>(null);
   const [etapas, setEtapas] = useState<ProyectoEtapa[]>([]);
@@ -59,6 +72,7 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [incidentObjects, setIncidentObjects] = useState<Record<number, InvolvedObject[]>>({});
   const [cotizacionId, setCotizacionId] = useState<number | null>(null);
+  const [serviciosCotizacion, setServiciosCotizacion] = useState<CotizacionServicioJornada[]>([]);
   const [presupuestoReal, setPresupuestoReal] = useState<Record<string, PresupuestoRealItem[]>>({});
   const [proyectoNombre, setProyectoNombre] = useState(projectName);
 
@@ -90,6 +104,17 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
         setInformes(Array.isArray(informesData) ? informesData : []);
         setIncidents(Array.isArray(incidentsData) ? incidentsData : []);
         setCotizacionId(cotId);
+
+        if (cotId) {
+          try {
+            const servicios = await getCotizacionServiciosJornada(cotId);
+            setServiciosCotizacion(servicios);
+          } catch {
+            setServiciosCotizacion([]);
+          }
+        } else {
+          setServiciosCotizacion([]);
+        }
 
         const objs: Record<number, InvolvedObject[]> = {};
         if (Array.isArray(incidentsData)) {
@@ -131,6 +156,17 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
   }, [open, projectId, projectName, hideFinancials]);
 
   if (!open) return null;
+
+  const activitySpans = computeActivitySpansFromInformes({
+    informes,
+    etapas,
+    serviciosCotizacion,
+  });
+  const etapaRealDurations = computeEtapaRealDurations(
+    etapas,
+    activitySpans,
+    serviciosCotizacion,
+  );
 
   return (
     <div
@@ -174,7 +210,30 @@ export const ProjectAnalyticsModal: FC<ProjectAnalyticsModalProps> = ({
                 icon={<BarChart3 size={16} />}
                 title="Etapas del Proyecto"
               >
-                <EtapaRecienteSection etapas={etapas} informes={informes} />
+                <EtapaRecienteSection
+                  etapas={etapas}
+                  informes={informes}
+                  hidePlanned={hidePlanned}
+                  etapaRealDurations={etapaRealDurations}
+                />
+              </SectionCard>
+
+              <SectionCard
+                icon={<Clock size={16} />}
+                title="Duración Real por Etapa y Actividad"
+              >
+                <ActivityDurationSection spans={activitySpans} />
+              </SectionCard>
+
+              <SectionCard
+                icon={<Clock size={16} />}
+                title="Jornada Programada vs Horas Utilizadas"
+              >
+                <JornadaComparativaSection
+                  serviciosCotizacion={serviciosCotizacion}
+                  activitySpans={activitySpans}
+                  etapas={etapas}
+                />
               </SectionCard>
 
               {/* Section 3: Incidencias por etapa/actividad */}
@@ -253,11 +312,17 @@ const SectionCard: FC<{ icon: React.ReactNode; title: string; children: React.Re
 
 // ── 1. Etapa más reciente + Comparativa de días ──────────────────────────────
 
-const EtapaRecienteSection: FC<{ etapas: ProyectoEtapa[]; informes: Informe[] }> = ({
-  etapas,
-  informes,
-}) => {
+const EtapaRecienteSection: FC<{
+  etapas: ProyectoEtapa[];
+  informes: Informe[];
+  hidePlanned: boolean;
+  etapaRealDurations: ReturnType<typeof computeEtapaRealDurations>;
+}> = ({ etapas, hidePlanned, etapaRealDurations }) => {
   const sorted = [...etapas].sort((a, b) => a.orden - b.orden);
+  const latest = sorted[sorted.length - 1];
+  const latestReal = latest
+    ? etapaRealDurations.find((e) => e.etapaId === latest.id)
+    : undefined;
 
   return (
     <div className="space-y-4">
@@ -265,47 +330,85 @@ const EtapaRecienteSection: FC<{ etapas: ProyectoEtapa[]; informes: Informe[] }>
         <p className="text-sm text-muted-foreground italic">No hay etapas registradas.</p>
       ) : (
         <>
-          {/* Most recent stage */}
           <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
               Etapa más reciente
             </p>
-            <p className="text-lg font-bold text-foreground">{sorted[sorted.length - 1].nombre}</p>
+            <p className="text-lg font-bold text-foreground">{latest.nombre}</p>
             <p className="text-xs text-muted-foreground">
-              Estado: <span className="font-medium">{sorted[sorted.length - 1].estado}</span>
-              {" | "}Duración planificada: <span className="font-medium">{sorted[sorted.length - 1].duracion} días</span>
+              Estado: <span className="font-medium">{latest.estado}</span>
+              {!hidePlanned ? (
+                <>
+                  {" | "}Duración planificada:{" "}
+                  <span className="font-medium">{latest.duracion} días</span>
+                </>
+              ) : null}
+              {latestReal ? (
+                <>
+                  {" | "}Duración real:{" "}
+                  <span className="font-medium">
+                    {latestReal.horasReales > 0
+                      ? formatDurationHours(latestReal.horasReales)
+                      : "—"}
+                  </span>
+                </>
+              ) : null}
             </p>
           </div>
 
-          {/* Day comparison table */}
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="[&_tr]:border-b border-gray-200">
                 <TableRow className="hover:bg-transparent bg-muted/20">
                   <TableHead className="text-gray-500 font-medium text-xs uppercase">Etapa</TableHead>
                   <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Orden</TableHead>
-                  <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Días Cotizados</TableHead>
-                  <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Días Reales</TableHead>
-                  <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Diferencia</TableHead>
+                  {!hidePlanned ? (
+                    <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+                      Horas programadas
+                    </TableHead>
+                  ) : null}
+                  <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+                    Horas reales
+                  </TableHead>
+                  {!hidePlanned ? (
+                    <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+                      Diferencia (horas)
+                    </TableHead>
+                  ) : null}
                   <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sorted.map((etapa) => {
-                  const informeDates = informes
-                    .filter((inf) => inf.id_proyecto_etapa === etapa.id && inf.fecha)
-                    .map((inf) => inf.fecha!.slice(0, 10));
-                  const uniqueDays = new Set(informeDates).size;
-                  const diff = etapa.duracion - uniqueDays;
+                  const real = etapaRealDurations.find((e) => e.etapaId === etapa.id);
+                  const horasReales = real?.horasReales ?? 0;
+                  const horasProgramadas = real?.horasProgramadas ?? 0;
+                  const diff = Math.round((horasProgramadas - horasReales) * 10) / 10;
                   return (
                     <TableRow key={etapa.id} className="border-b border-gray-100 hover:bg-gray-50/70">
                       <TableCell className="font-medium text-sm">{etapa.nombre}</TableCell>
                       <TableCell className="text-center text-sm">{etapa.orden}</TableCell>
-                      <TableCell className="text-center font-mono text-sm">{etapa.duracion}</TableCell>
-                      <TableCell className="text-center font-mono text-sm">{uniqueDays || "—"}</TableCell>
-                      <TableCell className={`text-center font-mono text-sm ${diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : ""}`}>
-                        {diff !== 0 ? (diff > 0 ? `+${diff}` : `${diff}`) : "0"}
+                      {!hidePlanned ? (
+                        <TableCell className="text-center font-mono text-sm">
+                          {horasProgramadas > 0
+                            ? formatDurationHours(horasProgramadas)
+                            : "—"}
+                        </TableCell>
+                      ) : null}
+                      <TableCell className="text-center font-mono text-sm">
+                        {horasReales > 0 ? formatDurationHours(horasReales) : "—"}
                       </TableCell>
+                      {!hidePlanned ? (
+                        <TableCell
+                          className={`text-center font-mono text-sm ${diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : ""}`}
+                        >
+                          {horasProgramadas > 0 || horasReales > 0
+                            ? diff !== 0
+                              ? (diff > 0 ? `+${formatDurationHours(diff)}` : formatDurationHours(diff))
+                              : "0"
+                            : "—"}
+                        </TableCell>
+                      ) : null}
                       <TableCell className="text-center">
                         <Badge variant="outline" className="text-[11px]">
                           {etapa.estado}
@@ -319,6 +422,190 @@ const EtapaRecienteSection: FC<{ etapas: ProyectoEtapa[]; informes: Informe[] }>
           </div>
         </>
       )}
+    </div>
+  );
+};
+
+const ActivityDurationSection: FC<{ spans: ActivityDurationSpan[] }> = ({ spans }) => {
+  if (spans.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground italic">
+        No hay sucesos con etapa/actividad registrados en informes.
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <p className="text-xs text-muted-foreground mb-3">
+        La duración se calcula por día según la jornada del servicio de la cotización
+        (principal o subservicio). Si el último suceso ocurre antes del fin de jornada,
+        se asume cierre al final de la jornada; si ocurre después, se usa la hora del
+        último registro (horas extra).
+      </p>
+      <Table>
+        <TableHeader className="[&_tr]:border-b border-gray-200">
+          <TableRow className="hover:bg-transparent bg-muted/20">
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Fecha</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Servicio</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Etapa</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Actividad</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Inicio</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Fin</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">Duración</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {spans.map((span, i) => (
+            <TableRow key={`${span.fecha}-${span.etapaId}-${span.actividadId}-${i}`} className="border-b border-gray-100 hover:bg-gray-50/70">
+              <TableCell className="text-sm font-mono">{span.fecha}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{span.servicioNombre ?? "—"}</TableCell>
+              <TableCell className="text-sm">{span.etapaNombre}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{span.actividadNombre}</TableCell>
+              <TableCell className="text-center font-mono text-sm">{span.inicio}</TableCell>
+              <TableCell className="text-center font-mono text-sm">{span.fin}</TableCell>
+              <TableCell className="text-center font-mono text-sm">
+                {formatDurationHours(span.duracionHoras)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+const JornadaComparativaSection: FC<{
+  serviciosCotizacion: CotizacionServicioJornada[];
+  activitySpans: ActivityDurationSpan[];
+  etapas: ProyectoEtapa[];
+}> = ({ serviciosCotizacion, activitySpans, etapas }) => {
+  const etapaOrdenById = new Map(etapas.map((e) => [e.id, e.orden]));
+
+  const fechas = [
+    ...new Set([
+      ...serviciosCotizacion.flatMap((s) => {
+        const dates: string[] = [];
+        if (s.fechaInicio) dates.push(s.fechaInicio);
+        if (s.fechaFin) dates.push(s.fechaFin);
+        return dates;
+      }),
+      ...activitySpans.map((s) => s.fecha),
+    ]),
+  ].sort();
+
+  const spansBelongToService = (
+    span: ActivityDurationSpan,
+    servicio: CotizacionServicioJornada,
+    activosEnFecha: CotizacionServicioJornada[],
+  ): boolean => {
+    const orden = etapaOrdenById.get(span.etapaId) ?? 0;
+    if (!servicio.isPrincipal && servicio.faseOrden != null) {
+      return orden === servicio.faseOrden;
+    }
+    if (servicio.isPrincipal) {
+      const hasDedicatedSub = activosEnFecha.some(
+        (s) => !s.isPrincipal && s.faseOrden === orden,
+      );
+      return !hasDedicatedSub;
+    }
+    return false;
+  };
+
+  const rows: {
+    fecha: string;
+    servicio: string;
+    jornada: string;
+    horasUtilizadas: number;
+    horasExtra: number;
+  }[] = [];
+
+  for (const fecha of fechas) {
+    const activos = getServiciosActivosEnFecha(serviciosCotizacion, fecha);
+    const daySpans = activitySpans.filter((s) => s.fecha === fecha);
+
+    if (activos.length === 0 && daySpans.length === 0) continue;
+
+    if (activos.length === 0) {
+      const horasUtilizadas = daySpans.reduce((acc, s) => acc + s.duracionHoras, 0);
+      rows.push({
+        fecha,
+        servicio: "—",
+        jornada: "—",
+        horasUtilizadas,
+        horasExtra: 0,
+      });
+      continue;
+    }
+
+    for (const servicio of activos) {
+      const programadas = jornadaDurationHours(
+        servicio.jornadaInicio,
+        servicio.jornadaFin,
+      );
+      const horasUtilizadas = daySpans
+        .filter((s) => spansBelongToService(s, servicio, activos))
+        .reduce((acc, s) => acc + s.duracionHoras, 0);
+      const extra = programadas > 0 ? Math.max(0, horasUtilizadas - programadas) : 0;
+
+      rows.push({
+        fecha,
+        servicio: servicio.nombre + (servicio.isPrincipal ? " (principal)" : ""),
+        jornada: `${servicio.jornadaInicio} – ${servicio.jornadaFin} (${programadas} h)`,
+        horasUtilizadas,
+        horasExtra: extra,
+      });
+    }
+  }
+
+  if (rows.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground italic">
+        No hay jornadas de cotización ni informes para comparar.
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader className="[&_tr]:border-b border-gray-200">
+          <TableRow className="hover:bg-transparent bg-muted/20">
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Fecha</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase">Servicio</TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+              Jornada programada
+            </TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+              Horas utilizadas
+            </TableHead>
+            <TableHead className="text-gray-500 font-medium text-xs uppercase text-center">
+              Horas extra
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, i) => (
+            <TableRow key={`${row.fecha}-${row.servicio}-${i}`} className="border-b border-gray-100 hover:bg-gray-50/70">
+              <TableCell className="font-mono text-sm">{row.fecha}</TableCell>
+              <TableCell className="text-sm">{row.servicio}</TableCell>
+              <TableCell className="text-center text-sm">{row.jornada}</TableCell>
+              <TableCell className="text-center font-mono text-sm">
+                {row.horasUtilizadas > 0 ? formatDurationHours(row.horasUtilizadas) : "—"}
+              </TableCell>
+              <TableCell
+                className={`text-center font-mono text-sm ${row.horasExtra > 0 ? "text-amber-600 font-semibold" : ""}`}
+              >
+                {row.jornada !== "—"
+                  ? row.horasExtra > 0
+                    ? `+${formatDurationHours(row.horasExtra)}`
+                    : "0"
+                  : "—"}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };

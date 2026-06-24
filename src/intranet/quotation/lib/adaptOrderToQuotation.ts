@@ -241,6 +241,10 @@ export async function enrichOrderQuotationData(
   if (principalServiceId != null) {
     const catalog = catalogById.get(principalServiceId);
     if (!catalog || catalog.activo) {
+      const principalLinked = order.servicios.find(
+        (s) => s.ID_Servicio === principalServiceId,
+      );
+      const principalJornada = parseJornada(principalLinked?.horario_servicio);
       services.push(
         buildService({
           id: principalServiceId,
@@ -251,8 +255,8 @@ export async function enrichOrderQuotationData(
           pagoPorDia:
             principalTemplate.principalPagoPorDia ||
             catalog?.pago_por_dia === true,
-          scheduleStart: DEFAULT_SCHEDULE.start,
-          scheduleEnd: DEFAULT_SCHEDULE.end,
+          scheduleStart: principalJornada.start || DEFAULT_SCHEDULE.start,
+          scheduleEnd: principalJornada.end || DEFAULT_SCHEDULE.end,
         }),
       );
       addedIds.add(principalServiceId.toString());
