@@ -1,4 +1,3 @@
-import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { QuotationStatesRecord } from "../enum/quotation-state.record";
 import type { Quotation } from "../interfaces/quotation";
 import { isQuotationAwaitingClientAction } from "./client-quotation-state";

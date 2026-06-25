@@ -1,7 +1,6 @@
 import type { UserRole } from "@/security/session/interfaces/roles";
 import {
   QuotationStatesRecord,
-  quotationStateLabels,
   type QuotationState,
 } from "../enum/quotation-state.record";
 import type { Quotation } from "../interfaces/quotation";

@@ -1,7 +1,6 @@
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import type { UserRole } from "@/security/session/interfaces/roles";
 import type { Quotation } from "../interfaces/quotation";
-import { QuotationStatesRecord } from "../enum/quotation-state.record";
 import {
   hasPurchaseOrderUploaded,
   isAwaitingProjectCreation,

@@ -1,6 +1,5 @@
 import type { FC } from "react";
-import type { Quotation } from "../interfaces/quotation";
-
+import type { Quotation } from "../../interfaces/quotation";
 type QuotationInternalApprovalBadgesProps = {
   quotation: Pick<
     Quotation,

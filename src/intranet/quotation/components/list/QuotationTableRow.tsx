@@ -13,7 +13,6 @@ import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
 import {
   QuotationStatesRecord,
-  type QuotationState,
 } from "../../enum/quotation-state.record";
 import {
   getQuotationStateBadgeClass,

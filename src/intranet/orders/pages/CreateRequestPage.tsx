@@ -695,7 +695,7 @@ export function CreateRequestPage() {
                                     const solicitudServicios = await buildSolicitudServiciosPayload(
                                         resolvedPrincipalId,
                                         selectedTrucks.map((service) => ({
-                                            serviceId: service.serviceId,
+                                            serviceId: service.serviceId!,//TO-DO: Se asume la existencia de IDs de sservicio para cada camion seleccionado
                                             name: service.name,
                                             observacionesEleccion: service.observacionesEleccion,
                                         })),

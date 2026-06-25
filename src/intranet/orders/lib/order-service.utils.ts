@@ -303,4 +303,9 @@ export const buildSolicitudInventarioPayload = (
           product.intent === "alquilar" ? (product.days ?? 1) : 0,
       };
     })
-    .filter((item): item is PostRequestInventoryDTO => item != null);
+    .filter((item)=>validateBody(item));
+
+
+const validateBody = (item:PostRequestInventoryDTO|null): item is PostRequestInventoryDTO =>{
+  return item!==null
+} 
