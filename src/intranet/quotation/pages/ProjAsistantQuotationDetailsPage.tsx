@@ -169,6 +169,7 @@ export function ProjectAssistantQuotationDetailsPage() {
                             <CardContent>
                               <QuotationServicesTable
                                 items={data.services}
+                                phases={data.phases}
                                 readOnly={true}
                                 onUpdateUnitPrice={undefined}
                                 onDelete={undefined}

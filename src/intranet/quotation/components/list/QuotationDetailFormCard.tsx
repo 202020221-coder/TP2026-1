@@ -201,6 +201,7 @@ export function QuotationDetailFormCard({
                 <CardContent>
                   <QuotationServicesTable
                     items={quotation.services}
+                    phases={quotation.phases}
                     readOnly={true}
                     onUpdateUnitPrice={undefined}
                     onUpdateSchedule={undefined}

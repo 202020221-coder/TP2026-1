@@ -76,7 +76,7 @@ export function OrderDetailsPage() {
 
       <OrderDetailsInfoSection order={data} />
       <OrderDetailsContactSection medios={data.medios} />
-      <OrderDetailsServicesSection servicios={data.servicios} />
+      <OrderDetailsServicesSection order={data} />
       <OrderDetailsInventorySection inventario={data.inventario} />
       <OrderDetailsObservationsSection order={data} />
     </div>

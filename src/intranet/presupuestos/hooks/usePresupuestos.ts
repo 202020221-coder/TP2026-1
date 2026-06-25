@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { presupuestosApi } from "../api/presupuestos.api";
+import { exportarFaltantesInventarioOnce } from "../lib/export-faltantes-inventario-once";
 import type { AddPresupuestoItemPayload, GastoRealPayload, PresupuestoRealItem, TipoPresupuesto } from "../interfaces/presupuesto";
 import { toast } from "sonner";
 
@@ -134,7 +135,7 @@ export const useProyectoCotizacionId = (proyectoId: number | undefined) =>
 export const useExportarFaltantesInventario = (cotizacionId: number) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => presupuestosApi.exportarFaltantesInventario(cotizacionId),
+    mutationFn: () => exportarFaltantesInventarioOnce(cotizacionId),
     onSettled: () => {
       qc.invalidateQueries({
         queryKey: ["inventario-por-servicio-cotizacion", cotizacionId],
@@ -143,7 +144,15 @@ export const useExportarFaltantesInventario = (cotizacionId: number) => {
         queryKey: itemsKey(cotizacionId, "Material Directo"),
       });
     },
-    onSuccess: () => toast.success("Faltantes exportados al presupuesto exitosamente"),
+    onSuccess: (result) => {
+      if (result.skipped) {
+        if (result.reason === "already_exported") {
+          toast.info("Los faltantes ya estaban exportados al presupuesto.");
+        }
+        return;
+      }
+      toast.success("Faltantes exportados al presupuesto exitosamente");
+    },
     onError: () => toast.error("No se pudieron exportar los faltantes"),
   });
 };
