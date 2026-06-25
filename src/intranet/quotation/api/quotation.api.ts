@@ -11,6 +11,7 @@ import type { GetQuotationQP } from "../interfaces/query-params.dto";
 import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { toSearchParams } from "@/shared/lib/to-search-params";
+import { normalizeQuotationFromApi } from "../lib/resolve-quotation-state-display";
 import type { Truck } from "@/intranet/quotation/interfaces/create/order-trucks";
 import type { Client } from "@/intranet/quotation/interfaces/create/client";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
@@ -65,7 +66,10 @@ export const getAllQuotations = async (
       `/cotizaciones?${toSearchParams(apiParams)}`,
     );
   }
-  return response.data;
+  return {
+    ...response.data,
+    data: (response.data.data ?? []).map(normalizeQuotationFromApi),
+  };
 };
 
 export type ApproveQuotationResponse = {
@@ -210,7 +214,9 @@ export type CreateQuotationResponse = {
   precio_total?: number;
 };
 
-export const createQuotation = async (data: CreateQuotationDTO) => {
+export const createQuotation = async (
+  data: CreateQuotationDTO,
+): Promise<CreateQuotationResponse> => {
   const body = {
     ...toQuotationApiBody(data),
     id_solicitud: data.id_solicitud,

@@ -131,7 +131,7 @@ function BlockTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function ClientDashboardView() {
-  const { data, isPending, isError, refetch } = useClientDashboard();
+  const { data, isPending, isError, refetch, isFetching } = useClientDashboard();
   const userName = useSession((s) => s.loggedUser?.nombres);
 
   const today = new Date().toLocaleDateString("es-PE", {
@@ -141,7 +141,7 @@ export default function ClientDashboardView() {
     year: "numeric",
   });
 
-  if (isPending) {
+  if (isPending && !data) {
     return (
       <div className="space-y-4 px-1">
         <Skeleton className="h-36 w-full rounded-2xl" />
@@ -155,15 +155,21 @@ export default function ClientDashboardView() {
     );
   }
 
-  if (isError || !data) {
+  if (isError && !data) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
         <p className="text-sm text-muted-foreground">
           No se pudo cargar tu panel de cliente.
         </p>
-        <Button onClick={() => refetch()}>Reintentar</Button>
+        <Button onClick={() => refetch()} disabled={isFetching}>
+          {isFetching ? "Cargando..." : "Reintentar"}
+        </Button>
       </div>
     );
+  }
+
+  if (!data) {
+    return null;
   }
 
   return (

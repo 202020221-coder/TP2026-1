@@ -13,9 +13,13 @@ import { useNavigate } from "react-router";
 import type { Quotation } from "../../interfaces/quotation";
 import {
   QuotationStatesRecord,
-  quotationStateLabels,
   type QuotationState,
 } from "../../enum/quotation-state.record";
+import {
+  getQuotationStateBadgeClass,
+  getQuotationStateLabel,
+} from "../../lib/resolve-quotation-state-display";
+import { resolveQuotationDisplayState } from "../../lib/client-quotation-state";
 import QuotationRejectionMessageDialog from "./QuotationRejectionMessageDialog";
 import { QuotationChatStatusCell } from "./QuotationChatStatusCell";
 import { QuotationPaymentTermsCells } from "./QuotationPaymentTermsCells";
@@ -59,26 +63,6 @@ export const QuotationTableRow: FC<{
   const [rejectionMsgModalOpen, setRejectionMsgModalOpen] = useState(false);
   const [isLoadingOriginal, setIsLoadingOriginal] = useState(false);
   const approveInternallyMutation = useApproveQuotationInternally();
-
-  const statusStyles = new Map<QuotationState, string>([
-    [
-      QuotationStatesRecord.approved,
-      "bg-green-200 text-green-600 border-green-400",
-    ],
-    [QuotationStatesRecord.rejected, "bg-red-200 text-red-600 border-red-400"],
-    [
-      QuotationStatesRecord.pending,
-      "bg-yellow-200 text-yellow-600 border-yellow-400",
-    ],
-    [
-      QuotationStatesRecord.notApproved,
-      "bg-orange-200 text-orange-700 border-orange-400",
-    ],
-    [
-      QuotationStatesRecord.incidentPaid,
-      "bg-violet-200 text-violet-700 border-violet-400",
-    ],
-  ]);
 
   const handleModalSend = () => {
     onUploadPurchaseOrder(quotation.ID);
@@ -143,6 +127,7 @@ export const QuotationTableRow: FC<{
     quotation.esCotizacionIncidencia === true;
 
   const showClientUploadOc = canClientUploadPurchaseOrder(quotation);
+  const displayEstado = resolveQuotationDisplayState(quotation, user?.rol);
   return (
     <>
       <TableRow className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -164,11 +149,12 @@ export const QuotationTableRow: FC<{
         <TableCell className="">
           <div className="flex flex-col items-center gap-1">
           <Badge
-            className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${statusStyles.get(
-              quotation.estado,
-            ) ?? "bg-gray-100 text-gray-600 border-gray-300"}`}
+            className={`block mx-auto rounded-full px-3 py-1 text-[14px] font-medium border ${getQuotationStateBadgeClass(
+              displayEstado,
+              user?.rol,
+            )}`}
           >
-            {quotationStateLabels[quotation.estado] ?? quotation.estado}
+            {getQuotationStateLabel(quotation, user?.rol)}
           </Badge>
           {user?.rol === RolesRecord.client && (
             <QuotationPurchaseOrderRejectionAlert

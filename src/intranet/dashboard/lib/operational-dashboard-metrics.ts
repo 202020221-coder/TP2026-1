@@ -1,4 +1,4 @@
-import { OrderStatesRecord } from "@/intranet/orders/enum/order-state.record";
+import { isPendingOrder } from "@/intranet/orders/api/order.api";
 import type { Order } from "@/intranet/orders/interfaces/order";
 import { ProjectStatesRecord } from "@/intranet/projects/enum/project-state.record";
 import type { Project } from "@/intranet/projects/interfaces/project";
@@ -34,12 +34,15 @@ export function computeOperationalKpis(
   orders: Order[],
   quotations: Quotation[],
   projects: Project[],
+  pendingRequestsOverride?: number,
 ): OperationalKpis {
   const projectMap = projectByQuotationId(projects);
 
-  const pendingRequests = orders.filter(
-    (o) => o.estado === OrderStatesRecord.pending,
-  ).length;
+  const pendingFromOrders = orders.filter(isPendingOrder).length;
+  const pendingRequests = Math.max(
+    pendingRequestsOverride ?? 0,
+    pendingFromOrders > 0 ? pendingFromOrders : orders.length,
+  );
 
   const reviewQuotations = quotations.filter(
     (q) =>

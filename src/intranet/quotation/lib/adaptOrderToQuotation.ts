@@ -1,8 +1,14 @@
 import { format } from "date-fns";
 import { getInventoryItems } from "@/intranet/quotation/api/quotation.api";
+import { inventoryApi } from "@/intranet/inventory/api/inventory.api";
+import type { InventoryItem } from "@/intranet/quotation/interfaces/create/order-inventory";
 import type { QuotationPhase } from "@/intranet/quotation/interfaces/phases.types";
 import type { DesiredQuotationData } from "@/intranet/quotation/interfaces/upsert/desiredQuotationInitialData";
 import type { GetOrderResponseDTO } from "@/intranet/orders/interfaces";
+import {
+  resolveOrderInventoryObjectId,
+  resolveOrderInventoryObjectName,
+} from "@/intranet/orders/lib/normalize-order-inventory";
 import {
   getServicioPrincipal,
   getServicios,
@@ -51,6 +57,74 @@ const mergePhasesByName = (phases: QuotationPhase[]): QuotationPhase[] => {
   return merged;
 };
 
+const isInventoryActive = (estado: string | undefined): boolean => {
+  if (!estado) return true;
+  const normalized = estado.trim().toLowerCase();
+  return normalized === "activo" || normalized === "disponible";
+};
+
+type InventoryCatalogEntry = Pick<
+  InventoryItem,
+  "Id_Objeto" | "nombre_objeto" | "precio_comercial" | "estado"
+>;
+
+const toCatalogEntry = (item: InventoryItem): InventoryCatalogEntry => ({
+  Id_Objeto: item.Id_Objeto,
+  nombre_objeto: item.nombre_objeto,
+  precio_comercial: item.precio_comercial,
+  estado: item.estado,
+});
+
+const toCatalogEntryFromDetail = (
+  item: Awaited<ReturnType<typeof inventoryApi.getById>>,
+): InventoryCatalogEntry => ({
+  Id_Objeto: item.Id_Objeto,
+  nombre_objeto: item.nombre_objeto,
+  precio_comercial: String(item.precio_comercial ?? 0),
+  estado: String(item.estado ?? ""),
+});
+
+async function loadInventoryCatalogForOrder(
+  orderItems: GetOrderResponseDTO["inventario"],
+): Promise<Map<number, InventoryCatalogEntry>> {
+  const neededIds = [
+    ...new Set(
+      orderItems
+        .map((item) => resolveOrderInventoryObjectId(item))
+        .filter((id) => id > 0),
+    ),
+  ];
+  const map = new Map<number, InventoryCatalogEntry>();
+  if (neededIds.length === 0) return map;
+
+  const limit = 100;
+  for (let page = 1; page <= 15; page++) {
+    const batch = await getInventoryItems({ page, limit }).catch(() => ({
+      data: [] as InventoryItem[],
+      pagination: { page, limit, total: 0, totalPages: 0 },
+    }));
+    for (const item of batch.data) {
+      map.set(item.Id_Objeto, toCatalogEntry(item));
+    }
+    const allFound = neededIds.every((id) => map.has(id));
+    if (allFound || batch.data.length < limit) break;
+  }
+
+  const missingIds = neededIds.filter((id) => !map.has(id));
+  if (missingIds.length > 0) {
+    const details = await Promise.all(
+      missingIds.map((id) => inventoryApi.getById(id).catch(() => null)),
+    );
+    for (const detail of details) {
+      if (detail) {
+        map.set(detail.Id_Objeto, toCatalogEntryFromDetail(detail));
+      }
+    }
+  }
+
+  return map;
+}
+
 export async function enrichOrderQuotationData(
   order: GetOrderResponseDTO,
 ): Promise<
@@ -62,22 +136,16 @@ export async function enrichOrderQuotationData(
   const orderDetail = order as OrderDetailWithServices;
   const { allServices, principal } = normalizeOrderServices(orderDetail);
 
-  const [catalogResponse, inventoryResponse] = await Promise.all([
+  const [catalogResponse, inventoryById] = await Promise.all([
     getServicios({ page: 1, limit: 100 }).catch(() => ({
       data: [] as Servicio[],
       pagination: { page: 1, limit: 100, total: 0, totalPages: 0 },
     })),
-    getInventoryItems({ page: 1, limit: 500 }).catch(() => ({
-      data: [],
-      pagination: { page: 1, limit: 100, total: 0, totalPages: 0 },
-    })),
+    loadInventoryCatalogForOrder(order.inventario ?? []),
   ]);
 
   const catalogById = new Map<number, Servicio>(
     catalogResponse.data.map((service) => [service.id, service]),
-  );
-  const inventoryById = new Map(
-    inventoryResponse.data.map((item) => [item.Id_Objeto, item]),
   );
 
   let principalServiceId = principal?.ID_Servicio ?? null;
@@ -217,7 +285,14 @@ export async function enrichOrderQuotationData(
 
   const inventory: DesiredQuotationData["inventory"] = (order.inventario ?? [])
     .map((item) => {
-      const catalogItem = inventoryById.get(item.ID_Inventario);
+      const objectId = resolveOrderInventoryObjectId(item);
+      const catalogItem = inventoryById.get(objectId);
+      if (catalogItem && !isInventoryActive(catalogItem.estado)) return null;
+
+      const nombre =
+        resolveOrderInventoryObjectName(item) ||
+        catalogItem?.nombre_objeto ||
+        (objectId > 0 ? `Producto #${objectId}` : "Producto sin nombre");
 
       const precio = catalogItem
         ? Number(catalogItem.precio_comercial)
@@ -229,8 +304,8 @@ export async function enrichOrderQuotationData(
           Number((item as { diasAlquilados?: number }).diasAlquilados) ||
           1;
         return {
-          id: item.ID_Inventario.toString(),
-          nombre: catalogItem?.nombre_objeto ?? item.nombre,
+          id: objectId.toString(),
+          nombre,
           cantidad: item.cantidad,
           precio_unitario: Number.isFinite(precio) ? precio : 0,
           intencion: "alquilar" as const,
@@ -240,8 +315,8 @@ export async function enrichOrderQuotationData(
       }
 
       return {
-        id: item.ID_Inventario.toString(),
-        nombre: catalogItem?.nombre_objeto ?? item.nombre,
+        id: objectId.toString(),
+        nombre,
         cantidad: item.cantidad,
         precio_unitario: Number.isFinite(precio) ? precio : 0,
         intencion: "comprar" as const,

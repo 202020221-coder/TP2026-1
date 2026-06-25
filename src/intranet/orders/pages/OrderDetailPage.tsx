@@ -202,7 +202,7 @@ export function OrderDetailPage() {
                 <div key={i} className="py-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                   <div>
                     <span className="text-xs text-muted-foreground block">Producto</span>
-                    <span className="font-medium">{(item as any).Objeto_Nombre ?? `#${(item as any).ID_Inventario}`}</span>
+                    <span className="font-medium">{item.nombre || `#${item.ID_Inventario}`}</span>
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground block">Cantidad</span>

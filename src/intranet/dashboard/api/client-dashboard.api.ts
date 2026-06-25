@@ -1,4 +1,7 @@
-import { getAllOrders } from "@/intranet/orders/api/order.api";
+import {
+  getAllOrders,
+  normalizeOrdersResponse,
+} from "@/intranet/orders/api/order.api";
 import { OrderStatesRecord } from "@/intranet/orders/enum/order-state.record";
 import type { Order } from "@/intranet/orders/interfaces/order";
 import { getClientProjects } from "@/intranet/projects/api/client-projects.api";
@@ -12,6 +15,7 @@ import { QuotationMessagesStatesRecord } from "@/intranet/quotation/enum/quotati
 import { QuotationStatesRecord } from "@/intranet/quotation/enum/quotation-state.record";
 import type { Quotation } from "@/intranet/quotation/interfaces/quotation";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import { isQuotationAwaitingClientAction } from "@/intranet/quotation/lib/client-quotation-state";
 import { parseQuotationAmount } from "../lib/operational-dashboard-metrics";
 import type {
   ClientDashboardData,
@@ -23,6 +27,14 @@ import type {
   ClientTimelinePhase,
   TimelinePhaseStatus,
 } from "../interfaces/client-dashboard.types";
+
+const EMPTY_KPIS: ClientDashboardKpis = {
+  quotationsToApprove: 0,
+  pendingMessages: 0,
+  openRequests: 0,
+};
+
+const DASHBOARD_LIST_LIMIT = 100;
 
 function formatTimeAgo(dateStr: string): string {
   const date = new Date(dateStr);
@@ -139,9 +151,9 @@ async function buildProjectProgress(
 function buildKpis(orders: Order[], quotations: Quotation[]): ClientDashboardKpis {
   const quotationsToApprove = quotations.filter(
     (q) =>
-      q.estado === QuotationStatesRecord.pending &&
-      (q.mensajes === QuotationMessagesStatesRecord.pending ||
-        !q.ordenCompra),
+      isQuotationAwaitingClientAction(q) &&
+      !q.ordenCompra &&
+      q.mensajes !== QuotationMessagesStatesRecord.pending,
   ).length;
 
   const pendingMessages = quotations.filter(
@@ -156,13 +168,11 @@ function buildKpis(orders: Order[], quotations: Quotation[]): ClientDashboardKpi
 }
 
 function mapQuotationStatus(quotation: Quotation): ClientQuotationSummary {
-  const needsAction =
-    quotation.estado === QuotationStatesRecord.pending &&
-    (quotation.mensajes === QuotationMessagesStatesRecord.pending ||
-      !quotation.ordenCompra);
+  const awaitingAction =
+    isQuotationAwaitingClientAction(quotation) && !quotation.ordenCompra;
 
   let status = "En revisión";
-  let statusTone: ClientQuotationSummary["statusTone"] = "warning";
+  let statusTone: ClientQuotationSummary["statusTone"] = "neutral";
 
   if (quotation.estado === QuotationStatesRecord.approved) {
     status = "Aprobada";
@@ -170,8 +180,8 @@ function mapQuotationStatus(quotation: Quotation): ClientQuotationSummary {
   } else if (quotation.estado === QuotationStatesRecord.rejected) {
     status = "Rechazada";
     statusTone = "danger";
-  } else if (needsAction) {
-    status = "Pendiente de firma";
+  } else if (awaitingAction) {
+    status = "Pendiente (sin proyecto)";
     statusTone = "warning";
   } else if (quotation.estado === QuotationStatesRecord.pending) {
     status = "En evaluación";
@@ -184,7 +194,7 @@ function mapQuotationStatus(quotation: Quotation): ClientQuotationSummary {
     amount: parseQuotationAmount(quotation.precioTotal),
     status,
     statusTone,
-    needsAction,
+    needsAction: awaitingAction,
   };
 }
 
@@ -212,6 +222,19 @@ function mapRequestStatus(order: Order): ClientRequestSummary {
   };
 }
 
+async function safeBuildRecentMessages(
+  quotations: Quotation[],
+): Promise<ClientRecentMessage[]> {
+  try {
+    const timeout = new Promise<ClientRecentMessage[]>((resolve) => {
+      setTimeout(() => resolve([]), 8_000);
+    });
+    return await Promise.race([buildRecentMessages(quotations), timeout]);
+  } catch {
+    return [];
+  }
+}
+
 async function buildRecentMessages(
   quotations: Quotation[],
 ): Promise<ClientRecentMessage[]> {
@@ -221,7 +244,7 @@ async function buildRecentMessages(
         q.mensajes === QuotationMessagesStatesRecord.pending ||
         q.mensajes === QuotationMessagesStatesRecord.sended,
     )
-    .slice(0, 6);
+    .slice(0, 4);
 
   const results = await Promise.allSettled(
     candidates.map((q) => getQuotationChatHistory(q.ID)),
@@ -252,52 +275,96 @@ async function buildRecentMessages(
   return messages.slice(0, 5);
 }
 
+async function loadClientOrders(): Promise<Order[]> {
+  try {
+    const response = await getAllOrders({
+      page: 1,
+      limit: DASHBOARD_LIST_LIMIT,
+    });
+    return normalizeOrdersResponse(response).data;
+  } catch {
+    return [];
+  }
+}
+
+async function loadClientQuotations(): Promise<Quotation[]> {
+  try {
+    const response = await getAllQuotations({
+      page: 1,
+      per_page: DASHBOARD_LIST_LIMIT,
+    });
+    return response.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function buildEmptyClientDashboard(): ClientDashboardData {
+  return {
+    orders: [],
+    quotations: [],
+    projects: [],
+    kpis: EMPTY_KPIS,
+    primaryProgress: null,
+    recentMessages: [],
+    quotationSummaries: [],
+    requestSummaries: [],
+    primaryQuotationToApprove: null,
+  };
+}
+
 export async function fetchClientDashboardData(): Promise<ClientDashboardData> {
   const user = useSession.getState().loggedUser;
   if (!user?.dni_perfil) {
-    throw new Error("Perfil de cliente no disponible");
+    return buildEmptyClientDashboard();
   }
 
-  const [ordersResult, quotationsResult, projects] = await Promise.all([
-    getAllOrders({ page: 1, limit: 200 }),
-    getAllQuotations({ page: 1, limit: 200 }),
-    getClientProjects(user.dni_perfil),
-  ]);
+  try {
+    const [ordersSettled, quotationsSettled, projectsSettled] =
+      await Promise.allSettled([
+        loadClientOrders(),
+        loadClientQuotations(),
+        getClientProjects(user.dni_perfil),
+      ]);
 
-  const orders = ordersResult.data;
-  const quotations = quotationsResult.data;
+    const orders =
+      ordersSettled.status === "fulfilled" ? ordersSettled.value : [];
+    const quotations =
+      quotationsSettled.status === "fulfilled" ? quotationsSettled.value : [];
+    const projects =
+      projectsSettled.status === "fulfilled" ? projectsSettled.value : [];
 
-  const kpis = buildKpis(orders, quotations);
-  const primaryProgress = await buildProjectProgress(projects);
-  const recentMessages = await buildRecentMessages(quotations);
+    const kpis = buildKpis(orders, quotations);
+    const primaryProgress = await buildProjectProgress(projects);
+    const recentMessages = await safeBuildRecentMessages(quotations);
 
-  const quotationSummaries = [...quotations]
-    .sort((a, b) => b.ID - a.ID)
-    .slice(0, 6)
-    .map(mapQuotationStatus);
+    const quotationSummaries = [...quotations]
+      .sort((a, b) => b.ID - a.ID)
+      .slice(0, 6)
+      .map(mapQuotationStatus);
 
-  const requestSummaries = [...orders]
-    .sort((a, b) => b.ID - a.ID)
-    .slice(0, 6)
-    .map(mapRequestStatus);
+    const requestSummaries = [...orders]
+      .sort((a, b) => b.ID - a.ID)
+      .slice(0, 6)
+      .map(mapRequestStatus);
 
-  const primaryQuotationToApprove =
-    quotations.find(
-      (q) =>
-        q.estado === QuotationStatesRecord.pending &&
-        (q.mensajes === QuotationMessagesStatesRecord.pending ||
-          !q.ordenCompra),
-    ) ?? null;
+    const primaryQuotationToApprove =
+      quotations.find(
+        (q) => isQuotationAwaitingClientAction(q) && !q.ordenCompra,
+      ) ?? null;
 
-  return {
-    orders,
-    quotations,
-    projects,
-    kpis,
-    primaryProgress,
-    recentMessages,
-    quotationSummaries,
-    requestSummaries,
-    primaryQuotationToApprove,
-  };
+    return {
+      orders,
+      quotations,
+      projects,
+      kpis,
+      primaryProgress,
+      recentMessages,
+      quotationSummaries,
+      requestSummaries,
+      primaryQuotationToApprove,
+    };
+  } catch {
+    return buildEmptyClientDashboard();
+  }
 }

@@ -1,7 +1,10 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { createQuotation } from "../api/quotation.api";
+import {
+  approveQuotationInternally,
+  createQuotation,
+} from "../api/quotation.api";
 import { exportarFaltantesInventarioOnce } from "@/intranet/presupuestos/lib/export-faltantes-inventario-once";
 import { useQuotationProductStore } from "./stores/quotation.products.store.provider";
 import { useQuotationTruckStore } from "./stores/quotation.truck.store.provider";
@@ -52,8 +55,6 @@ export const useCreateQuotation = ({
     try {
       await toast.promise(
         async () => {
-          // Recalcula las fechas de cada servicio según el día de inicio y la
-          // etapa, para enviar fecha_inicio/fecha_finalizacion coherentes.
           const servicesPayload = Object.values(servicios).map((service) => {
             const { startDate, dueDate } = computeServiceDates(
               service,
@@ -96,7 +97,14 @@ export const useCreateQuotation = ({
             } catch {
               // La cotización ya fue creada; el presupuesto se puede exportar manualmente.
             }
+
+            try {
+              await approveQuotationInternally(created.ID);
+            } catch {
+              // El cliente puede verla con la lógica del portal si falla la aprobación interna.
+            }
           }
+
           navigate("/intranet/solicitudes");
         },
         {

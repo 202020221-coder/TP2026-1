@@ -8,6 +8,13 @@ import {
 import { Package } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import type { DetailedOrder } from "../../interfaces/order";
+import { resolveOrderInventoryObjectName } from "../../lib/normalize-order-inventory";
+
+const formatUnitPrice = (value: string | number | null | undefined): string => {
+  if (value == null || value === "") return "—";
+  const amount = Number(value);
+  return Number.isFinite(amount) ? `S/ ${amount.toFixed(2)}` : "—";
+};
 
 export const OrderDetailsInventorySection: FC<{
   inventario: DetailedOrder["inventario"];
@@ -45,16 +52,16 @@ export const OrderDetailsInventorySection: FC<{
               </tr>
             </thead>
             <tbody>
-              {inventario.map((item) => (
+              {inventario.map((item, index) => (
                 <tr
-                  key={item.id}
+                  key={item.id ?? `${item.ID_Inventario}-${index}`}
                   className="border-b border-border/50 last:border-0"
                 >
                   <td
                     className="py-2.5 px-3 font-medium max-w-[220px] truncate"
-                    title={item.nombre}
+                    title={resolveOrderInventoryObjectName(item)}
                   >
-                    {item.nombre}
+                    {resolveOrderInventoryObjectName(item)}
                   </td>
                   <td className="py-2.5 px-3">{item.cantidad}</td>
                   <td className="py-2.5 px-3">
@@ -70,7 +77,7 @@ export const OrderDetailsInventorySection: FC<{
                     </Badge>
                   </td>
                   <td className="py-2.5 px-3 text-muted-foreground">
-                    S/ {parseFloat(item.precio_unitario.toString()).toFixed(2)}
+                    {formatUnitPrice(item.precio_unitario)}
                   </td>
                   <td className="py-2.5 px-3 text-muted-foreground">
                     {item.dias_alquilados ?? "—"}

@@ -2,6 +2,7 @@ import type { ServicioEtapaPayload } from "@/intranet/services/interfaces/servic
 import type { ServicioFase } from "@/intranet/services/interfaces/service";
 import { getServicioPrincipal, type ServicioPrincipalTemplate } from "@/intranet/services/api/service.api";
 import { getOrder } from "@/intranet/orders/api/order.api";
+import { resolveOrderInventoryObjectId } from "@/intranet/orders/lib/normalize-order-inventory";
 import type { QuotationPhase } from "../interfaces/phases.types";
 import type { QuotationAdminDetailData } from "../interfaces/quotation-admin-detail.dto";
 import type { DesiredQuotationData } from "../interfaces/upsert/desiredQuotationInitialData";
@@ -11,6 +12,7 @@ import {
   plazosPagoFromInstallments,
 } from "./quotation-plazos-pago";
 import { format } from "date-fns";
+import { normalizeQuotationEstado } from "./resolve-quotation-state-display";
 
 const EMPTY_TEMPLATE: ServicioPrincipalTemplate = {
   fases: [],
@@ -251,7 +253,9 @@ async function resolveInventoryDaysFromOrder(
         parseRentalDays(
           (row as { diasAlquilados?: number | string }).diasAlquilados,
         );
-      if (days != null) daysByItemId.set(String(row.ID_Inventario), days);
+      if (days != null) {
+        daysByItemId.set(String(resolveOrderInventoryObjectId(row)), days);
+      }
     }
 
     return inventory.map((item) => {
@@ -370,7 +374,7 @@ export const adaptQuotationAdminDetail = (
         ? plazosPagoFromInstallments(dto.plazos_pago)
         : DEFAULT_PLAZOS_PAGO,
     },
-    status: dto.estado as DesiredQuotationData["status"],
+    status: normalizeQuotationEstado(dto.estado),
     inventory: dto.productos.map((p) =>
       normalizeProductoFromApi(p, validServiceIds),
     ),

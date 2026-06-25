@@ -23,10 +23,8 @@ import {
   updatePlazoPagoAtOrden,
   type QuotationPlazosPagoPair,
 } from "../../lib/quotation-plazos-pago";
-import {
-  quotationStateLabels,
-  QuotationStatesRecord,
-} from "../../enum/quotation-state.record";
+import { QuotationStatesRecord } from "../../enum/quotation-state.record";
+import { getQuotationStateLabel } from "../../lib/resolve-quotation-state-display";
 import { isAwaitingProjectCreation } from "../../lib/quotation-workflow";
 import { canApprovePurchaseOrder } from "../../lib/can-approve-purchase-order";
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
@@ -101,8 +99,7 @@ export const QuotationEditPaymentTermsDialog: FC<
     installmentsToSave.length > 0 &&
     installmentsToSave.every((plazo) => plazo.id != null);
 
-  const estadoLabel =
-    quotationStateLabels[quotation.estado] ?? quotation.estado;
+  const estadoLabel = getQuotationStateLabel(quotation, role);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -122,7 +119,8 @@ export const QuotationEditPaymentTermsDialog: FC<
                 )}
                 {quotation.estado === QuotationStatesRecord.notApproved && (
                   <span className="text-xs text-muted-foreground">
-                    Requiere aprobación interna antes de que el cliente la vea.
+                    El cliente puede revisar y comentar. Tras la aprobación
+                    interna podrá subir su orden de compra.
                   </span>
                 )}
               </div>

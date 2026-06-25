@@ -17,6 +17,13 @@ import { PickupCardView } from "../prices/delivery/PickupCardView";
 import { SummaryCard } from "../prices/summary/SummaryCard";
 import { QuotationPaymentTermsCard } from "../conditions/QuotationPaymentTermsCard";
 import { format } from "date-fns";
+import { useSession } from "@/security/session/hooks/stores/useSession.store";
+import {
+  getQuotationStateBadgeClass,
+  getQuotationStateLabel,
+} from "../../lib/resolve-quotation-state-display";
+import { resolveQuotationDisplayState } from "../../lib/client-quotation-state";
+import type { QuotationState } from "../../enum/quotation-state.record";
 import { QuotationServiceStoreProvider } from "../../hooks/stores/quotation.services.store.provider";
 import { QuotationReferenceStoreProvider } from "../../hooks/stores/quotation.reference.store.provider";
 import { toStoreExchangeRate } from "../../api/exchange-rate.api";
@@ -77,6 +84,12 @@ const ConditionsDatesCard = ({
 export function QuotationDetailFormCard({
   quotation,
 }: QuotationDetailFormCardProps) {
+  const userRole = useSession((state) => state.loggedUser?.rol);
+  const estado = quotation.status as QuotationState;
+  const estadoLabel = getQuotationStateLabel({ estado }, userRole);
+  const displayEstado = resolveQuotationDisplayState({ estado }, userRole);
+  const estadoBadgeClass = getQuotationStateBadgeClass(displayEstado, userRole);
+
   return (
     <QuotationReferenceStoreProvider
       name={quotation.name}
@@ -99,9 +112,9 @@ export function QuotationDetailFormCard({
                 </h2>
                 <Badge
                   variant={estadoVariant[quotation.status] ?? "secondary"}
-                  className="capitalize"
+                  className={`capitalize border ${estadoBadgeClass}`}
                 >
-                  {quotation.status}
+                  {estadoLabel}
                 </Badge>
               </div>
 

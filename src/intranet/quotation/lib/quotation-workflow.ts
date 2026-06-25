@@ -1,5 +1,7 @@
+import { RolesRecord } from "@/security/session/enum/roles.enum";
 import { QuotationStatesRecord } from "../enum/quotation-state.record";
 import type { Quotation } from "../interfaces/quotation";
+import { isQuotationAwaitingClientAction } from "./client-quotation-state";
 
 /**
  * `pendiente` = aprobada internamente (aprobado=YES) pero aún sin proyecto creado
@@ -50,14 +52,9 @@ export const getPurchaseOrderRejectionMessage = (
 export const canClientUploadPurchaseOrder = (
   quotation: Quotation,
 ): boolean => {
-  if (quotation.aprobado !== "YES") {
-    return false;
-  }
-
   if (
     quotation.estado === QuotationStatesRecord.approved ||
     quotation.estado === QuotationStatesRecord.rejected ||
-    quotation.estado === QuotationStatesRecord.notApproved ||
     quotation.estado === QuotationStatesRecord.incidentPaid
   ) {
     return false;
@@ -72,10 +69,13 @@ export const canClientUploadPurchaseOrder = (
   }
 
   if (quotation.esCotizacionIncidencia) {
-    return true;
+    return (
+      quotation.aprobado === "YES" &&
+      quotation.estado === QuotationStatesRecord.pending
+    );
   }
 
-  return isAwaitingProjectCreation(quotation);
+  return isQuotationAwaitingClientAction(quotation);
 };
 
 export const canCreateProjectFromQuotation = (

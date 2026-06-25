@@ -1,4 +1,4 @@
-import { getAllOrders } from "@/intranet/orders/api/order.api";
+import { getPendingOrdersSummary, normalizeOrderEstado } from "@/intranet/orders/api/order.api";
 import { OrderStatesRecord } from "@/intranet/orders/enum/order-state.record";
 import type { Order } from "@/intranet/orders/interfaces/order";
 import { getAllProjects } from "@/intranet/projects/api/project.api";
@@ -83,7 +83,8 @@ function buildPipelineRows(
   const usedQuotationIds = new Set<number>();
 
   for (const order of orders) {
-    if (order.estado !== OrderStatesRecord.pending) continue;
+    const estado = normalizeOrderEstado(order);
+    if (estado && estado !== OrderStatesRecord.pending) continue;
 
     const linkedQuotation = quotations.find(
       (q) =>
@@ -162,7 +163,7 @@ async function buildInteractionFeed(
     (q) => q.mensajes === QuotationMessagesStatesRecord.pending,
   );
 
-  const candidates = pending.slice(0, 10);
+  const candidates = pending.slice(0, 3);
   const chatResults = await Promise.allSettled(
     candidates.map((q) => getQuotationChatHistory(q.ID)),
   );
@@ -239,35 +240,78 @@ function collectClientOptions(
   return Array.from(names).sort((a, b) => a.localeCompare(b, "es"));
 }
 
+const EMPTY_KPIS = {
+  pendingRequests: 0,
+  quotationsInReview: 0,
+  approvedQuotations: 0,
+  unansweredMessages: 0,
+};
+
+async function safeBuildInteractionFeed(
+  quotations: Quotation[],
+): Promise<InteractionFeedItem[]> {
+  try {
+    const timeout = new Promise<InteractionFeedItem[]>((resolve) => {
+      setTimeout(() => resolve([]), 8_000);
+    });
+    return await Promise.race([buildInteractionFeed(quotations), timeout]);
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchProjectAssistantDashboardData(): Promise<ProjectAssistantDashboardData> {
-  const [ordersResult, quotationsResult, projectsResult] =
-    await Promise.allSettled([
-      getAllOrders({ page: 1, limit: 500 }),
-      getAllQuotations({ page: 1, limit: 500 }),
-      getAllProjects({ page: 1, limit: 500 }),
+  try {
+    const [pending, settledResults] = await Promise.all([
+      getPendingOrdersSummary(),
+      Promise.allSettled([
+        getAllQuotations({ page: 1, limit: 500 }),
+        getAllProjects({ page: 1, limit: 500 }),
+      ]),
     ]);
 
-  const orders =
-    ordersResult.status === "fulfilled" ? ordersResult.value.data : [];
-  const quotations =
-    quotationsResult.status === "fulfilled" ? quotationsResult.value.data : [];
-  const projects =
-    projectsResult.status === "fulfilled" ? projectsResult.value.data : [];
+    const orders = pending.orders;
+    const pendingRequestsTotal = pending.total;
 
-  const pipeline = buildPipelineRows(orders, quotations, projects);
-  const interactions = await buildInteractionFeed(quotations);
-  const kpis = computeOperationalKpis(orders, quotations, projects);
-  const financial = computeFinancialMetrics(quotations, projects);
-  const clientOptions = collectClientOptions(orders, quotations, projects);
+    const [quotationsSettled, projectsSettled] = settledResults;
+    const quotations =
+      quotationsSettled.status === "fulfilled"
+        ? quotationsSettled.value.data
+        : [];
+    const projects =
+      projectsSettled.status === "fulfilled" ? projectsSettled.value.data : [];
 
-  return {
-    orders,
-    quotations,
-    projects,
-    kpis,
-    financial,
-    pipeline,
-    interactions,
-    clientOptions,
-  };
+    const pipeline = buildPipelineRows(orders, quotations, projects);
+    const interactions = await safeBuildInteractionFeed(quotations);
+    const kpis = computeOperationalKpis(
+      orders,
+      quotations,
+      projects,
+      pendingRequestsTotal,
+    );
+    const financial = computeFinancialMetrics(quotations, projects);
+    const clientOptions = collectClientOptions(orders, quotations, projects);
+
+    return {
+      orders,
+      quotations,
+      projects,
+      kpis,
+      financial,
+      pipeline,
+      interactions,
+      clientOptions,
+    };
+  } catch {
+    return {
+      orders: [],
+      quotations: [],
+      projects: [],
+      kpis: EMPTY_KPIS,
+      financial: computeFinancialMetrics([], []),
+      pipeline: [],
+      interactions: [],
+      clientOptions: [],
+    };
+  }
 }

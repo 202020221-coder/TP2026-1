@@ -25,6 +25,8 @@ import {
 import { useSession } from "@/security/session/hooks/stores/useSession.store";
 import { formatCurrency } from "@/shared/lib/format-currency";
 import { useProjectAssistantDashboard } from "../hooks/useProjectAssistantDashboard";
+import { usePendingOrdersCount } from "@/intranet/orders/hooks/usePendingOrdersCount";
+import { usePendingQuotationsCount } from "@/intranet/quotation/hooks/usePendingQuotationsCount";
 import { applyOperationalFilters } from "../lib/operational-dashboard-filters";
 import {
   DEFAULT_OPERATIONAL_FILTERS,
@@ -119,9 +121,9 @@ const FINANCIAL_KPI_THEMES: ColorTheme[] = [
 
 const KPI_HELP = {
   pendingRequests:
-    "Solicitudes en estado pendiente que aún no han sido atendidas o convertidas en cotización.",
+    "Cantidad de solicitudes con estado pendiente (igual que el filtro del listado de Solicitudes). Son requerimientos que aún no se han atendido ni convertido en cotización.",
   quotationsInReview:
-    "Cotizaciones enviadas al cliente con conversación activa o feedback pendiente.",
+    "Cantidad de cotizaciones con estado pendiente (Pendiente sin proyecto), igual que el filtro del listado de Cotizaciones.",
   approvedQuotations:
     "Cotizaciones aprobadas o con orden de compra lista para generar el proyecto.",
   unansweredMessages:
@@ -224,6 +226,14 @@ function countByStatus(
 export default function ProjectAssistantDashboardView() {
   const { data: rawData, isPending, isError, refetch } =
     useProjectAssistantDashboard();
+  const {
+    data: pendingOrdersCount = 0,
+    isFetching: isPendingCountLoading,
+  } = usePendingOrdersCount();
+  const {
+    data: pendingQuotationsCount = 0,
+    isFetching: isPendingQuotationsLoading,
+  } = usePendingQuotationsCount();
   const [filters, setFilters] = useState<OperationalDashboardFilters>(
     DEFAULT_OPERATIONAL_FILTERS,
   );
@@ -245,7 +255,7 @@ export default function ProjectAssistantDashboardView() {
     [rawData?.pipeline],
   );
 
-  if (isPending) {
+  if (isPending && !rawData) {
     return (
       <div className="space-y-4 px-1">
         <Skeleton className="h-36 w-full rounded-2xl" />
@@ -328,19 +338,55 @@ export default function ProjectAssistantDashboardView() {
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <OperationalKpiCard
           title="Solicitudes Pendientes"
-          value={String(data.kpis.pendingRequests)}
-          detail="Requieren atención inmediata"
+          value={
+            isPendingCountLoading && pendingOrdersCount === 0
+              ? "…"
+              : String(pendingOrdersCount)
+          }
+          detail="Estado: pendiente — requieren atención"
           icon={ClipboardList}
           theme={OPERATIONAL_KPI_THEMES[0]}
           info={KPI_HELP.pendingRequests}
+          action={
+            pendingOrdersCount > 0 ? (
+              <Button
+                asChild
+                size="sm"
+                className="h-7 bg-amber-600 text-[11px] hover:bg-amber-700"
+              >
+                <Link to="/intranet/solicitudes?estado=pendiente">
+                  Ver solicitudes
+                  <ArrowRight className="ml-1 size-3" />
+                </Link>
+              </Button>
+            ) : null
+          }
         />
         <OperationalKpiCard
-          title="Cotizaciones en Revisión"
-          value={String(data.kpis.quotationsInReview)}
-          detail="Enviadas al cliente para feedback"
+          title="Cotizaciones Pendientes"
+          value={
+            isPendingQuotationsLoading && pendingQuotationsCount === 0
+              ? "…"
+              : String(pendingQuotationsCount)
+          }
+          detail="Estado: pendiente (sin proyecto)"
           icon={Workflow}
           theme={OPERATIONAL_KPI_THEMES[1]}
           info={KPI_HELP.quotationsInReview}
+          action={
+            pendingQuotationsCount > 0 ? (
+              <Button
+                asChild
+                size="sm"
+                className="h-7 bg-sky-600 text-[11px] hover:bg-sky-700"
+              >
+                <Link to="/intranet/cotizaciones?estado=pendiente">
+                  Ver cotizaciones
+                  <ArrowRight className="ml-1 size-3" />
+                </Link>
+              </Button>
+            ) : null
+          }
         />
         <OperationalKpiCard
           title="Cotizaciones Aprobadas"

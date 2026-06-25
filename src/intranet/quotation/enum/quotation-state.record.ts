@@ -13,6 +13,6 @@ export const quotationStateLabels: Record<QuotationState, string> = {
   [QuotationStatesRecord.rejected]: "Rechazado",
   [QuotationStatesRecord.approved]: "Aprobado",
   [QuotationStatesRecord.pending]: "Pendiente (sin proyecto)",
-  [QuotationStatesRecord.notApproved]: "No aprobado",
+  [QuotationStatesRecord.notApproved]: "No aprobado (interno)",
   [QuotationStatesRecord.incidentPaid]: "Incidencia pagada",
 };

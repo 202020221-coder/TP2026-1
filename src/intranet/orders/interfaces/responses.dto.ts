@@ -37,11 +37,14 @@ interface DetailedOrderInventoryItem {
   id: number;
   ID_Solicitud: number;
   ID_Inventario: number;
+  Id_Objeto?: number;
   cantidad: number;
   intencion: string;
   dias_alquilados: number;
   nombre: string;
-  precio_unitario: string;
+  Objeto_Nombre?: string;
+  nombre_objeto?: string;
+  precio_unitario: string | null;
 }
 
 export interface GetOrderResponseDTO {

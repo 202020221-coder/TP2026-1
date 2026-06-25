@@ -8,23 +8,23 @@ export function canNegotiateQuotation(
   quotation: Pick<Quotation, "estado">,
   userRole: UserRole | undefined,
 ): boolean {
-  if (
-    !userRole ||
-    quotation.estado === QuotationStatesRecord.rejected ||
-    quotation.estado === QuotationStatesRecord.notApproved
-  ) {
+  if (!userRole || quotation.estado === QuotationStatesRecord.rejected) {
     return false;
   }
 
   if (userRole === RolesRecord.projectAdmin) {
     return (
+      quotation.estado === QuotationStatesRecord.notApproved ||
       quotation.estado === QuotationStatesRecord.pending ||
       quotation.estado === QuotationStatesRecord.approved
     );
   }
 
   if (userRole === RolesRecord.client) {
-    return quotation.estado === QuotationStatesRecord.pending;
+    return (
+      quotation.estado === QuotationStatesRecord.notApproved ||
+      quotation.estado === QuotationStatesRecord.pending
+    );
   }
 
   return false;
