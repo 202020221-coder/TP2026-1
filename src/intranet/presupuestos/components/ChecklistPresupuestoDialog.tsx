@@ -23,6 +23,7 @@ import {
   isChecklistExported,
   markChecklistExported,
 } from "../lib/checklist-export-storage";
+import { hasFaltantesBeenExported } from "../lib/export-faltantes-inventario-once";
 
 interface ChecklistPresupuestoDialogProps {
   cotizacionId: number;
@@ -39,6 +40,20 @@ export function ChecklistPresupuestoDialog({
   useEffect(() => {
     setHasExported(isChecklistExported(cotizacionId));
   }, [cotizacionId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    hasFaltantesBeenExported(cotizacionId).then((exported) => {
+      if (!cancelled && exported) {
+        markChecklistExported(cotizacionId);
+        setHasExported(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, cotizacionId]);
 
   const { data, isLoading } = useInventarioPorServicioPresupuesto(
     cotizacionId,

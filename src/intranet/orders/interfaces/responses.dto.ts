@@ -1,6 +1,7 @@
 import type { Pagination } from "@/shared/interfaces/api-response";
 import type { Order } from "./order";
 import type { OrderState } from "../enum/order-state.record";
+import type { PostRequestServiceDTO } from "./create-request.dto";
 
 export interface GetOrderErrorResponse {
   error: string;
@@ -15,13 +16,21 @@ interface DetailedOrderMedio {
   cliente_telefono: string;
 }
 
-interface DetailedOrderService {
+export interface DetailedOrderService {
   id: number;
   ID_Solicitud: number;
   ID_Servicio: number;
+  nombre?: string | null;
+  Principal?: boolean;
+  id_subservicio?: number | null;
+  ubicacion_etapa?: {
+    id: number;
+    nombre: string;
+    orden: number;
+  } | null;
   fecha_inicio_servicio: string;
   horario_servicio: string;
-  fecha_fin_servicio: string;
+  fecha_fin_servicio: string | null;
 }
 
 interface DetailedOrderInventoryItem {
@@ -52,4 +61,7 @@ export interface GetOrderResponseDTO {
   medios: DetailedOrderMedio[];
   servicios: DetailedOrderService[];
   inventario: DetailedOrderInventoryItem[];
+  servicio_principal?: PostRequestServiceDTO | null;
+  servicios_secundarios?: DetailedOrderService[];
+  etapas?: unknown;
 }

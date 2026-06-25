@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { addDays } from 'date-fns';
 import { Button } from "@/shared/components/ui/button";
 import { useDataFetching } from '../hooks/useDataFetching';
 import { usePrefillUserData } from '../hooks/usePrefillUserData';
@@ -10,8 +9,6 @@ import {
     CreateClientContact,
     CreateClientPerfil,
     CreateRequest,
-    CreateRequestInventory,
-    CreateRequestService,
 } from '../api';
 import {
     StepCatalogSelection,
@@ -27,8 +24,6 @@ import type {
     PostClientDTO,
     PostClientPerfilDTO,
     PostRequestDTO,
-    PostRequestInventoryDTO,
-    PostRequestServiceDTO,
     ClientFormData,
     ClientOption,
     ContactFormData,
@@ -38,6 +33,18 @@ import type {
     SelectedTruck,
     ServiceFormData,
 } from '../interfaces';
+import type { AxiosError } from 'axios';
+import {
+    buildSolicitudInventarioPayload,
+    buildSolicitudServiciosPayload,
+    findCatalogServiceByName,
+    resolvePrincipalServiceId,
+} from '../lib/order-service.utils';
+
+const extractApiErrorMessage = (error: unknown): string => {
+    const axiosError = error as AxiosError<{ error?: string }>;
+    return axiosError.response?.data?.error ?? 'Error desconocido';
+};
 
 const buildSelectedServicesDetails = (services: SelectedTruck[]) =>
     services
@@ -49,13 +56,6 @@ const buildSelectedServicesDetails = (services: SelectedTruck[]) =>
             ].join('\n'),
         )
         .join('\n---\n');
-
-const buildLinkedServicePayload = (serviceId: number): PostRequestServiceDTO => ({
-    ID_Servicio: serviceId,
-    fecha_inicio_servicio: new Date().toISOString(),
-    horario_servicio: 'Por definir',
-    fecha_fin_servicio: addDays(new Date(), 7).toISOString(),
-});
 
 export function CreateRequestPage() {
     const navigate = useNavigate();
@@ -152,42 +152,8 @@ export function CreateRequestPage() {
             return requestId;
         } catch (error) {
             console.error("Error inesperado al crear solicitud:", error);
+            alert(`No se pudo crear la solicitud: ${extractApiErrorMessage(error)}`);
             return null;
-        }
-    };
-
-    const handleCreateRequestService = async (requestId: number, serviceData: PostRequestServiceDTO) => {
-        try {
-            const serviceResponse = await CreateRequestService(requestId, serviceData);
-
-            if ("error" in serviceResponse) {
-                console.error("Error creando servicio:", serviceResponse.error);
-                return null;
-            }
-
-            console.log("Servicio creado:", serviceResponse);
-            return serviceResponse;
-        } catch (error) {
-            console.error("Error inesperado al crear servicio:", error);
-            return null;
-        }
-    };
-
-    const handleSubmitRequestInventory = async (
-        requestId: number,
-        data: PostRequestInventoryDTO
-    ) => {
-        try {
-            const response = await CreateRequestInventory(requestId, data);
-
-            if ("error" in response) {
-                console.error("Error creando inventario:", response.error);
-                return;
-            }
-
-            console.log("Inventario creado:", response);
-        } catch (error) {
-            console.error("Error inesperado:", error);
         }
     };
 
@@ -701,64 +667,69 @@ export function CreateRequestPage() {
                                             : '',
                                     ].filter(Boolean).join('\n---\n');
 
+                                    const resolvedPrincipalId = await resolvePrincipalServiceId(
+                                        serviceData.descripcion,
+                                        principalServiceId,
+                                    );
+
+                                    if (!resolvedPrincipalId) {
+                                        alert(
+                                            'No se pudo identificar el servicio principal. Use el formato "Solicito el servicio: ..." en la descripción o ingrese desde la página de servicios.',
+                                        );
+                                        setIsProcessing(false);
+                                        return;
+                                    }
+
+                                    let descripcionFinal = serviceData.descripcion.trim();
+                                    if (!/^Solicito el servicio:/i.test(descripcionFinal)) {
+                                        const principalCatalog =
+                                            await findCatalogServiceByName(
+                                                descripcionFinal.split('\n')[0] ?? '',
+                                            );
+                                        if (principalCatalog) {
+                                            descripcionFinal =
+                                                `Solicito el servicio: ${principalCatalog.nombre}.\n\n${descripcionFinal}`.trim();
+                                        }
+                                    }
+
+                                    const solicitudServicios = await buildSolicitudServiciosPayload(
+                                        resolvedPrincipalId,
+                                        selectedTrucks.map((service) => ({
+                                            serviceId: service.serviceId,
+                                            name: service.name,
+                                            observacionesEleccion: service.observacionesEleccion,
+                                        })),
+                                    );
+
+                                    const inventarioPayload = buildSolicitudInventarioPayload(
+                                        selectedProducts.map((p) => ({
+                                            productId: p.productId,
+                                            intent: p.intent,
+                                            quantity: p.quantity,
+                                            days: p.days,
+                                        })),
+                                    );
+
                                     const requestData: PostRequestDTO = {
                                         Id_Cliente: serviceData.Id_Cliente || formData.DNI_O_RUC,
-                                        descripcion: serviceData.descripcion,
+                                        descripcion: descripcionFinal,
                                         ubicacion: serviceData.ubicacion,
                                         productoenvio: serviceData.productoenvio || null,
                                         camionesenvio: selectedServiceNames || null,
                                         obsgenerales: preferencesData.generalObservations || null,
                                         obseleccion: finalSelectionObservations || null,
+                                        ...solicitudServicios,
+                                        ...(inventarioPayload.length > 0
+                                            ? { inventario: inventarioPayload }
+                                            : {}),
                                     };
 
                                     const newRequestId = await handleCreateRequest(requestData);
                                     if (!newRequestId) {
-                                        alert('No se pudo crear la solicitud. Revisa la consola.');
                                         setIsProcessing(false);
                                         return;
                                     }
                                     setCreatedRequestId(newRequestId);
-
-                                    // Productos del catálogo seleccionados en la solicitud.
-                                    for (const product of selectedProducts) {
-                                        const inventoryId = Number(
-                                            product.productId.replace(/^product-/, ''),
-                                        );
-                                        if (!inventoryId) continue;
-
-                                        await handleSubmitRequestInventory(newRequestId, {
-                                            ID_Inventario: inventoryId,
-                                            cantidad: product.quantity,
-                                            intencion: product.intent,
-                                            dias_alquilados:
-                                                product.intent === 'alquilar'
-                                                    ? (product.days ?? 1)
-                                                    : 0,
-                                        });
-                                    }
-
-                                    const linkedServiceIds = new Set<number>();
-
-                                    // Servicio principal solicitado desde la landing.
-                                    if (principalServiceId) {
-                                        await handleCreateRequestService(
-                                            newRequestId,
-                                            buildLinkedServicePayload(principalServiceId),
-                                        );
-                                        linkedServiceIds.add(principalServiceId);
-                                    }
-
-                                    // Sub servicios seleccionados en la pestaña 6.
-                                    for (const selectedService of selectedTrucks) {
-                                        const serviceId = selectedService.serviceId;
-                                        if (!serviceId || linkedServiceIds.has(serviceId)) continue;
-
-                                        await handleCreateRequestService(
-                                            newRequestId,
-                                            buildLinkedServicePayload(serviceId),
-                                        );
-                                        linkedServiceIds.add(serviceId);
-                                    }
 
                                     navigate('/intranet/solicitudes', { replace: true });
                                 }

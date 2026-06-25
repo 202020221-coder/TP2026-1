@@ -39,12 +39,22 @@ export interface PostClientContactDTO {
   lugar_trabajo: string;
 }
 
+export interface PostRequestUbicacionEtapaDTO {
+  id: number;
+  nombre: string;
+  orden: number;
+}
+
 //Solicitud-Servicio
 export interface PostRequestServiceDTO {
   ID_Servicio: number;
   fecha_inicio_servicio: string;
   horario_servicio: string;
   fecha_fin_servicio: string | null;
+  Principal?: boolean;
+  id_subservicio?: number;
+  ubicacion_etapa?: PostRequestUbicacionEtapaDTO;
+  indicaciones?: string | null;
 }
 
 //Solicitud-Inventario
@@ -53,9 +63,9 @@ export interface PostRequestInventoryDTO {
   cantidad: number;
   intencion: string;
   dias_alquilados: number;
-}[]
+}
 
-//Solicitud
+//Solicitud — POST /solicitudes (cabecera + servicios + inventario en un solo envío)
 export interface PostRequestDTO {
   Id_Cliente: string;
   descripcion: string;
@@ -64,7 +74,11 @@ export interface PostRequestDTO {
   camionesenvio: string | null;
   obsgenerales: string | null;
   obseleccion: string | null;
+  servicio_principal?: PostRequestServiceDTO & { Principal: true };
+  servicios_secundarios?: Array<PostRequestServiceDTO & { Principal: false }>;
+  inventario?: PostRequestInventoryDTO[];
 }
+
 export interface PostRequestResponseDTO {
   ID?: number;
   id?: number;

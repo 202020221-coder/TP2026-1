@@ -98,16 +98,26 @@ export const CreateQuotationServicesSection: FC = () => {
           addHandler={(items, servicePhases) => {
             addItems(
               items.map(
-                (i): DesiredQuotationData["services"][number] => ({
-                  id: i.id,
-                  name: i.name,
-                  unitPrice: i.unitPrice,
-                  startDate: i.startDate,
-                  dueDate: i.dueDate,
-                  scheduleStart: i.scheduleStart,
-                  scheduleEnd: i.scheduleEnd,
-                  isPrincipal: false,
-                }),
+                (i): DesiredQuotationData["services"][number] => {
+                  const faseOrden =
+                    !incidentCatalog && phases.items.length > 0 ? 1 : null;
+                  const dates = computeServiceDates(
+                    { isPrincipal: false, faseOrden },
+                    projectStartDate,
+                    phases,
+                  );
+                  return {
+                    id: i.id,
+                    name: i.name,
+                    unitPrice: i.unitPrice,
+                    startDate: dates.startDate,
+                    dueDate: dates.dueDate,
+                    scheduleStart: i.scheduleStart,
+                    scheduleEnd: i.scheduleEnd,
+                    isPrincipal: false,
+                    faseOrden,
+                  };
+                },
               ),
             );
             if (servicePhases && !incidentCatalog) mergeServicePhases(servicePhases);
@@ -118,7 +128,11 @@ export const CreateQuotationServicesSection: FC = () => {
         />
         <QuotationServicesTable
           items={services}
+          phases={phases}
           onDelete={deleteItem}
+          onUpdateFaseOrden={(id, faseOrden) =>
+            updateItem(id, "faseOrden", faseOrden)
+          }
           onUpdateSchedule={(id, field, value) =>
             updateItem(id, field, value)
           }
