@@ -20,6 +20,7 @@ import {
 import { type FC } from "react";
 import { CreateQuotationProductsSection } from "../components/prices/products/CreateQuotationProductsSection";
 import { IncidentQuotationProductsSection } from "../components/prices/products/IncidentQuotationProductsSection";
+import { CreateQuotationPickupSection } from "../components/prices/delivery/CreateQuotationPickupSection";
 import { QuotationProductStoreProvider } from "../hooks/stores/quotation.products.store.provider";
 import { QuotationTruckStoreProvider } from "../hooks/stores/quotation.truck.store.provider";
 import { CreateQuotationTruckSelector } from "../components/prices/truck/CreateQuotationTruckSelector";
@@ -168,10 +169,13 @@ export function EditQuotationPage() {
                             </TabsContent>
                             <TabsContent value="prices" className="space-y-6">
                               {isIncidentQuotation && data.incidentQuotationId ? (
-                                <IncidentQuotationProductsSection
-                                  cotizacionId={Number(quotationId)}
-                                  incidentId={data.incidentQuotationId}
-                                />
+                                <>
+                                  <IncidentQuotationProductsSection
+                                    cotizacionId={Number(quotationId)}
+                                    incidentId={data.incidentQuotationId}
+                                  />
+                                  <CreateQuotationPickupSection />
+                                </>
                               ) : (
                                 <CreateQuotationProductsSection />
                               )}

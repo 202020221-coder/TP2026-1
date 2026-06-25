@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { createQuotation } from "../api/quotation.api";
+import { exportarFaltantesInventarioOnce } from "@/intranet/presupuestos/lib/export-faltantes-inventario-once";
 import { useQuotationProductStore } from "./stores/quotation.products.store.provider";
 import { useQuotationTruckStore } from "./stores/quotation.truck.store.provider";
 import { useQuotationReferenceStore } from "./stores/quotation.reference.store.provider";
@@ -62,7 +63,7 @@ export const useCreateQuotation = ({
             return { ...service, startDate, dueDate };
           });
 
-          await createQuotation({
+          const created = await createQuotation({
             id_solicitud: Number(orderId),
             DNI_O_RUC: referenceData.DNIorRUC,
             name: quotationName || "cotización",
@@ -88,6 +89,14 @@ export const useCreateQuotation = ({
             },
             phases,
           });
+
+          if (created.ID) {
+            try {
+              await exportarFaltantesInventarioOnce(created.ID);
+            } catch {
+              // La cotización ya fue creada; el presupuesto se puede exportar manualmente.
+            }
+          }
           navigate("/intranet/solicitudes");
         },
         {

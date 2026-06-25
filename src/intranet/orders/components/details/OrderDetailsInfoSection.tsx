@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { OrderStatesRecord } from "../../enum/order-state.record";
 import type { DetailedOrder } from "../../interfaces/order";
+import { formatOrderDisplayDate } from "../../lib/format-order-date";
 
 const statusStyles: Record<string, string> = {
   [OrderStatesRecord.approved]: "bg-green-100 text-green-700 border-green-300",
@@ -84,11 +85,7 @@ export const OrderDetailsInfoSection: FC<{ order: DetailedOrder }> = ({
               Fecha de Creación
             </span>
             <p className="text-sm text-muted-foreground">
-              {new Date(order.FechaCreacion).toLocaleDateString("es-PE", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {formatOrderDisplayDate(order.FechaCreacion)}
             </p>
           </div>
         </div>

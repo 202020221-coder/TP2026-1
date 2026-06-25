@@ -23,6 +23,14 @@ export interface ServicioSubservicio {
   nombre: string;
   /** Ids de las fases (ServicioFase.id) en las que interviene el subservicio. */
   faseIds: string[];
+  /** ID de la fila SERVICIO_SUBSERVICIO (requerido al crear solicitudes). */
+  id_subservicio?: number;
+  /** Etapa donde ocurre el subservicio (desde GET /servicios/:id/principal). */
+  ubicacion_etapa?: {
+    id: number;
+    nombre: string;
+    orden: number;
+  };
   /** Si true, el pago del subservicio es precio × días de su etapa. */
   pagoPorDia?: boolean;
 }

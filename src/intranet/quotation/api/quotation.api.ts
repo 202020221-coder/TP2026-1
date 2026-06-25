@@ -204,6 +204,12 @@ type CreateQuotationDTO = UpsertQuotationDTO & {
   Id_incidencia?: number | null;
 };
 
+export type CreateQuotationResponse = {
+  message: string;
+  ID: number;
+  precio_total?: number;
+};
+
 export const createQuotation = async (data: CreateQuotationDTO) => {
   const body = {
     ...toQuotationApiBody(data),
@@ -211,7 +217,11 @@ export const createQuotation = async (data: CreateQuotationDTO) => {
     DNI_O_RUC: data.DNI_O_RUC,
     Id_incidencia: data.Id_incidencia ?? null,
   };
-  await axiosInstance.post("/cotizaciones", body);
+  const response = await axiosInstance.post<CreateQuotationResponse>(
+    "/cotizaciones",
+    body,
+  );
+  return response.data;
 };
 
 export const updateQuotation = async (id: number, data: UpsertQuotationDTO) => {

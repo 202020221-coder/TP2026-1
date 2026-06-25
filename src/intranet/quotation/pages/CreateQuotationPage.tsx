@@ -139,7 +139,7 @@ export function CreateQuotationPage() {
                             <CreateQuotationProductsSection />
                             <CreateQuotationServicesSection />
                             <CreateQuotationTruckSelector />
-                            <CreateQuotationSummaryCard />
+                            <CreateQuotationSummaryCard showUpdateRatesButton />
                           </TabsContent>
                           <TabsContent value="conditions">
                             <CreateQuotationConditionCard />

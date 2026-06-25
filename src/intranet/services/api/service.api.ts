@@ -464,21 +464,36 @@ const mapPrincipalSubservicios = (
 ): ServicioSubservicio[] => {
   const byService = new Map<number, ServicioSubservicio>();
   for (const row of rows) {
-    const servId = Number(row.ID_Servicio ?? row.id_subservicio ?? 0);
+    const servId = Number(row.ID_Servicio ?? 0);
     if (!servId) continue;
     const faseId =
       row.ubicacion_etapa?.id != null ? String(row.ubicacion_etapa.id) : null;
+    const ubicacion =
+      row.ubicacion_etapa?.id != null
+        ? {
+            id: Number(row.ubicacion_etapa.id),
+            nombre: row.ubicacion_etapa.nombre ?? "",
+            orden: Number(row.ubicacion_etapa.orden ?? 0),
+          }
+        : undefined;
+    const linkId =
+      row.id_subservicio != null ? Number(row.id_subservicio) : undefined;
+
     const existing = byService.get(servId);
     if (existing) {
       if (faseId && !existing.faseIds.includes(faseId)) {
         existing.faseIds.push(faseId);
       }
       if (row.pago_por_dia === true) existing.pagoPorDia = true;
+      if (linkId != null) existing.id_subservicio = linkId;
+      if (ubicacion) existing.ubicacion_etapa = ubicacion;
     } else {
       byService.set(servId, {
         id: servId,
         nombre: row.nombre ?? row.name ?? "",
         faseIds: faseId ? [faseId] : [],
+        id_subservicio: linkId,
+        ubicacion_etapa: ubicacion,
         pagoPorDia: row.pago_por_dia === true,
       });
     }
